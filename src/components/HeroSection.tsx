@@ -30,7 +30,9 @@ export const HeroSection = () => {
     <section id="home" className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Animated Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-brand-light via-brand-white to-brand-light dark:from-brand-dark dark:via-gray-800 dark:to-brand-primary/20">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=\"60\" height=\"60\" viewBox=\"0 0 60 60\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"none\" fill-rule=\"evenodd\"%3E%3Cg fill=\"%2305B34D\" fill-opacity=\"0.05\"%3E%3Cpath d=\"M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-30"></div>
+        <div className="absolute inset-0 opacity-30" style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2305B34D' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+        }}></div>
       </div>
 
       {/* Floating Elements */}
@@ -43,7 +45,7 @@ export const HeroSection = () => {
           {/* Badge */}
           <div className="inline-flex items-center px-4 py-2 rounded-full bg-brand-primary/10 dark:bg-brand-primary/20 text-brand-primary dark:text-brand-primary text-sm font-medium mb-6">
             <Star className="w-4 h-4 mr-2" />
-            Early Access • Limited Spots Available
+            Early Registration • Registration Fee: ₦500
           </div>
 
           {/* Main Headline */}
@@ -87,12 +89,14 @@ export const HeroSection = () => {
           {/* Pricing Preview */}
           <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-8 mb-8">
             <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-lg border border-gray-200 dark:border-gray-700">
-              <div className="text-sm text-gray-600 dark:text-gray-400">Basic Track</div>
-              <div className="text-2xl font-bold text-brand-primary">₦1,000<span className="text-sm text-gray-500">/month</span></div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">JAMB + Shariah</div>
+              <div className="text-2xl font-bold text-brand-primary">₦1,500<span className="text-sm text-gray-500">/month</span></div>
+              <div className="text-xs text-gray-500">9 months program</div>
             </div>
             <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-lg border border-gray-200 dark:border-gray-700 ring-2 ring-brand-primary">
-              <div className="text-sm text-brand-primary font-medium">Tech Track</div>
-              <div className="text-2xl font-bold text-brand-primary">₦1,700<span className="text-sm text-gray-500">/month</span></div>
+              <div className="text-sm text-brand-primary font-medium">+ Tech Skills</div>
+              <div className="text-2xl font-bold text-brand-primary">₦2,000<span className="text-sm text-gray-500">/month</span></div>
+              <div className="text-xs text-gray-500">12 months program</div>
             </div>
           </div>
 
@@ -102,7 +106,7 @@ export const HeroSection = () => {
               onClick={scrollToWaitlist}
               className="group px-8 py-4 bg-brand-primary text-white rounded-xl font-semibold text-lg hover:bg-brand-primary/90 transition-all duration-200 shadow-lg hover:shadow-xl animate-pulse-glow"
             >
-              Join Waitlist Now
+              Register Now (₦500)
               <ArrowRight className="inline-block w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
             </button>
             <button

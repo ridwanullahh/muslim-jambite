@@ -10,8 +10,8 @@ const sdkConfig: UniversalSDKConfig = {
   basePath: "db",
   mediaPath: "media",
   schemas: {
-    waitlist: {
-      required: ['email', 'fullName', 'phone'],
+    registrations: {
+      required: ['email', 'fullName', 'phone', 'program'],
       types: {
         email: 'string',
         fullName: 'string',
@@ -20,14 +20,46 @@ const sdkConfig: UniversalSDKConfig = {
         techTrack: 'boolean',
         currentLevel: 'string',
         interests: 'array',
-        createdAt: 'date'
+        paymentStatus: 'string',
+        paymentReference: 'string',
+        registrationFee: 'number',
+        monthlyFee: 'number',
+        createdAt: 'date',
+        updatedAt: 'date'
       },
       defaults: {
         program: 'jamb-prep',
         techTrack: false,
         currentLevel: 'ss3',
         interests: [],
-        createdAt: new Date().toISOString()
+        paymentStatus: 'pending',
+        registrationFee: 500,
+        monthlyFee: 1500,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+    },
+    payments: {
+      required: ['email', 'amount', 'reference'],
+      types: {
+        email: 'string',
+        fullName: 'string',
+        amount: 'number',
+        currency: 'string',
+        reference: 'string',
+        status: 'string',
+        gateway: 'string',
+        metadata: 'object',
+        createdAt: 'date',
+        updatedAt: 'date'
+      },
+      defaults: {
+        currency: 'NGN',
+        status: 'pending',
+        gateway: 'paystack',
+        metadata: {},
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
       }
     },
     subscribers: {
@@ -47,9 +79,27 @@ const sdkConfig: UniversalSDKConfig = {
     welcome: `
       <div style="font-family: 'Inter', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
         <h2 style="color: #05B34D; text-align: center;">Assalamu Alaikum {{fullName}}!</h2>
-        <p>JazakAllahu khairan for your interest in MuslimJambite! You've been successfully added to our waitlist.</p>
-        <p>We'll keep you updated on our launch and exclusive early access opportunities.</p>
+        <p>JazakAllahu khairan for your interest in MuslimJambite! Your registration has been received.</p>
+        <p>Payment Status: {{paymentStatus}}</p>
+        <p>Program: {{program}} {{#techTrack}}+ Tech Skills{{/techTrack}}</p>
+        <p>Monthly Fee: ₦{{monthlyFee}}</p>
+        <p>We'll keep you updated on your registration status and program details.</p>
         <p style="margin-top: 30px;">Barakallahu feeki,<br>The MuslimJambite Team</p>
+      </div>
+    `,
+    payment_success: `
+      <div style="font-family: 'Inter', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h2 style="color: #05B34D; text-align: center;">Payment Successful!</h2>
+        <p>Assalamu Alaikum {{fullName}},</p>
+        <p>Your registration payment has been successfully processed.</p>
+        <p><strong>Payment Details:</strong></p>
+        <ul>
+          <li>Amount: ₦{{amount}}</li>
+          <li>Reference: {{reference}}</li>
+          <li>Program: {{program}}</li>
+        </ul>
+        <p>Welcome to MuslimJambite! We'll contact you soon with next steps.</p>
+        <p>Barakallahu feeki,<br>The MuslimJambite Team</p>
       </div>
     `,
     otp: `
@@ -67,8 +117,8 @@ const sdkConfig: UniversalSDKConfig = {
 // Initialize SDK
 export const sdk = new UniversalSDK(sdkConfig);
 
-// Waitlist interface
-export interface WaitlistEntry {
+// Registration interface
+export interface RegistrationEntry {
   id?: string;
   uid?: string;
   email: string;
@@ -78,42 +128,151 @@ export interface WaitlistEntry {
   techTrack: boolean;
   currentLevel: string;
   interests: string[];
+  paymentStatus: string;
+  paymentReference?: string;
+  registrationFee: number;
+  monthlyFee: number;
   createdAt: string;
+  updatedAt: string;
 }
 
-// Waitlist service
-export class WaitlistService {
-  static async addToWaitlist(entry: Omit<WaitlistEntry, 'id' | 'uid' | 'createdAt'>): Promise<WaitlistEntry> {
+// Payment interface
+export interface PaymentEntry {
+  id?: string;
+  uid?: string;
+  email: string;
+  fullName?: string;
+  amount: number;
+  currency: string;
+  reference: string;
+  status: string;
+  gateway: string;
+  metadata: any;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Registration service
+export class RegistrationService {
+  // Initialize collections if they don't exist
+  static async initializeCollections(): Promise<void> {
     try {
-      const newEntry = await sdk.insert<WaitlistEntry>('waitlist', {
+      const collections = ['registrations', 'payments', 'subscribers'];
+      for (const collection of collections) {
+        try {
+          await sdk.get(collection);
+        } catch (error) {
+          // If collection doesn't exist (404), create it with empty array
+          if (error.message.includes('Not Found')) {
+            console.log(`Creating collection: ${collection}`);
+            await sdk.insert(collection, {});
+            await sdk.delete(collection, '1'); // Remove the dummy entry
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Failed to initialize collections:', error);
+    }
+  }
+
+  static async registerStudent(entry: Omit<RegistrationEntry, 'id' | 'uid' | 'createdAt' | 'updatedAt'>): Promise<RegistrationEntry> {
+    try {
+      await this.initializeCollections();
+      
+      const monthlyFee = entry.techTrack ? 2000 : 1500;
+      const newEntry = await sdk.insert<RegistrationEntry>('registrations', {
         ...entry,
-        createdAt: new Date().toISOString()
+        monthlyFee,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
       });
       
       // Send welcome email (if SMTP is configured)
       if (sdk.smtp?.endpoint) {
         await sdk.sendEmail(
           entry.email,
-          "Welcome to MuslimJambite Waitlist!",
-          sdk.renderTemplate('welcome', { fullName: entry.fullName })
+          "Welcome to MuslimJambite Registration!",
+          sdk.renderTemplate('welcome', { 
+            fullName: entry.fullName,
+            paymentStatus: entry.paymentStatus,
+            program: entry.program,
+            techTrack: entry.techTrack,
+            monthlyFee
+          })
         );
       }
       
       return newEntry;
     } catch (error) {
-      console.error('Failed to add to waitlist:', error);
+      console.error('Failed to register student:', error);
       throw error;
     }
   }
 
-  static async getWaitlistStats(): Promise<{
+  static async updatePaymentStatus(email: string, reference: string, status: string): Promise<RegistrationEntry> {
+    try {
+      const registrations = await sdk.get<RegistrationEntry>('registrations');
+      const registration = registrations.find(r => r.email === email);
+      
+      if (!registration) {
+        throw new Error('Registration not found');
+      }
+
+      const updatedEntry = await sdk.update<RegistrationEntry>('registrations', registration.id!, {
+        paymentStatus: status,
+        paymentReference: reference,
+        updatedAt: new Date().toISOString()
+      });
+
+      // Send confirmation email on successful payment
+      if (status === 'success' && sdk.smtp?.endpoint) {
+        await sdk.sendEmail(
+          email,
+          "Payment Successful - MuslimJambite Registration",
+          sdk.renderTemplate('payment_success', {
+            fullName: registration.fullName,
+            amount: registration.registrationFee,
+            reference,
+            program: `${registration.program}${registration.techTrack ? ' + Tech Skills' : ''}`
+          })
+        );
+      }
+
+      return updatedEntry;
+    } catch (error) {
+      console.error('Failed to update payment status:', error);
+      throw error;
+    }
+  }
+
+  static async recordPayment(payment: Omit<PaymentEntry, 'id' | 'uid' | 'createdAt' | 'updatedAt'>): Promise<PaymentEntry> {
+    try {
+      await this.initializeCollections();
+      
+      const newPayment = await sdk.insert<PaymentEntry>('payments', {
+        ...payment,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
+      
+      return newPayment;
+    } catch (error) {
+      console.error('Failed to record payment:', error);
+      throw error;
+    }
+  }
+
+  static async getRegistrationStats(): Promise<{
     total: number;
     techTrack: number;
     basicTrack: number;
     recentSignups: number;
+    pendingPayments: number;
+    completedPayments: number;
   }> {
     try {
-      const entries = await sdk.get<WaitlistEntry>('waitlist');
+      await this.initializeCollections();
+      const entries = await sdk.get<RegistrationEntry>('registrations');
       const now = new Date();
       const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
       
@@ -121,16 +280,19 @@ export class WaitlistService {
         total: entries.length,
         techTrack: entries.filter(e => e.techTrack).length,
         basicTrack: entries.filter(e => !e.techTrack).length,
-        recentSignups: entries.filter(e => new Date(e.createdAt) > weekAgo).length
+        recentSignups: entries.filter(e => new Date(e.createdAt) > weekAgo).length,
+        pendingPayments: entries.filter(e => e.paymentStatus === 'pending').length,
+        completedPayments: entries.filter(e => e.paymentStatus === 'success').length
       };
     } catch (error) {
-      console.error('Failed to get waitlist stats:', error);
-      return { total: 0, techTrack: 0, basicTrack: 0, recentSignups: 0 };
+      console.error('Failed to get registration stats:', error);
+      return { total: 0, techTrack: 0, basicTrack: 0, recentSignups: 0, pendingPayments: 0, completedPayments: 0 };
     }
   }
 
   static async subscribeToNewsletter(email: string): Promise<void> {
     try {
+      await this.initializeCollections();
       await sdk.insert('subscribers', { email });
     } catch (error) {
       console.error('Failed to subscribe to newsletter:', error);
@@ -143,6 +305,7 @@ export class WaitlistService {
 export const initializeSDK = async () => {
   try {
     await sdk.init();
+    await RegistrationService.initializeCollections();
     console.log('SDK initialized successfully');
   } catch (error) {
     console.error('Failed to initialize SDK:', error);
