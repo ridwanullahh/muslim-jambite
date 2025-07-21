@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,12 +62,24 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// Brand colors
+				brand: {
+					primary: 'hsl(var(--brand-primary))',
+					dark: 'hsl(var(--brand-dark))',
+					accent: 'hsl(var(--brand-accent))',
+					light: 'hsl(var(--brand-light))',
+					white: 'hsl(var(--brand-white))'
 				}
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
 				sm: 'calc(var(--radius) - 4px)'
+			},
+			fontFamily: {
+				inter: ['Inter', 'sans-serif'],
+				lora: ['Lora', 'serif']
 			},
 			keyframes: {
 				'accordion-down': {
