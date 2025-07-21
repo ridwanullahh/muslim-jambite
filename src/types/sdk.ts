@@ -70,25 +70,107 @@ export interface CloudinaryUploadResult {
   [key: string]: any;
 }
 
-// The main SDK class - simplified interface
-export default class UniversalSDK {
-  constructor(config: UniversalSDKConfig);
+// The main SDK class interface - only type definitions
+export interface UniversalSDKInterface {
+  init(): Promise<UniversalSDKInterface>;
+  get<T = any>(collection: string, force?: boolean): Promise<T[]>;
+  insert<T = any>(collection: string, item: Partial<T>): Promise<T & { id: string; uid: string }>;
+  update<T = any>(collection: string, key: string, updates: Partial<T>): Promise<T>;
+  delete<T = any>(collection: string, key: string): Promise<void>;
   
-  async init(): Promise<UniversalSDK>;
-  async get<T = any>(collection: string, force?: boolean): Promise<T[]>;
-  async insert<T = any>(collection: string, item: Partial<T>): Promise<T & { id: string; uid: string }>;
-  async update<T = any>(collection: string, key: string, updates: Partial<T>): Promise<T>;
-  async delete<T = any>(collection: string, key: string): Promise<void>;
-  
-  async sendEmail(to: string, subject: string, html: string): Promise<boolean>;
+  sendEmail(to: string, subject: string, html: string): Promise<boolean>;
   renderTemplate(name: string, data: Record<string, any>): string;
   
   queryBuilder<T = any>(collection: string): QueryBuilder<T>;
   
   // Auth methods
-  async register(email: string, password: string, profile?: Partial<User>): Promise<User>;
-  async login(email: string, password: string): Promise<string>;
+  register(email: string, password: string, profile?: Partial<User>): Promise<User>;
+  login(email: string, password: string): Promise<string>;
   
   // Properties
   smtp?: SMTPConfig;
+}
+
+// Mock implementation for development
+export default class UniversalSDK implements UniversalSDKInterface {
+  private config: UniversalSDKConfig;
+  public smtp?: SMTPConfig;
+
+  constructor(config: UniversalSDKConfig) {
+    this.config = config;
+    this.smtp = config.smtp;
+  }
+
+  async init(): Promise<UniversalSDKInterface> {
+    console.log('SDK initialized with config:', this.config.owner + '/' + this.config.repo);
+    return this;
+  }
+
+  async get<T = any>(collection: string, force?: boolean): Promise<T[]> {
+    console.log('Getting collection:', collection);
+    // Return empty array for now - will be replaced with actual GitHub implementation
+    return [];
+  }
+
+  async insert<T = any>(collection: string, item: Partial<T>): Promise<T & { id: string; uid: string }> {
+    console.log('Inserting into collection:', collection, item);
+    // Return mock data - will be replaced with actual GitHub implementation
+    return {
+      ...item as T,
+      id: Date.now().toString(),
+      uid: Date.now().toString()
+    };
+  }
+
+  async update<T = any>(collection: string, key: string, updates: Partial<T>): Promise<T> {
+    console.log('Updating collection:', collection, key, updates);
+    // Return mock data - will be replaced with actual GitHub implementation
+    return updates as T;
+  }
+
+  async delete<T = any>(collection: string, key: string): Promise<void> {
+    console.log('Deleting from collection:', collection, key);
+    // Mock implementation - will be replaced with actual GitHub implementation
+  }
+
+  async sendEmail(to: string, subject: string, html: string): Promise<boolean> {
+    console.log('Sending email to:', to, 'Subject:', subject);
+    // Mock implementation - will be replaced with actual SMTP implementation
+    return true;
+  }
+
+  renderTemplate(name: string, data: Record<string, any>): string {
+    const template = this.config.templates?.[name] || '';
+    let rendered = template;
+    
+    // Simple template rendering
+    for (const [key, value] of Object.entries(data)) {
+      rendered = rendered.replace(new RegExp(`{{${key}}}`, 'g'), String(value));
+    }
+    
+    return rendered;
+  }
+
+  queryBuilder<T = any>(collection: string): QueryBuilder<T> {
+    return {
+      where: (fn: (item: T) => boolean) => this.queryBuilder(collection),
+      sort: (field: string, dir?: 'asc' | 'desc') => this.queryBuilder(collection),
+      project: (fields: string[]) => this.queryBuilder(collection),
+      exec: async () => []
+    };
+  }
+
+  async register(email: string, password: string, profile?: Partial<User>): Promise<User> {
+    console.log('Registering user:', email);
+    return {
+      id: Date.now().toString(),
+      email,
+      ...profile
+    };
+  }
+
+  async login(email: string, password: string): Promise<string> {
+    console.log('Logging in user:', email);
+    return 'mock-token-' + Date.now();
+  }
 }

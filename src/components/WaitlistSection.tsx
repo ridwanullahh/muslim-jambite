@@ -1,7 +1,6 @@
-
 import { useState } from 'react';
 import { Mail, User, Phone, BookOpen, Code, Loader2, CheckCircle } from 'lucide-react';
-import { WaitlistService } from '../lib/sdk';
+import { RegistrationService } from '../lib/sdk';
 
 export const WaitlistSection = () => {
   const [formData, setFormData] = useState({
@@ -63,7 +62,12 @@ export const WaitlistSection = () => {
     setError('');
 
     try {
-      await WaitlistService.addToWaitlist(formData);
+      await RegistrationService.registerStudent({
+        ...formData,
+        paymentStatus: 'waitlist',
+        registrationFee: 0,
+        monthlyFee: formData.techTrack ? 2000 : 1500
+      });
       setIsSuccess(true);
       setFormData({
         email: '',
@@ -219,7 +223,7 @@ export const WaitlistSection = () => {
                     <div>
                       <h4 className="font-semibold text-gray-900 dark:text-white">Basic Track</h4>
                       <p className="text-sm text-gray-600 dark:text-gray-300">JAMB + Shariah Studies</p>
-                      <p className="text-sm font-medium text-green-600">₦1,000/month</p>
+                      <p className="text-sm font-medium text-green-600">₦1,500/month</p>
                     </div>
                   </div>
                 </div>
@@ -237,7 +241,7 @@ export const WaitlistSection = () => {
                     <div>
                       <h4 className="font-semibold text-gray-900 dark:text-white">Tech Track</h4>
                       <p className="text-sm text-gray-600 dark:text-gray-300">JAMB + Shariah + Tech Skills</p>
-                      <p className="text-sm font-medium text-green-600">₦1,700/month</p>
+                      <p className="text-sm font-medium text-green-600">₦2,000/month</p>
                     </div>
                   </div>
                 </div>

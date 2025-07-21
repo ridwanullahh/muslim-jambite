@@ -1,11 +1,19 @@
-
 import UniversalSDK, { UniversalSDKConfig } from '../types/sdk';
+
+// Get GitHub token with fallback
+const getGithubToken = () => {
+  try {
+    return process?.env?.GITHUB_TOKEN || "your-github-token-here";
+  } catch {
+    return "your-github-token-here";
+  }
+};
 
 // SDK Configuration
 const sdkConfig: UniversalSDKConfig = {
   owner: "muslimjambite",
   repo: "waitlist-db",
-  token: process.env.GITHUB_TOKEN || "your-github-token-here",
+  token: getGithubToken(),
   branch: "main",
   basePath: "db",
   mediaPath: "media",
@@ -161,8 +169,7 @@ export class RegistrationService {
       for (const collection of collections) {
         try {
           await sdk.get(collection);
-        } catch (error) {
-          // If collection doesn't exist (404), create it with empty array
+        } catch (error: any) {
           if (error.message.includes('Not Found')) {
             console.log(`Creating collection: ${collection}`);
             await sdk.insert(collection, {});
@@ -187,7 +194,6 @@ export class RegistrationService {
         updatedAt: new Date().toISOString()
       });
       
-      // Send welcome email (if SMTP is configured)
       if (sdk.smtp?.endpoint) {
         await sdk.sendEmail(
           entry.email,
@@ -224,7 +230,6 @@ export class RegistrationService {
         updatedAt: new Date().toISOString()
       });
 
-      // Send confirmation email on successful payment
       if (status === 'success' && sdk.smtp?.endpoint) {
         await sdk.sendEmail(
           email,
