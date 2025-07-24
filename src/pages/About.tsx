@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { Navigation } from '../components/Navigation';
-import { BookOpen, Users, Award, Clock, Heart, Star, Globe, Shield, Target, Eye, CheckCircle, Mosque, Brain, Handshake, Lightbulb, TrendingUp } from 'lucide-react';
+import { BookOpen, Users, Award, Clock, Heart, Star, Globe, Shield, Target, Eye, CheckCircle, MoonStar, Brain, Handshake, Lightbulb, TrendingUp } from 'lucide-react';
 
 const About = () => {
   const [darkMode, setDarkMode] = useState(false);
