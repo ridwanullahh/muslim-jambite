@@ -8,6 +8,8 @@ import { Loader2, ArrowLeft } from 'lucide-react';
 interface InterestsStepProps {
   data: {
     interests: string[];
+    techTrack: boolean;
+    techSkill: string;
   };
   onNext: (data: any) => void;
   onBack: () => void;

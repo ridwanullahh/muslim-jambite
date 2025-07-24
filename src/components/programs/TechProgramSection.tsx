@@ -1,5 +1,6 @@
 
 import { Code, Clock, Zap } from 'lucide-react';
+import { TechSkillCard } from './TechSkillCard';
 
 const TechProgramSection = () => {
   const techSkills = [
@@ -69,66 +70,27 @@ const TechProgramSection = () => {
             </span>
           </h3>
           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto font-lora">
-            Master in-demand technology skills for the digital economy. Available with the enhanced program package
+            Master one in-demand technology skill for the digital economy. Available with the enhanced program package
           </p>
         </div>
       </div>
 
-      {/* Tech Skills - Dedicated Subsections */}
-      <div className="space-y-16">
+      {/* Tech Skills - Grid Cards */}
+      <div className="space-y-12">
         <div className="text-center">
           <h4 className="text-3xl font-bold text-gray-900 dark:text-white font-inter mb-4">
             Technology Curriculum
           </h4>
           <p className="text-lg text-gray-600 dark:text-gray-300 font-lora">
-            Comprehensive tech education for the modern digital world
+            Choose one tech skill to master alongside your core program
           </p>
         </div>
         
-        {techSkills.map((skill, index) => {
-          const isEven = index % 2 === 0;
-          
-          return (
-            <div key={index} className={`flex flex-col ${isEven ? 'lg:flex-row' : 'lg:flex-row-reverse'} items-center gap-12 lg:gap-20`}>
-              <div className="flex-1 space-y-6">
-                <div className="flex items-center space-x-4">
-                  <div className="text-4xl">{skill.icon}</div>
-                  <div>
-                    <h5 className="text-2xl font-bold text-gray-900 dark:text-white font-inter">
-                      {skill.name}
-                    </h5>
-                    <div className="flex items-center space-x-4 mt-1">
-                      <div className="flex items-center text-sm text-blue-600">
-                        <Clock className="w-4 h-4 mr-1" />
-                        {skill.months} months
-                      </div>
-                      <div className="flex items-center text-sm text-gray-500">
-                        <Zap className="w-4 h-4 mr-1" />
-                        Hands-on
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <p className="text-lg text-gray-600 dark:text-gray-300 font-lora">
-                  {skill.description}
-                </p>
-                <p className="text-gray-500 dark:text-gray-400 leading-relaxed font-lora">
-                  {skill.details}
-                </p>
-              </div>
-              
-              <div className="flex-1">
-                <div className={`relative w-full h-64 bg-gradient-to-r ${skill.color} rounded-3xl p-8 flex items-center justify-center transform ${isEven ? 'rotate-1' : '-rotate-1'} hover:rotate-0 transition-transform duration-300`}>
-                  <div className="text-6xl opacity-80">{skill.icon}</div>
-                  <div className="absolute inset-0 bg-white/10 rounded-3xl backdrop-blur-sm"></div>
-                  <div className="absolute top-4 right-4 text-white/70 text-sm font-medium">
-                    {skill.months} months
-                  </div>
-                </div>
-              </div>
-            </div>
-          );
-        })}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {techSkills.map((skill, index) => (
+            <TechSkillCard key={index} skill={skill} index={index} />
+          ))}
+        </div>
       </div>
     </div>
   );
