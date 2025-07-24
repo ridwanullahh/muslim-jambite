@@ -5,6 +5,7 @@ import { ProgramSelectionStep } from './ProgramSelectionStep';
 import { InterestsStep } from './InterestsStep';
 import { PaymentStep } from './PaymentStep';
 import { RegistrationService, ProspectEntry } from '../../lib/sdk';
+import { sendWelcomeEmail } from '../../lib/emailService';
 import { CheckCircle, User, BookOpen, Heart, CreditCard } from 'lucide-react';
 
 interface MultiStepFormProps {
@@ -35,7 +36,7 @@ export const MultiStepForm = ({ onSuccess }: MultiStepFormProps) => {
 
   const techSkills = [
     'Frontend Development',
-    'Backend Development',
+    'Backend Development', 
     'Mobile Development',
     'Cybersecurity',
     'Data Science',
@@ -113,55 +114,89 @@ export const MultiStepForm = ({ onSuccess }: MultiStepFormProps) => {
 
   const handlePaymentSuccess = async () => {
     try {
+      setIsLoading(true);
+      
+      // Save completed registration
+      const monthlyFee = formData.techTrack ? 2000 : 1500;
+      await RegistrationService.registerStudent({
+        ...formData,
+        paymentStatus: 'success',
+        registrationFee: 500,
+        monthlyFee
+      });
+
+      // Mark prospect as completed
       await RegistrationService.saveProspect({
         ...formData,
         step: 4,
         completed: true
       });
+
+      // Send welcome email
+      try {
+        await sendWelcomeEmail(formData.email, {
+          fullName: formData.fullName,
+          program: formData.program,
+          techTrack: formData.techTrack,
+          techSkill: formData.techSkill,
+          monthlyFee
+        });
+      } catch (emailError) {
+        console.error('Failed to send welcome email:', emailError);
+      }
+
       onSuccess();
     } catch (error) {
       console.error('Failed to complete registration:', error);
+      setError('Failed to complete registration. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <div className="max-w-4xl mx-auto">
-      {/* Progress Indicator */}
+      {/* Modern Progress Indicator */}
       <div className="mb-12">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between relative">
+          {/* Progress Line */}
+          <div className="absolute top-1/2 left-0 right-0 h-1 bg-gray-200 dark:bg-gray-700 -translate-y-1/2 rounded-full">
+            <div 
+              className="h-full bg-gradient-to-r from-brand-primary to-brand-accent rounded-full transition-all duration-300"
+              style={{ width: `${((currentStep - 1) / (steps.length - 1)) * 100}%` }}
+            ></div>
+          </div>
+          
           {steps.map((step, index) => {
             const Icon = step.icon;
             const isActive = currentStep === step.number;
             const isCompleted = currentStep > step.number;
             
             return (
-              <div key={step.number} className="flex items-center">
-                <div className={`flex items-center space-x-3 ${index < steps.length - 1 ? 'flex-1' : ''}`}>
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${
+              <div key={step.number} className="relative z-10">
+                <div className="flex flex-col items-center">
+                  <div className={`w-16 h-16 rounded-full flex items-center justify-center transition-all duration-300 border-4 ${
                     isCompleted 
-                      ? 'bg-green-500 text-white' 
+                      ? 'bg-green-500 border-green-500 text-white' 
                       : isActive 
-                        ? 'bg-brand-primary text-white' 
-                        : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
+                        ? 'bg-brand-primary border-brand-primary text-white' 
+                        : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-400'
                   }`}>
                     {isCompleted ? (
-                      <CheckCircle className="w-6 h-6" />
+                      <CheckCircle className="w-8 h-8" />
                     ) : (
-                      <Icon className="w-6 h-6" />
+                      <Icon className="w-8 h-8" />
                     )}
                   </div>
-                  <div className={`transition-colors duration-300 ${
-                    isActive ? 'text-brand-primary' : 'text-gray-600 dark:text-gray-400'
-                  }`}>
-                    <div className="text-sm font-medium">{step.title}</div>
-                    <div className="text-xs">Step {step.number}</div>
+                  <div className="mt-3 text-center">
+                    <div className={`text-sm font-semibold transition-colors duration-300 ${
+                      isActive ? 'text-brand-primary' : 'text-gray-600 dark:text-gray-400'
+                    }`}>
+                      {step.title}
+                    </div>
+                    <div className="text-xs text-gray-500">Step {step.number}</div>
                   </div>
                 </div>
-                {index < steps.length - 1 && (
-                  <div className={`flex-1 h-0.5 mx-4 transition-colors duration-300 ${
-                    currentStep > step.number ? 'bg-green-500' : 'bg-gray-200 dark:bg-gray-700'
-                  }`}></div>
-                )}
               </div>
             );
           })}
@@ -169,10 +204,10 @@ export const MultiStepForm = ({ onSuccess }: MultiStepFormProps) => {
       </div>
 
       {/* Step Content */}
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
+      <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-8 border border-gray-100 dark:border-gray-700">
         {error && (
-          <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-            <p className="text-red-600 dark:text-red-400">{error}</p>
+          <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl">
+            <p className="text-red-600 dark:text-red-400 text-center">{error}</p>
           </div>
         )}
 

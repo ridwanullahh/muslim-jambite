@@ -1,13 +1,23 @@
+
 import { useState, useEffect } from 'react';
 import { Navigation } from '../components/Navigation';
 import { HeroSection } from '../components/HeroSection';
 import { ProgramsSection } from '../components/ProgramsSection';
+import { TestimonialsSection } from '../components/sections/TestimonialsSection';
+import { WhyChooseUsSection } from '../components/sections/WhyChooseUsSection';
+import { StatsSection } from '../components/sections/StatsSection';
+import { ValuePropositionSection } from '../components/sections/ValuePropositionSection';
+import { CommunitySection } from '../components/sections/CommunitySection';
+import { FAQSection } from '../components/sections/FAQSection';
+import { StickyFomoBanner } from '../components/ui/StickyFomoBanner';
+import { ExitIntentModal } from '../components/modals/ExitIntentModal';
 import { initializeSDK } from '../lib/sdk';
 import { MultiStepForm } from '../components/registration/MultiStepForm';
 
 const Index = () => {
   const [darkMode, setDarkMode] = useState(false);
   const [showRegistrationSuccess, setShowRegistrationSuccess] = useState(false);
+  const [showMakeEnquiry, setShowMakeEnquiry] = useState(false);
 
   useEffect(() => {
     // Initialize SDK
@@ -40,22 +50,39 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-300">
+      <StickyFomoBanner />
       <Navigation darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
+      <ExitIntentModal />
       
       <main>
         <HeroSection />
+        <TestimonialsSection />
         <ProgramsSection />
+        <WhyChooseUsSection />
+        <StatsSection />
+        <ValuePropositionSection />
+        <CommunitySection />
+        <FAQSection />
         
         {/* Registration Section */}
         <section id="registration" className="py-24 bg-gray-50 dark:bg-gray-800">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
-              <h2 className="text-4xl md:text-5xl font-light text-gray-900 dark:text-white mb-6 font-inter">
-                Begin Your <span className="bg-gradient-to-r from-brand-primary to-brand-accent bg-clip-text text-transparent font-normal">Journey</span>
+              <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6 font-inter">
+                Begin Your <span className="bg-gradient-to-r from-brand-primary to-brand-accent bg-clip-text text-transparent">Journey</span>
               </h2>
               <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto font-lora">
                 Register now and take the first step towards academic excellence and spiritual growth.
               </p>
+              
+              <div className="flex justify-center space-x-4 mt-8">
+                <button
+                  onClick={() => setShowMakeEnquiry(true)}
+                  className="px-6 py-3 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl font-semibold border border-gray-300 dark:border-gray-600 hover:shadow-lg transition-all duration-300"
+                >
+                  Make Enquiry
+                </button>
+              </div>
             </div>
             
             {showRegistrationSuccess ? (
@@ -66,10 +93,33 @@ const Index = () => {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
-                  <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Registration Complete!</h3>
+                  <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Alhamdulillah! Registration Complete!</h3>
                   <p className="text-gray-600 dark:text-gray-300 mb-6">
                     Thank you for registering with MuslimJambite. You'll receive a confirmation email with next steps shortly.
                   </p>
+                  
+                  <div className="space-y-4 mb-8">
+                    <h4 className="text-lg font-semibold text-gray-900 dark:text-white">Join Our Community</h4>
+                    <div className="flex justify-center space-x-4">
+                      <a
+                        href={import.meta.env.VITE_WHATSAPP_CHANNEL || "https://whatsapp.com/channel/dummy"}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-6 py-3 bg-green-500 text-white rounded-xl font-semibold hover:bg-green-600 transition-colors"
+                      >
+                        Join WhatsApp
+                      </a>
+                      <a
+                        href={import.meta.env.VITE_TELEGRAM_CHANNEL || "https://t.me/dummy"}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-6 py-3 bg-blue-500 text-white rounded-xl font-semibold hover:bg-blue-600 transition-colors"
+                      >
+                        Join Telegram
+                      </a>
+                    </div>
+                  </div>
+                  
                   <button 
                     onClick={() => setShowRegistrationSuccess(false)}
                     className="px-8 py-3 bg-gradient-to-r from-brand-primary to-brand-accent text-white rounded-2xl font-semibold hover:shadow-lg transition-all duration-300"
@@ -86,7 +136,7 @@ const Index = () => {
       </main>
 
       {/* Footer */}
-      <footer className="bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-300 py-12 border-t border-gray-200 dark:border-gray-700">
+      <footer className="bg-gray-50 dark:bg-gray-900 text-gray-600 dark:text-gray-300 py-12 border-t border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-4 gap-8">
             <div className="md:col-span-2">
@@ -117,21 +167,11 @@ const Index = () => {
             </div>
             
             <div>
-              <h3 className="font-semibold mb-4 font-inter text-gray-900 dark:text-white">Quick Links</h3>
-              <ul className="space-y-2 text-gray-600 dark:text-gray-300 font-lora">
-                <li><a href="/about" className="hover:text-brand-primary transition-colors">About Us</a></li>
-                <li><a href="/contact" className="hover:text-brand-primary transition-colors">Contact</a></li>
-                <li><a href="/#programs" className="hover:text-brand-primary transition-colors">Programs</a></li>
-                <li><a href="/#registration" className="hover:text-brand-primary transition-colors">Register</a></li>
-              </ul>
-            </div>
-            
-            <div>
               <h3 className="font-semibold mb-4 font-inter text-gray-900 dark:text-white">Contact</h3>
               <ul className="space-y-2 text-gray-600 dark:text-gray-300 font-lora">
-                <li>support@muslimjambite.com</li>
-                <li>+234 XXX XXX XXXX</li>
-                <li>Lagos, Nigeria</li>
+                <li>muslimgrowth@gmail.com</li>
+                <li>+2349158480530</li>
+                <li>FUNAAB, Abeokuta, Ogun State</li>
               </ul>
             </div>
           </div>

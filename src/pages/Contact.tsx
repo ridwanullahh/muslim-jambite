@@ -1,10 +1,13 @@
 
 import { useState, useEffect } from 'react';
 import { Navigation } from '../components/Navigation';
-import { Mail, Phone, MapPin, Clock, Send, MessageCircle } from 'lucide-react';
+import { Mail, Phone, MapPin, Clock, Send, MessageCircle, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { sendContactEmail } from '@/lib/emailService';
+import { FAQSection } from '@/components/sections/FAQSection';
 
 const Contact = () => {
   const [darkMode, setDarkMode] = useState(false);
@@ -14,6 +17,8 @@ const Contact = () => {
     subject: '',
     message: ''
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
@@ -36,35 +41,45 @@ const Contact = () => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission here
-    console.log('Form submitted:', formData);
+    setIsSubmitting(true);
+    
+    try {
+      await sendContactEmail(formData);
+      setSubmitSuccess(true);
+      setFormData({ name: '', email: '', subject: '', message: '' });
+    } catch (error) {
+      console.error('Failed to send contact email:', error);
+      alert('Failed to send message. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const contactInfo = [
     {
       icon: Mail,
       title: 'Email',
-      value: 'support@muslimjambite.com',
+      value: 'muslimgrowth@gmail.com',
       description: 'Send us an email anytime'
     },
     {
       icon: Phone,
       title: 'Phone',
-      value: '+234 XXX XXX XXXX',
+      value: '+2349158480530',
       description: 'Call us during business hours'
     },
     {
       icon: MapPin,
       title: 'Location',
-      value: 'Lagos, Nigeria',
-      description: 'Our main office location'
+      value: 'FUNAAB, Abeokuta, Ogun State',
+      description: 'Federal University Of Agriculture'
     },
     {
       icon: Clock,
       title: 'Hours',
-      value: '24/7 Support',
+      value: '100% Dedicated Support',
       description: 'We\'re here when you need us'
     }
   ];
@@ -78,8 +93,8 @@ const Contact = () => {
         <section className="py-20 bg-gradient-to-br from-brand-light via-brand-white to-brand-light dark:from-brand-dark dark:via-gray-800 dark:to-brand-primary/20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
-              <h1 className="text-5xl md:text-6xl font-light text-gray-900 dark:text-white mb-8 font-inter">
-                Contact <span className="bg-gradient-to-r from-brand-primary to-brand-accent bg-clip-text text-transparent font-normal">Us</span>
+              <h1 className="text-5xl md:text-6xl font-bold text-gray-900 dark:text-white mb-8 font-inter">
+                Contact <span className="bg-gradient-to-r from-brand-primary to-brand-accent bg-clip-text text-transparent">Us</span>
               </h1>
               <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto font-lora">
                 Get in touch with us for any questions, support, or inquiries about our programs.
@@ -102,7 +117,7 @@ const Contact = () => {
                     <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 font-inter">
                       {info.title}
                     </h3>
-                    <p className="text-lg text-brand-primary font-medium mb-1">
+                    <p className="text-lg text-brand-primary font-semibold mb-1">
                       {info.value}
                     </p>
                     <p className="text-gray-600 dark:text-gray-300 text-sm font-lora">
@@ -151,122 +166,104 @@ const Contact = () => {
               </div>
               
               <div className="bg-white dark:bg-gray-900 rounded-3xl p-8 shadow-lg">
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="grid md:grid-cols-2 gap-6">
+                {submitSuccess ? (
+                  <div className="text-center">
+                    <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <CheckCircle className="w-8 h-8 text-white" />
+                    </div>
+                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Message Sent!</h3>
+                    <p className="text-gray-600 dark:text-gray-300 mb-6">
+                      Thank you for contacting us. We'll get back to you within 24 hours.
+                    </p>
+                    <Button 
+                      onClick={() => setSubmitSuccess(false)}
+                      className="bg-gradient-to-r from-brand-primary to-brand-accent"
+                    >
+                      Send Another Message
+                    </Button>
+                  </div>
+                ) : (
+                  <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="grid md:grid-cols-2 gap-6">
+                      <div>
+                        <Label htmlFor="name">Full Name</Label>
+                        <Input
+                          id="name"
+                          type="text"
+                          value={formData.name}
+                          onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                          placeholder="Enter your full name"
+                          required
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="email">Email Address</Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          value={formData.email}
+                          onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                          placeholder="Enter your email"
+                          required
+                        />
+                      </div>
+                    </div>
+                    
                     <div>
-                      <Label htmlFor="name">Full Name</Label>
+                      <Label htmlFor="subject">Subject</Label>
                       <Input
-                        id="name"
+                        id="subject"
                         type="text"
-                        value={formData.name}
-                        onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                        placeholder="Enter your full name"
+                        value={formData.subject}
+                        onChange={(e) => setFormData(prev => ({ ...prev, subject: e.target.value }))}
+                        placeholder="What's this about?"
                         required
                       />
                     </div>
                     
                     <div>
-                      <Label htmlFor="email">Email Address</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        value={formData.email}
-                        onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                        placeholder="Enter your email"
+                      <Label htmlFor="message">Message</Label>
+                      <Textarea
+                        id="message"
+                        rows={6}
+                        value={formData.message}
+                        onChange={(e) => setFormData(prev => ({ ...prev, message: e.target.value }))}
+                        placeholder="Tell us more about your inquiry..."
                         required
                       />
                     </div>
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="subject">Subject</Label>
-                    <Input
-                      id="subject"
-                      type="text"
-                      value={formData.subject}
-                      onChange={(e) => setFormData(prev => ({ ...prev, subject: e.target.value }))}
-                      placeholder="What's this about?"
-                      required
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="message">Message</Label>
-                    <textarea
-                      id="message"
-                      rows={6}
-                      value={formData.message}
-                      onChange={(e) => setFormData(prev => ({ ...prev, message: e.target.value }))}
-                      placeholder="Tell us more about your inquiry..."
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-primary"
-                      required
-                    />
-                  </div>
-                  
-                  <Button 
-                    type="submit" 
-                    className="w-full bg-gradient-to-r from-brand-primary to-brand-accent hover:from-brand-accent hover:to-brand-primary"
-                  >
-                    <Send className="w-5 h-5 mr-2" />
-                    Send Message
-                  </Button>
-                </form>
+                    
+                    <Button 
+                      type="submit" 
+                      className="w-full bg-gradient-to-r from-brand-primary to-brand-accent hover:from-brand-accent hover:to-brand-primary"
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <Send className="w-5 h-5 mr-2 animate-spin" />
+                          Sending...
+                        </>
+                      ) : (
+                        <>
+                          <Send className="w-5 h-5 mr-2" />
+                          Send Message
+                        </>
+                      )}
+                    </Button>
+                  </form>
+                )}
               </div>
             </div>
           </div>
         </section>
 
         {/* FAQ Section */}
-        <section className="py-20">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-16">
-              <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4 font-inter">
-                Frequently Asked Questions
-              </h2>
-              <p className="text-xl text-gray-600 dark:text-gray-300 font-lora">
-                Quick answers to common questions
-              </p>
-            </div>
-            
-            <div className="grid md:grid-cols-2 gap-8">
-              <div className="space-y-6">
-                <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg">
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2">How do I register?</h3>
-                  <p className="text-gray-600 dark:text-gray-300 text-sm">
-                    Simply fill out our registration form and pay the ₦500 registration fee to get started.
-                  </p>
-                </div>
-                
-                <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg">
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2">What's included in the programs?</h3>
-                  <p className="text-gray-600 dark:text-gray-300 text-sm">
-                    All programs include JAMB preparation, integrated Shariah studies, and 24/7 support. The enhanced program adds tech skills training.
-                  </p>
-                </div>
-              </div>
-              
-              <div className="space-y-6">
-                <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg">
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Can I switch programs later?</h3>
-                  <p className="text-gray-600 dark:text-gray-300 text-sm">
-                    Yes, you can upgrade from the base program to the enhanced program at any time during your enrollment.
-                  </p>
-                </div>
-                
-                <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg">
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Is there a refund policy?</h3>
-                  <p className="text-gray-600 dark:text-gray-300 text-sm">
-                    We offer a 30-day money-back guarantee if you're not satisfied with our program.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
+        <FAQSection />
       </main>
 
       {/* Footer */}
-      <footer className="bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-300 py-12 border-t border-gray-200 dark:border-gray-700">
+      <footer className="bg-gray-50 dark:bg-gray-900 text-gray-600 dark:text-gray-300 py-12 border-t border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-4 gap-8">
             <div className="md:col-span-2">
@@ -299,9 +296,9 @@ const Contact = () => {
             <div>
               <h3 className="font-semibold mb-4 font-inter text-gray-900 dark:text-white">Contact</h3>
               <ul className="space-y-2 text-gray-600 dark:text-gray-300 font-lora">
-                <li>support@muslimjambite.com</li>
-                <li>+234 XXX XXX XXXX</li>
-                <li>Lagos, Nigeria</li>
+                <li>muslimgrowth@gmail.com</li>
+                <li>+2349158480530</li>
+                <li>FUNAAB, Abeokuta, Ogun State</li>
               </ul>
             </div>
           </div>

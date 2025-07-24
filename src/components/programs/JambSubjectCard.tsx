@@ -1,5 +1,5 @@
 
-import { ArrowRight, Clock, Users, Star } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
 interface JambSubjectCardProps {
   subject: {
@@ -22,7 +22,7 @@ export const JambSubjectCard = ({ subject, index }: JambSubjectCardProps) => {
       {/* Card Header */}
       <div className="relative p-6 pb-4">
         <div className="flex items-center justify-between mb-4">
-          <div className={`w-16 h-16 rounded-2xl bg-gradient-to-r ${subject.color} flex items-center justify-center text-2xl transform group-hover:scale-110 transition-transform duration-300`}>
+          <div className={`w-16 h-16 rounded-2xl bg-gradient-to-r ${subject.color} flex items-center justify-center text-2xl transform group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
             {subject.icon}
           </div>
           <div className={`px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r ${subject.color} text-white`}>
@@ -34,36 +34,23 @@ export const JambSubjectCard = ({ subject, index }: JambSubjectCardProps) => {
           {subject.name}
         </h3>
         
-        <p className="text-gray-600 dark:text-gray-300 text-sm font-lora leading-relaxed">
+        <p className="text-gray-600 dark:text-gray-300 text-sm font-lora leading-relaxed mb-4">
           {subject.description}
         </p>
       </div>
       
       {/* Card Body */}
       <div className="px-6 pb-6">
-        <p className="text-gray-500 dark:text-gray-400 text-sm mb-6 line-clamp-3">
+        <p className="text-gray-500 dark:text-gray-400 text-sm mb-6 leading-relaxed">
           {subject.details}
         </p>
         
-        {/* Stats */}
-        <div className="flex items-center justify-between mb-6 text-sm text-gray-500 dark:text-gray-400">
-          <div className="flex items-center space-x-1">
-            <Clock className="w-4 h-4" />
-            <span>Full Course</span>
-          </div>
-          <div className="flex items-center space-x-1">
-            <Users className="w-4 h-4" />
-            <span>Live Classes</span>
-          </div>
-          <div className="flex items-center space-x-1">
-            <Star className="w-4 h-4 text-yellow-500" />
-            <span>Expert Tutors</span>
-          </div>
-        </div>
-        
         {/* CTA Button */}
-        <button className="w-full py-3 px-4 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-600 hover:from-brand-primary hover:to-brand-accent hover:text-white text-gray-700 dark:text-gray-300 rounded-xl font-medium transition-all duration-300 group flex items-center justify-center space-x-2">
-          <span>Learn More</span>
+        <button 
+          onClick={() => document.getElementById('registration')?.scrollIntoView({ behavior: 'smooth' })}
+          className="w-full py-3 px-4 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-600 hover:from-brand-primary hover:to-brand-accent hover:text-white text-gray-700 dark:text-gray-300 rounded-xl font-semibold transition-all duration-300 group flex items-center justify-center space-x-2 shadow-sm hover:shadow-lg"
+        >
+          <span>Get Started</span>
           <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
         </button>
       </div>

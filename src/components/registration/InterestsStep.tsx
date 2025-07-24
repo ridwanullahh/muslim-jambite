@@ -17,69 +17,82 @@ interface InterestsStepProps {
 }
 
 export const InterestsStep = ({ data, onNext, onBack, isLoading }: InterestsStepProps) => {
-  const [interests, setInterests] = useState<string[]>(data.interests || []);
+  const [formData, setFormData] = useState({
+    interests: data.interests || [],
+    additionalInfo: ''
+  });
 
   const availableInterests = [
-    'Islamic Studies',
-    'Mathematics',
-    'English Language',
-    'Physics',
-    'Chemistry',
-    'Biology',
-    'Government',
-    'Economics',
-    'Literature',
-    'Geography',
-    'History',
+    'Quran Memorization',
+    'Islamic History',
     'Arabic Language',
-    'French Language',
-    'Fine Arts',
-    'Music',
-    'Computer Studies'
+    'Islamic Jurisprudence (Fiqh)',
+    'Hadith Studies',
+    'Islamic Finance',
+    'Community Service',
+    'Islamic Art & Culture',
+    'Dawah & Outreach',
+    'Youth Leadership'
   ];
 
   const handleInterestToggle = (interest: string) => {
-    setInterests(prev => 
-      prev.includes(interest) 
-        ? prev.filter(i => i !== interest)
-        : [...prev, interest]
-    );
+    setFormData(prev => ({
+      ...prev,
+      interests: prev.interests.includes(interest)
+        ? prev.interests.filter(i => i !== interest)
+        : [...prev.interests, interest]
+    }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onNext({ interests });
+    onNext(formData);
   };
 
   return (
     <div className="space-y-6">
       <div className="text-center">
         <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-          Subject Interests
+          Your Islamic Interests
         </h2>
         <p className="text-gray-600 dark:text-gray-400">
-          Select the subjects you're most interested in studying
+          Help us personalize your Islamic studies experience
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-4">
-          <Label>Choose your subjects of interest (select all that apply):</Label>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <Label className="text-lg font-semibold">Select your areas of interest (optional):</Label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {availableInterests.map((interest) => (
-              <div key={interest} className="flex items-center space-x-2">
+              <div key={interest} className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                 <Checkbox
                   id={interest}
-                  checked={interests.includes(interest)}
+                  checked={formData.interests.includes(interest)}
                   onCheckedChange={() => handleInterestToggle(interest)}
                 />
-                <Label htmlFor={interest} className="text-sm font-normal cursor-pointer">
+                <Label 
+                  htmlFor={interest} 
+                  className="flex-1 cursor-pointer text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
                   {interest}
                 </Label>
               </div>
             ))}
           </div>
         </div>
+
+        {data.techTrack && (
+          <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+            <div className="flex items-center space-x-2 mb-2">
+              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+              <span className="font-semibold text-blue-800 dark:text-blue-200">Tech Track Selected</span>
+            </div>
+            <p className="text-blue-700 dark:text-blue-300 text-sm">
+              You've chosen the tech skills track: <strong>{data.techSkill}</strong>
+            </p>
+          </div>
+        )}
 
         <div className="flex space-x-4">
           <Button 
@@ -102,7 +115,7 @@ export const InterestsStep = ({ data, onNext, onBack, isLoading }: InterestsStep
                 Saving...
               </>
             ) : (
-              'Continue'
+              'Continue to Payment'
             )}
           </Button>
         </div>

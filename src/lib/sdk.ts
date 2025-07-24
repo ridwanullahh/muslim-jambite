@@ -397,6 +397,25 @@ export const initializeSDK = async () => {
   try {
     await sdk.init();
     await RegistrationService.initializeCollections();
+    
+    // Initialize FAQ data
+    try {
+      const existingFaqs = await sdk.get('faqs');
+      if (!existingFaqs || existingFaqs.length === 0) {
+        const faqData = await import('../data/faqs.json');
+        for (const faq of faqData.default) {
+          await sdk.insert('faqs', faq);
+        }
+        console.log('FAQ data initialized');
+      }
+    } catch (error) {
+      console.log('Initializing FAQ collection');
+      const faqData = await import('../data/faqs.json');
+      for (const faq of faqData.default) {
+        await sdk.insert('faqs', faq);
+      }
+    }
+    
     console.log('SDK initialized successfully');
   } catch (error) {
     console.error('Failed to initialize SDK:', error);
