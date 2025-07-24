@@ -2,7 +2,7 @@
 import nodemailer from 'nodemailer';
 
 const createTransporter = () => {
-  return nodemailer.createTransporter({
+  return nodemailer.createTransport({
     service: 'gmail',
     auth: {
       user: import.meta.env.VITE_GMAIL_USER,
