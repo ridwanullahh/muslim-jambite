@@ -1,5 +1,6 @@
 
 import { BookOpen, Play, Video, HelpCircle, CreditCard, Key, Monitor, FileText, Trophy } from 'lucide-react';
+import { JambSubjectCard } from './JambSubjectCard';
 
 const JambProgramSection = () => {
   const jambFeatures = [
@@ -142,103 +143,71 @@ const JambProgramSection = () => {
       <div className="text-center relative">
         <div className="absolute inset-0 bg-gradient-to-r from-brand-primary/10 to-brand-accent/10 rounded-full blur-3xl transform -rotate-3"></div>
         <div className="relative">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-brand-primary to-brand-accent rounded-full mb-6">
-            <BookOpen className="w-8 h-8 text-white" />
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-brand-primary to-brand-accent rounded-full mb-6 shadow-lg">
+            <BookOpen className="w-10 h-10 text-white" />
           </div>
-          <h3 className="text-4xl font-bold text-gray-900 dark:text-white mb-4 font-inter">
-            JAMB Preparation Program
+          <h3 className="text-4xl font-light text-gray-900 dark:text-white mb-6 font-inter">
+            JAMB <span className="font-normal">Preparation Program</span>
           </h3>
-          <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto font-lora">
+          <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto font-lora font-light">
             Comprehensive JAMB preparation following official curriculum with modern learning techniques and expert guidance
           </p>
         </div>
       </div>
 
-      {/* JAMB Features - Dedicated Subsections */}
-      <div className="space-y-16">
-        <h4 className="text-3xl font-bold text-center text-gray-900 dark:text-white font-inter mb-12">
-          Program Features
+      {/* JAMB Features - Grid Layout */}
+      <div className="space-y-12">
+        <h4 className="text-3xl font-light text-center text-gray-900 dark:text-white font-inter">
+          Program <span className="font-normal">Features</span>
         </h4>
         
-        {jambFeatures.map((feature, index) => {
-          const Icon = feature.icon;
-          const isEven = index % 2 === 0;
-          
-          return (
-            <div key={index} className={`flex flex-col ${isEven ? 'lg:flex-row' : 'lg:flex-row-reverse'} items-center gap-12 lg:gap-20`}>
-              <div className="flex-1 space-y-6">
-                <div className="flex items-center space-x-4">
-                  <div className={`w-12 h-12 rounded-2xl bg-gradient-to-r ${feature.color} flex items-center justify-center transform rotate-6 hover:rotate-0 transition-transform duration-300`}>
-                    <Icon className="w-6 h-6 text-white" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+          {jambFeatures.map((feature, index) => {
+            const Icon = feature.icon;
+            
+            return (
+              <div key={index} className="group relative bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-lg hover:shadow-2xl transition-all duration-500 border border-gray-200 dark:border-gray-700 hover:border-brand-primary/50 transform hover:-translate-y-2">
+                <div className={`absolute inset-0 bg-gradient-to-br ${feature.color} opacity-0 group-hover:opacity-10 transition-opacity duration-500 rounded-3xl`}></div>
+                
+                <div className="relative">
+                  <div className={`w-16 h-16 rounded-2xl bg-gradient-to-r ${feature.color} flex items-center justify-center mb-4 transform group-hover:scale-110 transition-transform duration-300`}>
+                    <Icon className="w-8 h-8 text-white" />
                   </div>
-                  <h5 className="text-2xl font-bold text-gray-900 dark:text-white font-inter">
+                  
+                  <h5 className="text-xl font-semibold text-gray-900 dark:text-white mb-3 group-hover:text-brand-primary transition-colors">
                     {feature.name}
                   </h5>
-                </div>
-                <p className="text-lg text-gray-600 dark:text-gray-300 font-lora">
-                  {feature.description}
-                </p>
-                <p className="text-gray-500 dark:text-gray-400 leading-relaxed font-lora">
-                  {feature.details}
-                </p>
-              </div>
-              
-              <div className="flex-1">
-                <div className={`relative w-full h-64 bg-gradient-to-r ${feature.color} rounded-3xl p-8 flex items-center justify-center transform ${isEven ? 'rotate-2' : '-rotate-2'} hover:rotate-0 transition-transform duration-300`}>
-                  <Icon className="w-24 h-24 text-white opacity-80" />
-                  <div className="absolute inset-0 bg-white/10 rounded-3xl backdrop-blur-sm"></div>
+                  
+                  <p className="text-gray-600 dark:text-gray-300 text-sm mb-4 font-lora">
+                    {feature.description}
+                  </p>
+                  
+                  <p className="text-gray-500 dark:text-gray-400 text-xs leading-relaxed">
+                    {feature.details}
+                  </p>
                 </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
 
-      {/* JAMB Subjects - Dedicated Subsections */}
-      <div className="space-y-16">
+      {/* JAMB Subjects - Course Cards */}
+      <div className="space-y-12">
         <div className="text-center">
-          <h4 className="text-3xl font-bold text-gray-900 dark:text-white font-inter mb-4">
-            Available JAMB Subjects
+          <h4 className="text-3xl font-light text-gray-900 dark:text-white font-inter mb-4">
+            Available JAMB <span className="font-normal">Subjects</span>
           </h4>
-          <p className="text-lg text-gray-600 dark:text-gray-300 font-lora">
+          <p className="text-lg text-gray-600 dark:text-gray-300 font-lora font-light">
             Choose from our comprehensive range of JAMB subjects
           </p>
         </div>
         
-        {jambSubjects.map((subject, index) => {
-          const isEven = index % 2 === 0;
-          
-          return (
-            <div key={index} className={`flex flex-col ${isEven ? 'lg:flex-row' : 'lg:flex-row-reverse'} items-center gap-12 lg:gap-20`}>
-              <div className="flex-1 space-y-6">
-                <div className="flex items-center space-x-4">
-                  <div className="text-4xl">{subject.icon}</div>
-                  <div>
-                    <h5 className="text-2xl font-bold text-gray-900 dark:text-white font-inter">
-                      {subject.name}
-                    </h5>
-                    <span className={`inline-block px-3 py-1 bg-gradient-to-r ${subject.color} text-white text-sm rounded-full font-inter`}>
-                      {subject.category}
-                    </span>
-                  </div>
-                </div>
-                <p className="text-lg text-gray-600 dark:text-gray-300 font-lora">
-                  {subject.description}
-                </p>
-                <p className="text-gray-500 dark:text-gray-400 leading-relaxed font-lora">
-                  {subject.details}
-                </p>
-              </div>
-              
-              <div className="flex-1">
-                <div className={`relative w-full h-64 bg-gradient-to-r ${subject.color} rounded-3xl p-8 flex items-center justify-center transform ${isEven ? 'rotate-1' : '-rotate-1'} hover:rotate-0 transition-transform duration-300`}>
-                  <div className="text-6xl opacity-80">{subject.icon}</div>
-                  <div className="absolute inset-0 bg-white/10 rounded-3xl backdrop-blur-sm"></div>
-                </div>
-              </div>
-            </div>
-          );
-        })}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {jambSubjects.map((subject, index) => (
+            <JambSubjectCard key={index} subject={subject} index={index} />
+          ))}
+        </div>
       </div>
     </div>
   );

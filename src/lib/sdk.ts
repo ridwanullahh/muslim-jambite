@@ -3,7 +3,7 @@ import UniversalSDK, { UniversalSDKConfig } from '../types/sdk';
 // Get GitHub token with fallback
 const getGithubToken = () => {
   try {
-    return process?.env?.GITHUB_TOKEN || "your-github-token-here";
+    return import.meta.env?.GITHUB_TOKEN || "your-github-token-here";
   } catch {
     return "your-github-token-here";
   }
@@ -26,6 +26,7 @@ const sdkConfig: UniversalSDKConfig = {
         phone: 'string',
         program: 'string',
         techTrack: 'boolean',
+        techSkill: 'string',
         currentLevel: 'string',
         interests: 'array',
         paymentStatus: 'string',
@@ -38,11 +39,40 @@ const sdkConfig: UniversalSDKConfig = {
       defaults: {
         program: 'jamb-prep',
         techTrack: false,
+        techSkill: '',
         currentLevel: 'ss3',
         interests: [],
         paymentStatus: 'pending',
         registrationFee: 500,
         monthlyFee: 1500,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+    },
+    prospects: {
+      required: ['email'],
+      types: {
+        email: 'string',
+        fullName: 'string',
+        phone: 'string',
+        program: 'string',
+        techTrack: 'boolean',
+        techSkill: 'string',
+        currentLevel: 'string',
+        interests: 'array',
+        step: 'number',
+        completed: 'boolean',
+        createdAt: 'date',
+        updatedAt: 'date'
+      },
+      defaults: {
+        program: 'jamb-prep',
+        techTrack: false,
+        techSkill: '',
+        currentLevel: 'ss3',
+        interests: [],
+        step: 1,
+        completed: false,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       }
@@ -134,12 +164,31 @@ export interface RegistrationEntry {
   phone: string;
   program: string;
   techTrack: boolean;
+  techSkill?: string;
   currentLevel: string;
   interests: string[];
   paymentStatus: string;
   paymentReference?: string;
   registrationFee: number;
   monthlyFee: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Prospect interface
+export interface ProspectEntry {
+  id?: string;
+  uid?: string;
+  email: string;
+  fullName?: string;
+  phone?: string;
+  program: string;
+  techTrack: boolean;
+  techSkill?: string;
+  currentLevel: string;
+  interests: string[];
+  step: number;
+  completed: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -302,6 +351,43 @@ export class RegistrationService {
     } catch (error) {
       console.error('Failed to subscribe to newsletter:', error);
       throw error;
+    }
+  }
+
+  static async saveProspect(entry: Omit<ProspectEntry, 'id' | 'uid' | 'createdAt' | 'updatedAt'>): Promise<ProspectEntry> {
+    try {
+      await this.initializeCollections();
+      
+      // Check if prospect already exists
+      const prospects = await sdk.get<ProspectEntry>('prospects');
+      const existingProspect = prospects.find(p => p.email === entry.email);
+      
+      if (existingProspect) {
+        return await sdk.update<ProspectEntry>('prospects', existingProspect.id!, {
+          ...entry,
+          updatedAt: new Date().toISOString()
+        });
+      }
+      
+      return await sdk.insert<ProspectEntry>('prospects', {
+        ...entry,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Failed to save prospect:', error);
+      throw error;
+    }
+  }
+
+  static async getProspect(email: string): Promise<ProspectEntry | null> {
+    try {
+      await this.initializeCollections();
+      const prospects = await sdk.get<ProspectEntry>('prospects');
+      return prospects.find(p => p.email === email) || null;
+    } catch (error) {
+      console.error('Failed to get prospect:', error);
+      return null;
     }
   }
 }
