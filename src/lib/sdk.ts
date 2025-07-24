@@ -111,6 +111,18 @@ const sdkConfig: UniversalSDKConfig = {
         source: 'landing-page',
         createdAt: new Date().toISOString()
       }
+    },
+    faqs: {
+      required: ['id', 'question', 'answer'],
+      types: {
+        id: 'string',
+        question: 'string',
+        answer: 'string',
+        category: 'string'
+      },
+      defaults: {
+        category: 'General'
+      }
     }
   },
   templates: {
@@ -214,7 +226,7 @@ export class RegistrationService {
   // Initialize collections if they don't exist
   static async initializeCollections(): Promise<void> {
     try {
-      const collections = ['registrations', 'payments', 'subscribers'];
+      const collections = ['registrations', 'payments', 'subscribers', 'prospects'];
       for (const collection of collections) {
         try {
           await sdk.get(collection);
@@ -398,26 +410,40 @@ export const initializeSDK = async () => {
     await sdk.init();
     await RegistrationService.initializeCollections();
     
-    // Initialize FAQ data
+    // Initialize FAQ data only once
     try {
       const existingFaqs = await sdk.get('faqs');
+      console.log('Existing FAQs found:', existingFaqs?.length || 0);
+      
       if (!existingFaqs || existingFaqs.length === 0) {
+        console.log('Initializing FAQ data from JSON...');
         const faqData = await import('../data/faqs.json');
+        
         for (const faq of faqData.default) {
+          console.log('Inserting FAQ:', faq.id, faq.question.substring(0, 50) + '...');
           await sdk.insert('faqs', faq);
         }
-        console.log('FAQ data initialized');
+        console.log('✅ FAQ data initialized successfully');
+      } else {
+        console.log('📋 FAQ data already exists, skipping initialization');
       }
-    } catch (error) {
-      console.log('Initializing FAQ collection');
-      const faqData = await import('../data/faqs.json');
-      for (const faq of faqData.default) {
-        await sdk.insert('faqs', faq);
+    } catch (error: any) {
+      if (error.message.includes('Not Found')) {
+        console.log('Creating FAQ collection...');
+        const faqData = await import('../data/faqs.json');
+        
+        for (const faq of faqData.default) {
+          console.log('Inserting FAQ:', faq.id, faq.question.substring(0, 50) + '...');
+          await sdk.insert('faqs', faq);
+        }
+        console.log('✅ FAQ collection created and data initialized');
+      } else {
+        console.error('Error handling FAQ initialization:', error);
       }
     }
     
-    console.log('SDK initialized successfully');
+    console.log('✅ SDK initialized successfully');
   } catch (error) {
-    console.error('Failed to initialize SDK:', error);
+    console.error('❌ Failed to initialize SDK:', error);
   }
 };

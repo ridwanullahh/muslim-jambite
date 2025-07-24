@@ -7,12 +7,6 @@
     "category": "General"
   },
   {
-    "id": "2",
-    "question": "Can I join if I'm not a Muslim?",
-    "answer": "While our program is designed with Islamic values, we welcome students of all backgrounds who respect our values and want quality JAMB preparation.",
-    "category": "General"
-  },
-  {
     "id": "3",
     "question": "What tech skills can I learn?",
     "answer": "You can choose from Frontend Development, Backend Development, Mobile Development, Cybersecurity, Data Science, or UI/UX Design.",
@@ -56,7 +50,7 @@
   },
   {
     "id": "10",
-    "question": "Is there a refund policy?",
+    "question": "Is there refund policy?",
     "answer": "Yes, we offer a 30-day money-back guarantee if you're not satisfied with the program. Terms and conditions apply.",
     "category": "Policy"
   }

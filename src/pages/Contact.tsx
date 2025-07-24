@@ -265,7 +265,7 @@ const Contact = () => {
       {/* Footer */}
       <footer className="bg-gray-50 dark:bg-gray-900 text-gray-600 dark:text-gray-300 py-12 border-t border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-4 gap-8">
+          <div className="grid md:grid-cols-5 gap-8">
             <div className="md:col-span-2">
               <div className="flex items-center space-x-2 mb-4">
                 <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-brand-primary to-brand-accent flex items-center justify-center">
@@ -279,7 +279,7 @@ const Contact = () => {
                 Building the future of Islamic education through innovative learning experiences.
               </p>
               <p className="text-sm text-gray-500 dark:text-gray-400 font-inter">
-                © 2024 MuslimJambite. All rights reserved.
+                © {new Date().getFullYear()} / {new Date().getFullYear() + 622} H MuslimJambite. All rights reserved.
               </p>
             </div>
             
@@ -292,13 +292,39 @@ const Contact = () => {
                 <li>Career Guidance</li>
               </ul>
             </div>
+
+            <div>
+              <h3 className="font-semibold mb-4 font-inter text-gray-900 dark:text-white">Useful Links</h3>
+              <ul className="space-y-2 text-gray-600 dark:text-gray-300 font-lora">
+                <li><a href="/about" className="hover:text-brand-primary transition-colors">About Us</a></li>
+                <li><a href="/contact" className="hover:text-brand-primary transition-colors">Contact</a></li>
+                <li><a href="#" className="hover:text-brand-primary transition-colors">Terms of Service</a></li>
+                <li><a href="#" className="hover:text-brand-primary transition-colors">Privacy Policy</a></li>
+              </ul>
+            </div>
             
             <div>
               <h3 className="font-semibold mb-4 font-inter text-gray-900 dark:text-white">Contact</h3>
               <ul className="space-y-2 text-gray-600 dark:text-gray-300 font-lora">
-                <li>muslimgrowth@gmail.com</li>
-                <li>+2349158480530</li>
-                <li>FUNAAB, Abeokuta, Ogun State</li>
+                <li className="flex items-center space-x-2">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                    <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                  </svg>
+                  <span>muslimgrowth@gmail.com</span>
+                </li>
+                <li className="flex items-center space-x-2">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+                  </svg>
+                  <span>+2349158480530</span>
+                </li>
+                <li className="flex items-center space-x-2">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                  </svg>
+                  <span>FUNAAB, Abeokuta, Ogun State</span>
+                </li>
               </ul>
             </div>
           </div>
