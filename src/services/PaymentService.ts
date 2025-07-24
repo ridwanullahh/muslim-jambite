@@ -65,8 +65,8 @@ export interface VerificationResponse {
 export class PaymentService {
   private static readonly PAYSTACK_BASE_URL = 'https://api.paystack.co';
   private static config: PaystackConfig = {
-    publicKey: process.env.PAYSTACK_PUBLIC_KEY || 'pk_test_xxxx',
-    secretKey: process.env.PAYSTACK_SECRET_KEY || 'sk_test_xxxx'
+    publicKey: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_test_xxxx',
+    secretKey: import.meta.env.VITE_PAYSTACK_SECRET_KEY || 'sk_test_xxxx'
   };
 
   static setConfig(config: PaystackConfig) {
