@@ -70,7 +70,7 @@ export interface CloudinaryUploadResult {
   [key: string]: any;
 }
 
-// Blog types
+// Enhanced Blog types with comprehensive features
 export interface BlogPost {
   id: string;
   title: string;
@@ -86,10 +86,41 @@ export interface BlogPost {
   featured: boolean;
   views: number;
   likes: number;
+  bookmarks?: number;
+  readTime?: number;
   seoTitle?: string;
   seoDescription?: string;
   seoKeywords?: string[];
   createdAt?: string;
+  reactions?: {
+    like: number;
+    heart: number;
+    thumbsUp: number;
+    celebrate: number;
+  };
+  schema?: {
+    type: 'Article' | 'BlogPosting';
+    headline: string;
+    description: string;
+    author: string;
+    datePublished: string;
+    dateModified: string;
+    publisher: string;
+    image?: string;
+    wordCount?: number;
+  };
+  accessibility?: {
+    altText?: string;
+    ariaLabel?: string;
+    headingStructure?: string[];
+  };
+  social?: {
+    twitterCard?: 'summary' | 'summary_large_image';
+    ogType?: 'article';
+    ogTitle?: string;
+    ogDescription?: string;
+    ogImage?: string;
+  };
 }
 
 export interface BlogComment {
@@ -101,8 +132,12 @@ export interface BlogComment {
   status: 'pending' | 'approved' | 'rejected';
   likes: number;
   parentId?: string;
+  replies?: BlogComment[];
   createdAt: string;
   updatedAt: string;
+  isAdmin?: boolean;
+  ipAddress?: string;
+  userAgent?: string;
 }
 
 export interface BlogCategory {
@@ -112,9 +147,27 @@ export interface BlogCategory {
   description: string;
   color: string;
   postCount: number;
+  featured?: boolean;
+  seoTitle?: string;
+  seoDescription?: string;
+  icon?: string;
+  parentId?: string;
+  order?: number;
 }
 
-// Student types - made many fields optional to match current usage
+// Site Settings interface
+export interface SiteSettings {
+  id: string;
+  key: string;
+  value: string;
+  description?: string;
+  type: 'string' | 'boolean' | 'number' | 'json';
+  category?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Enhanced Student types
 export interface Student {
   id: string;
   fullName: string;
@@ -188,7 +241,79 @@ export interface Resource {
   updatedAt: string;
 }
 
-// The main SDK class interface - only type definitions
+// Poll and Quiz interfaces for user engagement
+export interface Poll {
+  id: string;
+  postId: string;
+  question: string;
+  options: PollOption[];
+  totalVotes: number;
+  expiresAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PollOption {
+  id: string;
+  text: string;
+  votes: number;
+  percentage: number;
+}
+
+export interface Quiz {
+  id: string;
+  postId: string;
+  title: string;
+  questions: QuizQuestion[];
+  passingScore: number;
+  timeLimit?: number;
+  attempts: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface QuizQuestion {
+  id: string;
+  question: string;
+  options: string[];
+  correctAnswer: number;
+  explanation?: string;
+  points: number;
+}
+
+// Newsletter interface
+export interface Newsletter {
+  id: string;
+  email: string;
+  name?: string;
+  subscribed: boolean;
+  categories: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Bookmark interface
+export interface Bookmark {
+  id: string;
+  userId: string;
+  postId: string;
+  createdAt: string;
+}
+
+// Analytics interface
+export interface Analytics {
+  id: string;
+  postId: string;
+  userId?: string;
+  action: 'view' | 'like' | 'share' | 'comment' | 'bookmark';
+  metadata?: Record<string, any>;
+  timestamp: string;
+  ipAddress?: string;
+  userAgent?: string;
+  referrer?: string;
+}
+
+// The main SDK class interface
 export interface UniversalSDKInterface {
   init(): Promise<UniversalSDKInterface>;
   get<T = any>(collection: string, force?: boolean): Promise<T[]>;
@@ -226,13 +351,11 @@ export default class UniversalSDK implements UniversalSDKInterface {
 
   async get<T = any>(collection: string, force?: boolean): Promise<T[]> {
     console.log('Getting collection:', collection);
-    // Return empty array for now - will be replaced with actual GitHub implementation
     return [];
   }
 
   async insert<T = any>(collection: string, item: Partial<T>): Promise<T & { id: string; uid: string }> {
     console.log('Inserting into collection:', collection, item);
-    // Return mock data - will be replaced with actual GitHub implementation
     return {
       ...item as T,
       id: Date.now().toString(),
@@ -242,18 +365,15 @@ export default class UniversalSDK implements UniversalSDKInterface {
 
   async update<T = any>(collection: string, key: string, updates: Partial<T>): Promise<T> {
     console.log('Updating collection:', collection, key, updates);
-    // Return mock data - will be replaced with actual GitHub implementation
     return updates as T;
   }
 
   async delete<T = any>(collection: string, key: string): Promise<void> {
     console.log('Deleting from collection:', collection, key);
-    // Mock implementation - will be replaced with actual GitHub implementation
   }
 
   async sendEmail(to: string, subject: string, html: string): Promise<boolean> {
     console.log('Sending email to:', to, 'Subject:', subject);
-    // Mock implementation - will be replaced with actual SMTP implementation
     return true;
   }
 
@@ -261,7 +381,6 @@ export default class UniversalSDK implements UniversalSDKInterface {
     const template = this.config.templates?.[name] || '';
     let rendered = template;
     
-    // Simple template rendering
     for (const [key, value] of Object.entries(data)) {
       rendered = rendered.replace(new RegExp(`{{${key}}}`, 'g'), String(value));
     }

@@ -1,9 +1,13 @@
 
 import { useState, useEffect } from 'react';
-import { X, Clock, ArrowRight } from 'lucide-react';
+import { X, ArrowRight } from 'lucide-react';
+import { SiteSettingsService } from '../../lib/sdk';
 
 export const StickyFomoBanner = () => {
-  const [isVisible, setIsVisible] = useState(true);
+  const [isVisible, setIsVisible] = useState(false);
+  const [bannerEnabled, setBannerEnabled] = useState(true);
+  const [bannerText, setBannerText] = useState('Early Bird ends:');
+  const [earlyBirdPrice, setEarlyBirdPrice] = useState('₦500');
   const [timeLeft, setTimeLeft] = useState({
     days: 0,
     hours: 0,
@@ -12,6 +16,41 @@ export const StickyFomoBanner = () => {
   });
 
   useEffect(() => {
+    // Load banner settings
+    const loadBannerSettings = async () => {
+      try {
+        const [bannerEnabledSetting, bannerTextSetting, priceSetting] = await Promise.all([
+          SiteSettingsService.getSetting('banner_enabled'),
+          SiteSettingsService.getSetting('banner_text'),
+          SiteSettingsService.getSetting('early_bird_price')
+        ]);
+
+        setBannerEnabled(bannerEnabledSetting?.value === 'true');
+        setBannerText(bannerTextSetting?.value || 'Early Bird ends:');
+        setEarlyBirdPrice(priceSetting?.value || '₦500');
+      } catch (error) {
+        console.error('Error loading banner settings:', error);
+      }
+    };
+
+    loadBannerSettings();
+  }, []);
+
+  useEffect(() => {
+    if (!bannerEnabled) {
+      setIsVisible(false);
+      return;
+    }
+
+    // Check if user has dismissed banner
+    const dismissed = localStorage.getItem('banner_dismissed');
+    if (dismissed) {
+      setIsVisible(false);
+      return;
+    }
+
+    setIsVisible(true);
+
     // Set target date (30 days from now for early bird offer)
     const targetDate = new Date();
     targetDate.setDate(targetDate.getDate() + 30);
@@ -27,11 +66,13 @@ export const StickyFomoBanner = () => {
           minutes: Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)),
           seconds: Math.floor((distance % (1000 * 60)) / 1000)
         });
+      } else {
+        setIsVisible(false);
       }
     }, 1000);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [bannerEnabled]);
 
   const scrollToRegistration = () => {
     const registrationSection = document.getElementById('registration');
@@ -40,7 +81,14 @@ export const StickyFomoBanner = () => {
     }
   };
 
-  if (!isVisible) return null;
+  const handleDismiss = () => {
+    setIsVisible(false);
+    localStorage.setItem('banner_dismissed', 'true');
+  };
+
+  if (!isVisible || !bannerEnabled) {
+    return null;
+  }
 
   return (
     <div className="fixed top-0 left-0 right-0 z-[60] bg-gradient-to-r from-brand-primary via-green-600 to-brand-accent text-white shadow-lg">
@@ -49,8 +97,7 @@ export const StickyFomoBanner = () => {
           {/* Left Section - Compact */}
           <div className="flex items-center space-x-3">
             <div className="flex items-center space-x-2">
-              <Clock className="w-3 h-3" />
-              <span className="font-medium">Early Bird ends:</span>
+              <span className="font-medium">{bannerText}</span>
               <div className="flex items-center space-x-1 font-mono bg-black/20 px-2 py-1 rounded text-xs">
                 <span>{timeLeft.days}d</span>
                 <span>:</span>
@@ -65,7 +112,7 @@ export const StickyFomoBanner = () => {
 
           {/* Right Section - Compact */}
           <div className="flex items-center space-x-3">
-            <span className="text-yellow-300 font-bold">Only ₦500!</span>
+            <span className="text-yellow-300 font-bold">Only {earlyBirdPrice}!</span>
             <button
               onClick={scrollToRegistration}
               className="flex items-center space-x-1 bg-white/20 hover:bg-white/30 px-3 py-1 rounded-md transition-colors text-xs font-medium"
@@ -74,7 +121,7 @@ export const StickyFomoBanner = () => {
               <ArrowRight className="w-3 h-3" />
             </button>
             <button
-              onClick={() => setIsVisible(false)}
+              onClick={handleDismiss}
               className="p-1 hover:bg-white/20 rounded-full transition-colors"
             >
               <X className="w-3 h-3" />
