@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Menu, X, Moon, Sun, BookOpen, Users, Award, Phone, MessageCircle } from 'lucide-react';
+import { Menu, X, Moon, Sun, BookOpen, Users, Award, Phone, MessageCircle, ChevronDown, ArrowRight } from 'lucide-react';
 
 interface NavigationProps {
   darkMode: boolean;
@@ -10,13 +10,41 @@ interface NavigationProps {
 export const Navigation = ({ darkMode, toggleDarkMode }: NavigationProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('home');
+  const [showMegaMenu, setShowMegaMenu] = useState(false);
 
   const navItems = [
-    { id: 'home', label: 'Home', icon: BookOpen },
-    { id: 'programs', label: 'Programs', icon: Award },
-    { id: 'about', label: 'About', icon: Users },
-    { id: 'contact', label: 'Contact', icon: Phone },
-    { id: 'blog', label: 'Blog', icon: MessageCircle }
+    { id: 'home', label: 'Home' },
+    { id: 'programs', label: 'Programs' },
+    { id: 'about', label: 'About' },
+    { id: 'contact', label: 'Contact' },
+    { id: 'blog', label: 'Blog' }
+  ];
+
+  const megaMenuItems = [
+    {
+      category: 'Programs',
+      items: [
+        { name: 'JAMB + Shariah', description: 'Complete preparation with Islamic studies', link: '#programs' },
+        { name: 'Tech Skills', description: 'Modern skills for digital future', link: '#programs' },
+        { name: 'Arabic Language', description: 'Classical Arabic mastery', link: '#programs' }
+      ]
+    },
+    {
+      category: 'Resources',
+      items: [
+        { name: 'Blog Posts', description: 'Latest insights and guidance', link: '/blog' },
+        { name: 'Study Materials', description: 'Comprehensive learning resources', link: '#resources' },
+        { name: 'Practice Tests', description: 'Mock exams and assessments', link: '#practice' }
+      ]
+    },
+    {
+      category: 'Community',
+      items: [
+        { name: 'Success Stories', description: 'Student achievements', link: '#testimonials' },
+        { name: 'Islamic Guidance', description: 'Spiritual development', link: '#guidance' },
+        { name: 'Support Forum', description: 'Connect with peers', link: '#community' }
+      ]
+    }
   ];
 
   useEffect(() => {
@@ -48,7 +76,7 @@ export const Navigation = ({ darkMode, toggleDarkMode }: NavigationProps) => {
     
     const section = document.getElementById(sectionId);
     if (section) {
-      const headerHeight = 80;
+      const headerHeight = 120; // Adjusted for banner space
       const sectionTop = section.offsetTop - headerHeight;
       
       window.scrollTo({
@@ -57,12 +85,13 @@ export const Navigation = ({ darkMode, toggleDarkMode }: NavigationProps) => {
       });
     }
     setIsMenuOpen(false);
+    setShowMegaMenu(false);
   };
 
   return (
     <>
       {/* Desktop Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b border-gray-200 dark:border-gray-800">
+      <nav className="fixed top-[3rem] left-0 right-0 z-40 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b border-gray-200 dark:border-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             {/* Logo */}
@@ -82,23 +111,24 @@ export const Navigation = ({ darkMode, toggleDarkMode }: NavigationProps) => {
 
             {/* Desktop Menu */}
             <div className="hidden md:flex items-center space-x-1">
-              {navItems.map((item) => {
-                const Icon = item.icon;
-                return (
+              {navItems.map((item) => (
+                <div key={item.id} className="relative">
                   <button
-                    key={item.id}
-                    onClick={() => scrollToSection(item.id)}
+                    onClick={() => item.id === 'programs' ? setShowMegaMenu(!showMegaMenu) : scrollToSection(item.id)}
+                    onMouseEnter={() => item.id === 'programs' && setShowMegaMenu(true)}
                     className={`flex items-center space-x-2 px-4 py-3 rounded-xl transition-all duration-200 font-medium ${
                       activeSection === item.id
                         ? 'bg-brand-primary text-white shadow-lg shadow-brand-primary/25'
                         : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-brand-primary'
                     }`}
                   >
-                    <Icon className="w-4 h-4" />
                     <span>{item.label}</span>
+                    {item.id === 'programs' && (
+                      <ChevronDown className={`w-4 h-4 transition-transform ${showMegaMenu ? 'rotate-180' : ''}`} />
+                    )}
                   </button>
-                );
-              })}
+                </div>
+              ))}
             </div>
 
             {/* Actions */}
@@ -114,8 +144,8 @@ export const Navigation = ({ darkMode, toggleDarkMode }: NavigationProps) => {
                 onClick={() => scrollToSection('registration')}
                 className="hidden md:flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-brand-primary to-brand-accent text-white rounded-xl hover:shadow-lg hover:shadow-brand-primary/25 transition-all duration-300 font-semibold"
               >
-                <span>Start Journey</span>
-                <BookOpen className="w-4 h-4" />
+                <span>Register Now</span>
+                <ArrowRight className="w-4 h-4" />
               </button>
 
               {/* Mobile Menu Toggle */}
@@ -128,6 +158,42 @@ export const Navigation = ({ darkMode, toggleDarkMode }: NavigationProps) => {
             </div>
           </div>
         </div>
+
+        {/* Mega Menu */}
+        {showMegaMenu && (
+          <div 
+            className="absolute top-full left-0 right-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-2xl"
+            onMouseLeave={() => setShowMegaMenu(false)}
+          >
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+              <div className="grid grid-cols-3 gap-8">
+                {megaMenuItems.map((category, index) => (
+                  <div key={index}>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                      {category.category}
+                    </h3>
+                    <div className="space-y-3">
+                      {category.items.map((item, itemIndex) => (
+                        <a
+                          key={itemIndex}
+                          href={item.link}
+                          className="block p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors group"
+                        >
+                          <div className="font-medium text-gray-900 dark:text-white group-hover:text-brand-primary">
+                            {item.name}
+                          </div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                            {item.description}
+                          </div>
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* Mobile Menu Overlay */}
@@ -139,25 +205,21 @@ export const Navigation = ({ darkMode, toggleDarkMode }: NavigationProps) => {
       )}
 
       {/* Mobile Menu */}
-      <div className={`mobile-menu fixed top-20 left-0 w-full bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 z-50 md:hidden ${isMenuOpen ? 'open' : ''}`}>
+      <div className={`mobile-menu fixed top-[8rem] left-0 w-full bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 z-50 md:hidden ${isMenuOpen ? 'open' : ''}`}>
         <div className="p-6 space-y-4">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <button
-                key={item.id}
-                onClick={() => scrollToSection(item.id)}
-                className={`flex items-center space-x-3 w-full px-4 py-3 rounded-xl transition-all duration-200 ${
-                  activeSection === item.id
-                    ? 'bg-brand-primary text-white'
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
-                }`}
-              >
-                <Icon className="w-5 h-5" />
-                <span className="font-medium">{item.label}</span>
-              </button>
-            );
-          })}
+          {navItems.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => scrollToSection(item.id)}
+              className={`flex items-center space-x-3 w-full px-4 py-3 rounded-xl transition-all duration-200 ${
+                activeSection === item.id
+                  ? 'bg-brand-primary text-white'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+              }`}
+            >
+              <span className="font-medium">{item.label}</span>
+            </button>
+          ))}
           
           <div className="pt-4 mt-4 border-t border-gray-200 dark:border-gray-800">
             <button
@@ -167,7 +229,7 @@ export const Navigation = ({ darkMode, toggleDarkMode }: NavigationProps) => {
               }}
               className="w-full px-4 py-3 bg-gradient-to-r from-brand-primary to-brand-accent text-white rounded-xl hover:shadow-lg transition-all duration-300 font-semibold"
             >
-              Start Journey
+              Register Now
             </button>
           </div>
         </div>

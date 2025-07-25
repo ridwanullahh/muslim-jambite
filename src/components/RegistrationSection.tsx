@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Mail, User, Phone, BookOpen, Code, Loader2, CheckCircle, CreditCard, Shield, AlertCircle } from 'lucide-react';
+import { Mail, User, Phone, BookOpen, Code, Loader2, CheckCircle, CreditCard, Shield, AlertCircle, Copy, Check } from 'lucide-react';
 import { RegistrationService, RegistrationEntry } from '../lib/sdk';
 import { PaymentService } from '../services/PaymentService';
+import { Checkbox } from './ui/checkbox';
 
 export const RegistrationSection = () => {
   const [formData, setFormData] = useState({
@@ -20,10 +21,12 @@ export const RegistrationSection = () => {
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState('');
   const [paymentStep, setPaymentStep] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const registrationFee = 500;
   const monthlyFee = formData.techTrack ? 2000 : 1500;
   const programDuration = formData.techTrack ? 12 : 9;
+  const shahadahText = "Laa ilaaha illa Allah, Muhammadun Rosulu-Allah";
 
   const currentLevels = [
     { value: 'ss1', label: 'SS1 (Senior Secondary 1)' },
@@ -39,6 +42,16 @@ export const RegistrationSection = () => {
     'Medicine', 'Engineering', 'Law', 'Business', 'Computer Science',
     'Arts', 'Social Sciences', 'Education', 'Mass Communication'
   ];
+
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(shahadahText);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy text:', err);
+    }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -86,21 +99,20 @@ export const RegistrationSection = () => {
       }
 
       if (!formData.isMuslim) {
-        throw new Error('You must be a Muslim to join this program');
+        throw new Error('Please confirm your Islamic faith');
       }
 
       if (!formData.muslimConfirmation) {
-        throw new Error('Please confirm your Islamic faith');
+        throw new Error('Please type the Shahadah');
       } else {
-        // Strict validation for the confirmation text
-        const expectedText = "I am a Muslim. Alhamdulillah!";
+        // Strict validation for the Shahadah
         const normalizedInput = formData.muslimConfirmation.trim()
           .replace(/\s+/g, ' ')
           .toLowerCase();
-        const normalizedExpected = expectedText.toLowerCase();
+        const normalizedExpected = shahadahText.toLowerCase();
         
         if (normalizedInput !== normalizedExpected) {
-          throw new Error('Please type exactly: "I am a Muslim. Alhamdulillah!"');
+          throw new Error('Please type the Shahadah exactly as shown');
         }
       }
 
@@ -305,6 +317,37 @@ export const RegistrationSection = () => {
           </div>
         </div>
 
+        {/* Registration Countdown Timer */}
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6 mb-8 max-w-2xl mx-auto">
+          <div className="text-center">
+            <h3 className="text-lg font-semibold text-red-800 dark:text-red-200 mb-2">⏰ Registration Closes Soon!</h3>
+            <div className="flex items-center justify-center space-x-2 text-2xl font-mono text-red-600 dark:text-red-400">
+              <div className="bg-red-100 dark:bg-red-800 px-3 py-1 rounded">
+                <span className="block text-xs text-red-500">DAYS</span>
+                <span>15</span>
+              </div>
+              <span>:</span>
+              <div className="bg-red-100 dark:bg-red-800 px-3 py-1 rounded">
+                <span className="block text-xs text-red-500">HOURS</span>
+                <span>08</span>
+              </div>
+              <span>:</span>
+              <div className="bg-red-100 dark:bg-red-800 px-3 py-1 rounded">
+                <span className="block text-xs text-red-500">MINS</span>
+                <span>45</span>
+              </div>
+              <span>:</span>
+              <div className="bg-red-100 dark:bg-red-800 px-3 py-1 rounded">
+                <span className="block text-xs text-red-500">SECS</span>
+                <span>12</span>
+              </div>
+            </div>
+            <p className="text-sm text-red-600 dark:text-red-400 mt-2">
+              Don't miss out on this opportunity! Register now to secure your spot.
+            </p>
+          </div>
+        </div>
+
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 md:p-12">
           {paymentStep && (
             <div className="mb-8 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
@@ -397,47 +440,49 @@ export const RegistrationSection = () => {
               </div>
             </div>
 
-            {/* Muslim Verification Section */}
-            <div className="bg-green-50 dark:bg-green-900/20 p-6 rounded-lg border border-green-200 dark:border-green-800">
-              <h3 className="text-lg font-semibold text-green-800 dark:text-green-200 mb-4 flex items-center">
-                <span className="text-2xl mr-2">🕌</span>
-                Islamic Faith Verification
-              </h3>
-              <p className="text-green-700 dark:text-green-300 text-sm mb-4">
-                MuslimJambite is exclusively designed for Muslim students. Please confirm your Islamic faith to proceed.
-              </p>
-              
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <input
-                    type="checkbox"
-                    id="isMuslim"
-                    name="isMuslim"
-                    checked={formData.isMuslim}
-                    onChange={handleInputChange}
-                    className="w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500 focus:ring-2"
-                  />
-                  <label htmlFor="isMuslim" className="text-green-800 dark:text-green-200 font-medium">
-                    I am a Muslim
-                  </label>
-                </div>
+            {/* Islamic Faith Confirmation */}
+            <div className="space-y-4">
+              <div className="flex items-center space-x-3">
+                <Checkbox
+                  id="isMuslim"
+                  checked={formData.isMuslim}
+                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isMuslim: checked as boolean }))}
+                />
+                <label htmlFor="isMuslim" className="text-gray-700 dark:text-gray-300 font-medium">
+                  I am a Muslim
+                </label>
+              </div>
 
-                <div className="space-y-2">
-                  <label htmlFor="muslimConfirmation" className="text-green-800 dark:text-green-200">
-                    Please type: "I am a Muslim. Alhamdulillah!"
+              {formData.isMuslim && (
+                <div className="space-y-3 animate-fade-in">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Please type the Shahadah:
                   </label>
+                  <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg border border-gray-200 dark:border-gray-600">
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-700 dark:text-gray-300 font-arabic text-lg">
+                        {shahadahText}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={copyToClipboard}
+                        className="p-2 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
+                      >
+                        {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4 text-gray-500" />}
+                      </button>
+                    </div>
+                  </div>
                   <input
                     type="text"
-                    id="muslimConfirmation"
                     name="muslimConfirmation"
                     value={formData.muslimConfirmation}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-4 py-3 border border-green-300 focus:border-green-500 rounded-lg focus:ring-2 focus:ring-green-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    placeholder="I am a Muslim. Alhamdulillah!"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    placeholder="Type the Shahadah here..."
                   />
                 </div>
-              </div>
+              )}
             </div>
 
             {/* Program Selection */}
