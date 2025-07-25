@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Navigation } from '../components/Navigation';
 import { BookOpen, Users, Award, Clock, Heart, Star, Globe, Shield, Target, Eye, CheckCircle, MoonStar, Brain, Handshake, Lightbulb, TrendingUp } from 'lucide-react';
@@ -36,7 +35,7 @@ const About = () => {
 
   const uniqueFeatures = [
     {
-      icon: Mosque,
+      icon: MoonStar,
       title: "Islamic Integration",
       description: "We don't just prepare students for JAMB. We help them strengthen their relationship with Allah (SWT), understand their Deen, and live with purpose — all while excelling academically.",
       color: "from-green-500 to-emerald-500"
@@ -63,7 +62,7 @@ const About = () => {
 
   const coreValues = [
     {
-      icon: Mosque,
+      icon: MoonStar,
       title: "Tawheed First",
       description: "We put Islamic principles at the center of every decision, lesson, and life goal.",
       color: "from-emerald-500 to-teal-500"
