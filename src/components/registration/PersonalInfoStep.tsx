@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Loader2, AlertCircle } from 'lucide-react';
+import { Loader2, AlertCircle, Copy, Check } from 'lucide-react';
 
 interface PersonalInfoStepProps {
   data: {
@@ -28,6 +28,15 @@ export const PersonalInfoStep = ({ data, onNext, isLoading }: PersonalInfoStepPr
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [copied, setCopied] = useState(false);
+
+  const shahadah = "Laa ilaaha illa Allah, Muhammadun Rosulu-Allah";
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(shahadah);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -50,18 +59,20 @@ export const PersonalInfoStep = ({ data, onNext, isLoading }: PersonalInfoStepPr
       newErrors.isMuslim = 'You must be a Muslim to join this program';
     }
 
-    if (!formData.muslimConfirmation) {
-      newErrors.muslimConfirmation = 'Please confirm your Islamic faith';
-    } else {
-      // Strict validation for the confirmation text
-      const expectedText = "I am a Muslim. Alhamdulillah!";
+    if (formData.isMuslim && !formData.muslimConfirmation) {
+      newErrors.muslimConfirmation = 'Please confirm by typing the Shahadah';
+    } else if (formData.isMuslim && formData.muslimConfirmation) {
+      // Strict validation for the Shahadah with leniency for case, spacing, and punctuation
       const normalizedInput = formData.muslimConfirmation.trim()
         .replace(/\s+/g, ' ')
-        .toLowerCase();
-      const normalizedExpected = expectedText.toLowerCase();
+        .toLowerCase()
+        .replace(/[.,;:!?]/g, '');
+      const normalizedExpected = shahadah.toLowerCase()
+        .replace(/\s+/g, ' ')
+        .replace(/[.,;:!?]/g, '');
       
       if (normalizedInput !== normalizedExpected) {
-        newErrors.muslimConfirmation = 'Please type exactly: "I am a Muslim. Alhamdulillah!"';
+        newErrors.muslimConfirmation = 'Please type the Shahadah exactly as shown';
       }
     }
     
@@ -127,40 +138,45 @@ export const PersonalInfoStep = ({ data, onNext, isLoading }: PersonalInfoStepPr
           {errors.phone && <p className="text-red-500 text-sm">{errors.phone}</p>}
         </div>
 
-        {/* Muslim Verification Section */}
-        <div className="bg-green-50 dark:bg-green-900/20 p-6 rounded-lg border border-green-200 dark:border-green-800">
-          <h3 className="text-lg font-semibold text-green-800 dark:text-green-200 mb-4 flex items-center">
-            <span className="text-2xl mr-2">🕌</span>
-            Islamic Faith Verification
-          </h3>
-          <p className="text-green-700 dark:text-green-300 text-sm mb-4">
-            MuslimJambite is exclusively designed for Muslim students. Please confirm your Islamic faith to proceed.
-          </p>
-          
-          <div className="space-y-4">
-            <div className="flex items-center space-x-3">
-              <Checkbox
-                id="isMuslim"
-                checked={formData.isMuslim}
-                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isMuslim: checked as boolean }))}
-              />
-              <Label htmlFor="isMuslim" className="text-green-800 dark:text-green-200 font-medium">
-                I am a Muslim
-              </Label>
-            </div>
-            {errors.isMuslim && <p className="text-red-500 text-sm">{errors.isMuslim}</p>}
+        {/* Islamic Verification */}
+        <div className="space-y-4">
+          <div className="flex items-center space-x-3">
+            <Checkbox
+              id="isMuslim"
+              checked={formData.isMuslim}
+              onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isMuslim: checked as boolean, muslimConfirmation: '' }))}
+              className="rounded-full"
+            />
+            <Label htmlFor="isMuslim" className="font-medium">
+              I am a Muslim
+            </Label>
+          </div>
+          {errors.isMuslim && <p className="text-red-500 text-sm">{errors.isMuslim}</p>}
 
+          {formData.isMuslim && (
             <div className="space-y-2">
-              <Label htmlFor="muslimConfirmation" className="text-green-800 dark:text-green-200">
-                Please type: "I am a Muslim. Alhamdulillah!"
+              <Label htmlFor="muslimConfirmation">
+                Please type the Shahadah:
               </Label>
+              <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400 mb-2">
+                <span className="font-arabic">{shahadah}</span>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleCopy}
+                  className="h-6 px-2"
+                >
+                  {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                </Button>
+              </div>
               <Input
                 id="muslimConfirmation"
                 type="text"
                 value={formData.muslimConfirmation}
                 onChange={(e) => setFormData(prev => ({ ...prev, muslimConfirmation: e.target.value }))}
-                placeholder="I am a Muslim. Alhamdulillah!"
-                className={errors.muslimConfirmation ? 'border-red-500' : 'border-green-300 focus:border-green-500'}
+                placeholder="Type the Shahadah here..."
+                className={errors.muslimConfirmation ? 'border-red-500' : ''}
               />
               {errors.muslimConfirmation && (
                 <div className="flex items-center space-x-2 text-red-500 text-sm">
@@ -169,7 +185,7 @@ export const PersonalInfoStep = ({ data, onNext, isLoading }: PersonalInfoStepPr
                 </div>
               )}
             </div>
-          </div>
+          )}
         </div>
 
         <Button 

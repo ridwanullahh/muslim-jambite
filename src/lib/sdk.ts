@@ -1,783 +1,436 @@
-import UniversalSDK, { UniversalSDKConfig } from '../types/sdk';
 
-// Get GitHub token with fallback
-const getGithubToken = () => {
-  try {
-    return import.meta.env?.GITHUB_TOKEN || "your-github-token-here";
-  } catch {
-    return "your-github-token-here";
+import { BlogPost, BlogComment, BlogCategory, Student, ProspectEntry, FAQ, Resource } from '../types/sdk';
+
+// Mock data for development
+let mockBlogPosts: BlogPost[] = [
+  {
+    id: '1',
+    title: 'The Islamic Approach to Education: Balancing Deen and Dunya',
+    slug: 'islamic-approach-to-education',
+    excerpt: 'Discover how to excel in your studies while maintaining your Islamic values and spiritual growth.',
+    content: 'Education in Islam is not merely about acquiring knowledge for worldly success, but about developing a comprehensive understanding that encompasses both spiritual and intellectual growth. The Prophet Muhammad (peace be upon him) emphasized the importance of seeking knowledge, stating "Seek knowledge from the cradle to the grave." This holistic approach to education is what makes the Islamic perspective unique and valuable for Muslim students preparing for their academic journey.',
+    author: 'Dr. Amina Hassan',
+    category: 'Islamic Education',
+    tags: ['Education', 'Islam', 'Spirituality', 'Academic Success'],
+    publishedAt: '2024-01-15T10:00:00Z',
+    updatedAt: '2024-01-15T10:00:00Z',
+    status: 'published',
+    featured: true,
+    views: 1250,
+    likes: 89,
+    seoTitle: 'Islamic Approach to Education - Balancing Deen and Dunya',
+    seoDescription: 'Learn how to excel in your studies while maintaining Islamic values. Discover the holistic approach to education in Islam.',
+    seoKeywords: ['Islamic education', 'Muslim students', 'Deen and Dunya', 'Islamic values', 'Academic success']
+  },
+  {
+    id: '2',
+    title: 'JAMB Success Stories: How Faith Fueled Their Achievement',
+    slug: 'jamb-success-stories-faith-fueled-achievement',
+    excerpt: 'Inspiring stories of Muslim students who combined faith with hard work to achieve JAMB excellence.',
+    content: 'Success in JAMB is not just about academic preparation; it requires a balance of faith, dedication, and strategic planning. In this article, we share inspiring stories of Muslim students who achieved remarkable JAMB scores while maintaining their Islamic values and practices.',
+    author: 'Ustaz Ibrahim Musa',
+    category: 'Success Stories',
+    tags: ['JAMB', 'Success Stories', 'Faith', 'Achievement', 'Muslim Students'],
+    publishedAt: '2024-01-10T14:30:00Z',
+    updatedAt: '2024-01-10T14:30:00Z',
+    status: 'published',
+    featured: false,
+    views: 980,
+    likes: 67,
+    seoTitle: 'JAMB Success Stories - Faith-Fueled Achievement',
+    seoDescription: 'Inspiring stories of Muslim students who achieved JAMB excellence through faith and hard work.',
+    seoKeywords: ['JAMB success', 'Muslim students', 'faith and education', 'JAMB preparation', 'Islamic values']
   }
-};
+];
 
-// SDK Configuration
-const sdkConfig: UniversalSDKConfig = {
-  owner: "muslimjambite",
-  repo: "waitlist-db", 
-  token: getGithubToken(),
-  branch: "main",
-  basePath: "db",
-  mediaPath: "media",
-  schemas: {
-    registrations: {
-      required: ['email', 'fullName', 'phone', 'program', 'isMuslim', 'muslimConfirmation'],
-      types: {
-        email: 'string',
-        fullName: 'string',
-        phone: 'string',
-        program: 'string',
-        isMuslim: 'boolean',
-        muslimConfirmation: 'string',
-        techTrack: 'boolean',
-        techSkill: 'string',
-        currentLevel: 'string',
-        interests: 'array',
-        paymentStatus: 'string',
-        paymentReference: 'string',
-        registrationFee: 'number',
-        monthlyFee: 'number',
-        createdAt: 'date',
-        updatedAt: 'date'
-      },
-      defaults: {
-        program: 'jamb-prep',
-        isMuslim: false,
-        muslimConfirmation: '',
-        techTrack: false,
-        techSkill: '',
-        currentLevel: 'ss3',
-        interests: [],
-        paymentStatus: 'pending',
-        registrationFee: 500,
-        monthlyFee: 1500,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      }
-    },
-    prospects: {
-      required: ['email'],
-      types: {
-        email: 'string',
-        fullName: 'string',
-        phone: 'string',
-        program: 'string',
-        isMuslim: 'boolean',
-        muslimConfirmation: 'string',
-        techTrack: 'boolean',
-        techSkill: 'string',
-        currentLevel: 'string',
-        interests: 'array',
-        step: 'number',
-        completed: 'boolean',
-        createdAt: 'date',
-        updatedAt: 'date'
-      },
-      defaults: {
-        program: 'jamb-prep',
-        isMuslim: false,
-        muslimConfirmation: '',
-        techTrack: false,
-        techSkill: '',
-        currentLevel: 'ss3',
-        interests: [],
-        step: 1,
-        completed: false,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      }
-    },
-    payments: {
-      required: ['email', 'amount', 'reference'],
-      types: {
-        email: 'string',
-        fullName: 'string',
-        amount: 'number',
-        currency: 'string',
-        reference: 'string',
-        status: 'string',
-        gateway: 'string',
-        metadata: 'object',
-        createdAt: 'date',
-        updatedAt: 'date'
-      },
-      defaults: {
-        currency: 'NGN',
-        status: 'pending',
-        gateway: 'paystack',
-        metadata: {},
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      }
-    },
-    subscribers: {
-      required: ['email'],
-      types: {
-        email: 'string',
-        source: 'string',
-        createdAt: 'date'
-      },
-      defaults: {
-        source: 'landing-page',
-        createdAt: new Date().toISOString()
-      }
-    },
-    faqs: {
-      required: ['id', 'question', 'answer'],
-      types: {
-        id: 'string',
-        question: 'string',
-        answer: 'string',
-        category: 'string'
-      },
-      defaults: {
-        category: 'General'
-      }
-    },
-    blog_posts: {
-      required: ['id', 'title', 'content', 'author'],
-      types: {
-        id: 'string',
-        title: 'string',
-        slug: 'string',
-        content: 'string',
-        excerpt: 'string',
-        author: 'string',
-        category: 'string',
-        tags: 'array',
-        status: 'string',
-        featured: 'boolean',
-        readTime: 'number',
-        likes: 'number',
-        views: 'number',
-        comments: 'array',
-        metaTitle: 'string',
-        metaDescription: 'string',
-        publishedAt: 'date',
-        createdAt: 'date',
-        updatedAt: 'date'
-      },
-      defaults: {
-        slug: '',
-        excerpt: '',
-        category: 'General',
-        tags: [],
-        status: 'draft',
-        featured: false,
-        readTime: 5,
-        likes: 0,
-        views: 0,
-        comments: [],
-        metaTitle: '',
-        metaDescription: '',
-        publishedAt: new Date().toISOString(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      }
-    },
-    blog_categories: {
-      required: ['id', 'name'],
-      types: {
-        id: 'string',
-        name: 'string',
-        slug: 'string',
-        description: 'string',
-        color: 'string',
-        createdAt: 'date'
-      },
-      defaults: {
-        slug: '',
-        description: '',
-        color: '#05B34D',
-        createdAt: new Date().toISOString()
-      }
-    },
-    blog_comments: {
-      required: ['id', 'postId', 'author', 'content'],
-      types: {
-        id: 'string',
-        postId: 'string',
-        author: 'string',
-        email: 'string',
-        content: 'string',
-        parentId: 'string',
-        status: 'string',
-        likes: 'number',
-        createdAt: 'date',
-        updatedAt: 'date'
-      },
-      defaults: {
-        parentId: '',
-        status: 'pending',
-        likes: 0,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      }
-    },
-    admins: {
-      required: ['email', 'username'],
-      types: {
-        email: 'string',
-        username: 'string',
-        password: 'string',
-        role: 'string',
-        permissions: 'array',
-        lastLogin: 'date',
-        createdAt: 'date'
-      },
-      defaults: {
-        role: 'admin',
-        permissions: ['read', 'write', 'delete'],
-        lastLogin: new Date().toISOString(),
-        createdAt: new Date().toISOString()
-      }
+let mockBlogComments: BlogComment[] = [
+  {
+    id: '1',
+    postId: '1',
+    author: 'Fatima Al-Zahra',
+    email: 'fatima@example.com',
+    content: 'This article beautifully explains the balance between spiritual and academic growth. JazakAllahu khair for sharing this wisdom.',
+    status: 'approved',
+    likes: 12,
+    createdAt: '2024-01-16T09:30:00Z',
+    updatedAt: '2024-01-16T09:30:00Z'
+  },
+  {
+    id: '2',
+    postId: '1',
+    author: 'Muhammad Ali',
+    email: 'ali@example.com',
+    content: 'As a student preparing for JAMB, this perspective has given me a new understanding of how to approach my studies. Barakallahu feeki.',
+    status: 'approved',
+    likes: 8,
+    createdAt: '2024-01-16T15:45:00Z',
+    updatedAt: '2024-01-16T15:45:00Z'
+  }
+];
+
+let mockBlogCategories: BlogCategory[] = [
+  {
+    id: '1',
+    name: 'Islamic Education',
+    slug: 'islamic-education',
+    description: 'Articles about Islamic approach to learning and education',
+    color: '#10B981',
+    postCount: 15
+  },
+  {
+    id: '2',
+    name: 'JAMB Preparation',
+    slug: 'jamb-preparation',
+    description: 'Tips and strategies for JAMB success',
+    color: '#3B82F6',
+    postCount: 23
+  },
+  {
+    id: '3',
+    name: 'Success Stories',
+    slug: 'success-stories',
+    description: 'Inspiring stories from our students',
+    color: '#F59E0B',
+    postCount: 8
+  },
+  {
+    id: '4',
+    name: 'Islamic Values',
+    slug: 'islamic-values',
+    description: 'Living as a Muslim student in modern times',
+    color: '#8B5CF6',
+    postCount: 12
+  }
+];
+
+let mockStudents: Student[] = [];
+let mockProspects: ProspectEntry[] = [];
+let mockFAQs: FAQ[] = [];
+let mockResources: Resource[] = [];
+
+// Simulate API delays
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+export const BlogService = {
+  async getPosts(filters?: { category?: string; status?: string; featured?: boolean }): Promise<BlogPost[]> {
+    await delay(500);
+    let filteredPosts = mockBlogPosts;
+    
+    if (filters?.category) {
+      filteredPosts = filteredPosts.filter(post => post.category === filters.category);
+    }
+    if (filters?.status) {
+      filteredPosts = filteredPosts.filter(post => post.status === filters.status);
+    }
+    if (filters?.featured !== undefined) {
+      filteredPosts = filteredPosts.filter(post => post.featured === filters.featured);
+    }
+    
+    return filteredPosts;
+  },
+
+  async getPostById(id: string): Promise<BlogPost | null> {
+    await delay(300);
+    return mockBlogPosts.find(post => post.id === id) || null;
+  },
+
+  async getPostBySlug(slug: string): Promise<BlogPost | null> {
+    await delay(300);
+    return mockBlogPosts.find(post => post.slug === slug) || null;
+  },
+
+  async getRelatedPosts(postId: string): Promise<BlogPost[]> {
+    await delay(300);
+    const post = mockBlogPosts.find(p => p.id === postId);
+    if (!post) return [];
+    
+    return mockBlogPosts
+      .filter(p => p.id !== postId && p.category === post.category)
+      .slice(0, 4);
+  },
+
+  async getPopularPosts(): Promise<BlogPost[]> {
+    await delay(300);
+    return mockBlogPosts
+      .sort((a, b) => b.views - a.views)
+      .slice(0, 5);
+  },
+
+  async createPost(post: Omit<BlogPost, 'id' | 'createdAt' | 'updatedAt'>): Promise<BlogPost> {
+    await delay(500);
+    const newPost: BlogPost = {
+      ...post,
+      id: Date.now().toString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    mockBlogPosts.unshift(newPost);
+    return newPost;
+  },
+
+  async updatePost(id: string, updates: Partial<BlogPost>): Promise<BlogPost | null> {
+    await delay(500);
+    const index = mockBlogPosts.findIndex(post => post.id === id);
+    if (index === -1) return null;
+    
+    mockBlogPosts[index] = {
+      ...mockBlogPosts[index],
+      ...updates,
+      updatedAt: new Date().toISOString()
+    };
+    return mockBlogPosts[index];
+  },
+
+  async deletePost(id: string): Promise<boolean> {
+    await delay(500);
+    const index = mockBlogPosts.findIndex(post => post.id === id);
+    if (index === -1) return false;
+    
+    mockBlogPosts.splice(index, 1);
+    return true;
+  },
+
+  async updatePostViews(id: string): Promise<void> {
+    await delay(100);
+    const post = mockBlogPosts.find(p => p.id === id);
+    if (post) {
+      post.views += 1;
     }
   },
-  templates: {
-    welcome: `
-      <div style="font-family: 'Inter', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-        <h2 style="color: #05B34D; text-align: center;">Assalamu Alaikum {{fullName}}!</h2>
-        <p>JazakAllahu khairan for your interest in MuslimJambite! Your registration has been received.</p>
-        <p>Payment Status: {{paymentStatus}}</p>
-        <p>Program: {{program}} {{#techTrack}}+ Tech Skills{{/techTrack}}</p>
-        <p>Monthly Fee: ₦{{monthlyFee}}</p>
-        <p>We'll keep you updated on your registration status and program details.</p>
-        <p style="margin-top: 30px;">Barakallahu feeki,<br>The MuslimJambite Team</p>
-      </div>
-    `,
-    payment_success: `
-      <div style="font-family: 'Inter', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-        <h2 style="color: #05B34D; text-align: center;">Payment Successful!</h2>
-        <p>Assalamu Alaikum {{fullName}},</p>
-        <p>Your registration payment has been successfully processed.</p>
-        <p><strong>Payment Details:</strong></p>
-        <ul>
-          <li>Amount: ₦{{amount}}</li>
-          <li>Reference: {{reference}}</li>
-          <li>Program: {{program}}</li>
-        </ul>
-        <p>Welcome to MuslimJambite! We'll contact you soon with next steps.</p>
-        <p>Barakallahu feeki,<br>The MuslimJambite Team</p>
-      </div>
-    `,
-    otp: `
-      <div style="font-family: 'Inter', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-        <h2 style="color: #05B34D; text-align: center;">Your OTP Code</h2>
-        <div style="background: #E9FBF1; padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0;">
-          <h3 style="color: #05B34D; font-size: 24px; margin: 0;">{{otp}}</h3>
-        </div>
-        <p>This code will expire in 10 minutes.</p>
-      </div>
-    `
+
+  async likePost(id: string): Promise<void> {
+    await delay(200);
+    const post = mockBlogPosts.find(p => p.id === id);
+    if (post) {
+      post.likes += 1;
+    }
+  },
+
+  async getComments(postId: string): Promise<BlogComment[]> {
+    await delay(300);
+    return mockBlogComments.filter(comment => comment.postId === postId);
+  },
+
+  async addComment(comment: Omit<BlogComment, 'id' | 'createdAt' | 'updatedAt'>): Promise<BlogComment> {
+    await delay(500);
+    const newComment: BlogComment = {
+      ...comment,
+      id: Date.now().toString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    mockBlogComments.push(newComment);
+    return newComment;
+  },
+
+  async updateComment(id: string, updates: Partial<BlogComment>): Promise<BlogComment | null> {
+    await delay(500);
+    const index = mockBlogComments.findIndex(comment => comment.id === id);
+    if (index === -1) return null;
+    
+    mockBlogComments[index] = {
+      ...mockBlogComments[index],
+      ...updates,
+      updatedAt: new Date().toISOString()
+    };
+    return mockBlogComments[index];
+  },
+
+  async deleteComment(id: string): Promise<boolean> {
+    await delay(500);
+    const index = mockBlogComments.findIndex(comment => comment.id === id);
+    if (index === -1) return false;
+    
+    mockBlogComments.splice(index, 1);
+    return true;
+  },
+
+  async getCategories(): Promise<BlogCategory[]> {
+    await delay(300);
+    return mockBlogCategories;
+  },
+
+  async createCategory(category: Omit<BlogCategory, 'id' | 'postCount'>): Promise<BlogCategory> {
+    await delay(500);
+    const newCategory: BlogCategory = {
+      ...category,
+      id: Date.now().toString(),
+      postCount: 0
+    };
+    mockBlogCategories.push(newCategory);
+    return newCategory;
+  },
+
+  async updateCategory(id: string, updates: Partial<BlogCategory>): Promise<BlogCategory | null> {
+    await delay(500);
+    const index = mockBlogCategories.findIndex(category => category.id === id);
+    if (index === -1) return null;
+    
+    mockBlogCategories[index] = {
+      ...mockBlogCategories[index],
+      ...updates
+    };
+    return mockBlogCategories[index];
+  },
+
+  async deleteCategory(id: string): Promise<boolean> {
+    await delay(500);
+    const index = mockBlogCategories.findIndex(category => category.id === id);
+    if (index === -1) return false;
+    
+    mockBlogCategories.splice(index, 1);
+    return true;
   }
 };
 
-// Initialize SDK
-export const sdk = new UniversalSDK(sdkConfig);
+export const RegistrationService = {
+  async registerStudent(student: Omit<Student, 'id' | 'createdAt' | 'updatedAt'>): Promise<Student> {
+    await delay(1000);
+    const newStudent: Student = {
+      ...student,
+      id: Date.now().toString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    mockStudents.push(newStudent);
+    return newStudent;
+  },
 
-// Registration interface
-export interface RegistrationEntry {
-  id?: string;
-  uid?: string;
-  email: string;
-  fullName: string;
-  phone: string;
-  program: string;
-  isMuslim: boolean;
-  muslimConfirmation: string;
-  techTrack: boolean;
-  techSkill?: string;
-  currentLevel: string;
-  interests: string[];
-  paymentStatus: string;
-  paymentReference?: string;
-  registrationFee: number;
-  monthlyFee: number;
-  createdAt: string;
-  updatedAt: string;
-}
+  async getStudents(): Promise<Student[]> {
+    await delay(500);
+    return mockStudents;
+  },
 
-// Prospect interface
-export interface ProspectEntry {
-  id?: string;
-  uid?: string;
-  email: string;
-  fullName?: string;
-  phone?: string;
-  program: string;
-  isMuslim: boolean;
-  muslimConfirmation: string;
-  techTrack: boolean;
-  techSkill?: string;
-  currentLevel: string;
-  interests: string[];
-  step: number;
-  completed: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
+  async getStudent(id: string): Promise<Student | null> {
+    await delay(300);
+    return mockStudents.find(student => student.id === id) || null;
+  },
 
-// Payment interface
-export interface PaymentEntry {
-  id?: string;
-  uid?: string;
-  email: string;
-  fullName?: string;
-  amount: number;
-  currency: string;
-  reference: string;
-  status: string;
-  gateway: string;
-  metadata: any;
-  createdAt: string;
-  updatedAt: string;
-}
+  async updateStudent(id: string, updates: Partial<Student>): Promise<Student | null> {
+    await delay(500);
+    const index = mockStudents.findIndex(student => student.id === id);
+    if (index === -1) return null;
+    
+    mockStudents[index] = {
+      ...mockStudents[index],
+      ...updates,
+      updatedAt: new Date().toISOString()
+    };
+    return mockStudents[index];
+  },
 
-// Blog interfaces
-export interface BlogPost {
-  id?: string;
-  uid?: string;
-  title: string;
-  slug: string;
-  content: string;
-  excerpt: string;
-  author: string;
-  category: string;
-  tags: string[];
-  status: 'draft' | 'published' | 'archived';
-  featured: boolean;
-  readTime: number;
-  likes: number;
-  views: number;
-  comments: BlogComment[];
-  metaTitle: string;
-  metaDescription: string;
-  publishedAt: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface BlogCategory {
-  id?: string;
-  uid?: string;
-  name: string;
-  slug: string;
-  description: string;
-  color: string;
-  createdAt: string;
-}
-
-export interface BlogComment {
-  id?: string;
-  uid?: string;
-  postId: string;
-  author: string;
-  email: string;
-  content: string;
-  parentId?: string;
-  status: 'pending' | 'approved' | 'rejected';
-  likes: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface AdminUser {
-  id?: string;
-  uid?: string;
-  email: string;
-  username: string;
-  password: string;
-  role: 'superadmin' | 'admin' | 'editor';
-  permissions: string[];
-  lastLogin: string;
-  createdAt: string;
-}
-
-// Registration service
-export class RegistrationService {
-  // Initialize collections if they don't exist
-  static async initializeCollections(): Promise<void> {
-    try {
-      const collections = ['registrations', 'payments', 'subscribers', 'prospects'];
-      for (const collection of collections) {
-        try {
-          await sdk.get(collection);
-        } catch (error: any) {
-          if (error.message.includes('Not Found')) {
-            console.log(`Creating collection: ${collection}`);
-            await sdk.insert(collection, {});
-            await sdk.delete(collection, '1'); // Remove the dummy entry
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Failed to initialize collections:', error);
-    }
-  }
-
-  static async registerStudent(entry: Omit<RegistrationEntry, 'id' | 'uid' | 'createdAt' | 'updatedAt'>): Promise<RegistrationEntry> {
-    try {
-      await this.initializeCollections();
-      
-      const monthlyFee = entry.techTrack ? 2000 : 1500;
-      const newEntry = await sdk.insert<RegistrationEntry>('registrations', {
-        ...entry,
-        monthlyFee,
-        createdAt: new Date().toISOString(),
+  async saveProspect(prospect: Omit<ProspectEntry, 'id' | 'createdAt' | 'updatedAt'>): Promise<ProspectEntry> {
+    await delay(500);
+    const existingIndex = mockProspects.findIndex(p => p.email === prospect.email);
+    
+    if (existingIndex !== -1) {
+      mockProspects[existingIndex] = {
+        ...mockProspects[existingIndex],
+        ...prospect,
         updatedAt: new Date().toISOString()
-      });
-      
-      if (sdk.smtp?.endpoint) {
-        await sdk.sendEmail(
-          entry.email,
-          "Welcome to MuslimJambite Registration!",
-          sdk.renderTemplate('welcome', { 
-            fullName: entry.fullName,
-            paymentStatus: entry.paymentStatus,
-            program: entry.program,
-            techTrack: entry.techTrack,
-            monthlyFee
-          })
-        );
-      }
-      
-      return newEntry;
-    } catch (error) {
-      console.error('Failed to register student:', error);
-      throw error;
-    }
-  }
-
-  static async updatePaymentStatus(email: string, reference: string, status: string): Promise<RegistrationEntry> {
-    try {
-      const registrations = await sdk.get<RegistrationEntry>('registrations');
-      const registration = registrations.find(r => r.email === email);
-      
-      if (!registration) {
-        throw new Error('Registration not found');
-      }
-
-      const updatedEntry = await sdk.update<RegistrationEntry>('registrations', registration.id!, {
-        paymentStatus: status,
-        paymentReference: reference,
-        updatedAt: new Date().toISOString()
-      });
-
-      if (status === 'success' && sdk.smtp?.endpoint) {
-        await sdk.sendEmail(
-          email,
-          "Payment Successful - MuslimJambite Registration",
-          sdk.renderTemplate('payment_success', {
-            fullName: registration.fullName,
-            amount: registration.registrationFee,
-            reference,
-            program: `${registration.program}${registration.techTrack ? ' + Tech Skills' : ''}`
-          })
-        );
-      }
-
-      return updatedEntry;
-    } catch (error) {
-      console.error('Failed to update payment status:', error);
-      throw error;
-    }
-  }
-
-  static async recordPayment(payment: Omit<PaymentEntry, 'id' | 'uid' | 'createdAt' | 'updatedAt'>): Promise<PaymentEntry> {
-    try {
-      await this.initializeCollections();
-      
-      const newPayment = await sdk.insert<PaymentEntry>('payments', {
-        ...payment,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      });
-      
-      return newPayment;
-    } catch (error) {
-      console.error('Failed to record payment:', error);
-      throw error;
-    }
-  }
-
-  static async getRegistrationStats(): Promise<{
-    total: number;
-    techTrack: number;
-    basicTrack: number;
-    recentSignups: number;
-    pendingPayments: number;
-    completedPayments: number;
-  }> {
-    try {
-      await this.initializeCollections();
-      const entries = await sdk.get<RegistrationEntry>('registrations');
-      const now = new Date();
-      const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-      
-      return {
-        total: entries.length,
-        techTrack: entries.filter(e => e.techTrack).length,
-        basicTrack: entries.filter(e => !e.techTrack).length,
-        recentSignups: entries.filter(e => new Date(e.createdAt) > weekAgo).length,
-        pendingPayments: entries.filter(e => e.paymentStatus === 'pending').length,
-        completedPayments: entries.filter(e => e.paymentStatus === 'success').length
       };
-    } catch (error) {
-      console.error('Failed to get registration stats:', error);
-      return { total: 0, techTrack: 0, basicTrack: 0, recentSignups: 0, pendingPayments: 0, completedPayments: 0 };
-    }
-  }
-
-  static async subscribeToNewsletter(email: string): Promise<void> {
-    try {
-      await this.initializeCollections();
-      await sdk.insert('subscribers', { email });
-    } catch (error) {
-      console.error('Failed to subscribe to newsletter:', error);
-      throw error;
-    }
-  }
-
-  static async saveProspect(entry: Omit<ProspectEntry, 'id' | 'uid' | 'createdAt' | 'updatedAt'>): Promise<ProspectEntry> {
-    try {
-      await this.initializeCollections();
-      
-      // Check if prospect already exists
-      const prospects = await sdk.get<ProspectEntry>('prospects');
-      const existingProspect = prospects.find(p => p.email === entry.email);
-      
-      if (existingProspect) {
-        return await sdk.update<ProspectEntry>('prospects', existingProspect.id!, {
-          ...entry,
-          updatedAt: new Date().toISOString()
-        });
-      }
-      
-      return await sdk.insert<ProspectEntry>('prospects', {
-        ...entry,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      });
-    } catch (error) {
-      console.error('Failed to save prospect:', error);
-      throw error;
-    }
-  }
-
-  static async getProspect(email: string): Promise<ProspectEntry | null> {
-    try {
-      await this.initializeCollections();
-      const prospects = await sdk.get<ProspectEntry>('prospects');
-      return prospects.find(p => p.email === email) || null;
-    } catch (error) {
-      console.error('Failed to get prospect:', error);
-      return null;
-    }
-  }
-}
-
-// Blog service
-export class BlogService {
-  static async createPost(post: Omit<BlogPost, 'id' | 'uid' | 'createdAt' | 'updatedAt'>): Promise<BlogPost> {
-    try {
-      await RegistrationService.initializeCollections();
-      
-      const slug = post.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-      const newPost = await sdk.insert<BlogPost>('blog_posts', {
-        ...post,
-        slug,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      });
-      
-      return newPost;
-    } catch (error) {
-      console.error('Failed to create blog post:', error);
-      throw error;
-    }
-  }
-
-  static async getPosts(filters?: { category?: string; status?: string; featured?: boolean }): Promise<BlogPost[]> {
-    try {
-      await RegistrationService.initializeCollections();
-      let posts = await sdk.get<BlogPost>('blog_posts');
-      
-      if (filters) {
-        if (filters.category) {
-          posts = posts.filter(post => post.category === filters.category);
-        }
-        if (filters.status) {
-          posts = posts.filter(post => post.status === filters.status);
-        }
-        if (filters.featured !== undefined) {
-          posts = posts.filter(post => post.featured === filters.featured);
-        }
-      }
-      
-      return posts.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
-    } catch (error) {
-      console.error('Failed to get blog posts:', error);
-      return [];
-    }
-  }
-
-  static async getPostBySlug(slug: string): Promise<BlogPost | null> {
-    try {
-      await RegistrationService.initializeCollections();
-      const posts = await sdk.get<BlogPost>('blog_posts');
-      const post = posts.find(p => p.slug === slug);
-      
-      if (post) {
-        // Increment views
-        await sdk.update<BlogPost>('blog_posts', post.id!, {
-          views: post.views + 1,
-          updatedAt: new Date().toISOString()
-        });
-        return { ...post, views: post.views + 1 };
-      }
-      
-      return null;
-    } catch (error) {
-      console.error('Failed to get blog post by slug:', error);
-      return null;
-    }
-  }
-
-  static async createCategory(category: Omit<BlogCategory, 'id' | 'uid' | 'createdAt'>): Promise<BlogCategory> {
-    try {
-      await RegistrationService.initializeCollections();
-      
-      const slug = category.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-      const newCategory = await sdk.insert<BlogCategory>('blog_categories', {
-        ...category,
-        slug,
-        createdAt: new Date().toISOString()
-      });
-      
-      return newCategory;
-    } catch (error) {
-      console.error('Failed to create blog category:', error);
-      throw error;
-    }
-  }
-
-  static async getCategories(): Promise<BlogCategory[]> {
-    try {
-      await RegistrationService.initializeCollections();
-      return await sdk.get<BlogCategory>('blog_categories');
-    } catch (error) {
-      console.error('Failed to get blog categories:', error);
-      return [];
-    }
-  }
-
-  static async addComment(comment: Omit<BlogComment, 'id' | 'uid' | 'createdAt' | 'updatedAt'>): Promise<BlogComment> {
-    try {
-      await RegistrationService.initializeCollections();
-      
-      const newComment = await sdk.insert<BlogComment>('blog_comments', {
-        ...comment,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      });
-      
-      return newComment;
-    } catch (error) {
-      console.error('Failed to add comment:', error);
-      throw error;
-    }
-  }
-
-  static async getCommentsByPostId(postId: string): Promise<BlogComment[]> {
-    try {
-      await RegistrationService.initializeCollections();
-      const comments = await sdk.get<BlogComment>('blog_comments');
-      return comments.filter(c => c.postId === postId && c.status === 'approved')
-                   .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    } catch (error) {
-      console.error('Failed to get comments:', error);
-      return [];
-    }
-  }
-}
-
-// Admin service
-export class AdminService {
-  static async createAdmin(admin: Omit<AdminUser, 'id' | 'uid' | 'createdAt'>): Promise<AdminUser> {
-    try {
-      await RegistrationService.initializeCollections();
-      
-      const newAdmin = await sdk.insert<AdminUser>('admins', {
-        ...admin,
-        createdAt: new Date().toISOString()
-      });
-      
-      return newAdmin;
-    } catch (error) {
-      console.error('Failed to create admin:', error);
-      throw error;
-    }
-  }
-
-  static async authenticate(email: string, password: string): Promise<AdminUser | null> {
-    try {
-      await RegistrationService.initializeCollections();
-      const admins = await sdk.get<AdminUser>('admins');
-      const admin = admins.find(a => a.email === email && a.password === password);
-      
-      if (admin) {
-        // Update last login
-        await sdk.update<AdminUser>('admins', admin.id!, {
-          lastLogin: new Date().toISOString()
-        });
-      }
-      
-      return admin || null;
-    } catch (error) {
-      console.error('Failed to authenticate admin:', error);
-      return null;
-    }
-  }
-}
-
-// Initialize SDK on app start
-export const initializeSDK = async () => {
-  try {
-    await sdk.init();
-    await RegistrationService.initializeCollections();
-    
-    // Initialize FAQ data only once
-    try {
-      const existingFaqs = await sdk.get('faqs');
-      console.log('Existing FAQs found:', existingFaqs?.length || 0);
-      
-      if (!existingFaqs || existingFaqs.length === 0) {
-        console.log('Initializing FAQ data from JSON...');
-        const faqData = await import('../data/faqs.json');
-        
-        for (const faq of faqData.default) {
-          console.log('Inserting FAQ:', faq.id, faq.question.substring(0, 50) + '...');
-          await sdk.insert('faqs', faq);
-        }
-        console.log('✅ FAQ data initialized successfully');
-      } else {
-        console.log('📋 FAQ data already exists, skipping initialization');
-      }
-    } catch (error: any) {
-      if (error.message.includes('Not Found')) {
-        console.log('Creating FAQ collection...');
-        const faqData = await import('../data/faqs.json');
-        
-        for (const faq of faqData.default) {
-          console.log('Inserting FAQ:', faq.id, faq.question.substring(0, 50) + '...');
-          await sdk.insert('faqs', faq);
-        }
-        console.log('✅ FAQ collection created and data initialized');
-      } else {
-        console.error('Error handling FAQ initialization:', error);
-      }
+      return mockProspects[existingIndex];
     }
     
-    console.log('✅ SDK initialized successfully');
-  } catch (error) {
-    console.error('❌ Failed to initialize SDK:', error);
+    const newProspect: ProspectEntry = {
+      ...prospect,
+      id: Date.now().toString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    mockProspects.push(newProspect);
+    return newProspect;
+  },
+
+  async getProspect(email: string): Promise<ProspectEntry | null> {
+    await delay(300);
+    return mockProspects.find(prospect => prospect.email === email) || null;
+  },
+
+  async getProspects(): Promise<ProspectEntry[]> {
+    await delay(500);
+    return mockProspects;
+  }
+};
+
+export const FAQService = {
+  async getFAQs(): Promise<FAQ[]> {
+    await delay(300);
+    return mockFAQs;
+  },
+
+  async createFAQ(faq: Omit<FAQ, 'id' | 'createdAt' | 'updatedAt'>): Promise<FAQ> {
+    await delay(500);
+    const newFAQ: FAQ = {
+      ...faq,
+      id: Date.now().toString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    mockFAQs.push(newFAQ);
+    return newFAQ;
+  },
+
+  async updateFAQ(id: string, updates: Partial<FAQ>): Promise<FAQ | null> {
+    await delay(500);
+    const index = mockFAQs.findIndex(faq => faq.id === id);
+    if (index === -1) return null;
+    
+    mockFAQs[index] = {
+      ...mockFAQs[index],
+      ...updates,
+      updatedAt: new Date().toISOString()
+    };
+    return mockFAQs[index];
+  },
+
+  async deleteFAQ(id: string): Promise<boolean> {
+    await delay(500);
+    const index = mockFAQs.findIndex(faq => faq.id === id);
+    if (index === -1) return false;
+    
+    mockFAQs.splice(index, 1);
+    return true;
+  }
+};
+
+export const ResourceService = {
+  async getResources(): Promise<Resource[]> {
+    await delay(300);
+    return mockResources;
+  },
+
+  async createResource(resource: Omit<Resource, 'id' | 'createdAt' | 'updatedAt'>): Promise<Resource> {
+    await delay(500);
+    const newResource: Resource = {
+      ...resource,
+      id: Date.now().toString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    mockResources.push(newResource);
+    return newResource;
+  },
+
+  async updateResource(id: string, updates: Partial<Resource>): Promise<Resource | null> {
+    await delay(500);
+    const index = mockResources.findIndex(resource => resource.id === id);
+    if (index === -1) return null;
+    
+    mockResources[index] = {
+      ...mockResources[index],
+      ...updates,
+      updatedAt: new Date().toISOString()
+    };
+    return mockResources[index];
+  },
+
+  async deleteResource(id: string): Promise<boolean> {
+    await delay(500);
+    const index = mockResources.findIndex(resource => resource.id === id);
+    if (index === -1) return false;
+    
+    mockResources.splice(index, 1);
+    return true;
   }
 };

@@ -76,7 +76,7 @@ export const Navigation = ({ darkMode, toggleDarkMode }: NavigationProps) => {
     
     const section = document.getElementById(sectionId);
     if (section) {
-      const headerHeight = 120; // Adjusted for banner space
+      const headerHeight = 80; // Reduced from 120 for smaller banner
       const sectionTop = section.offsetTop - headerHeight;
       
       window.scrollTo({
@@ -91,16 +91,16 @@ export const Navigation = ({ darkMode, toggleDarkMode }: NavigationProps) => {
   return (
     <>
       {/* Desktop Navigation */}
-      <nav className="fixed top-[3rem] left-0 right-0 z-40 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b border-gray-200 dark:border-gray-800">
+      <nav className="fixed top-[2rem] left-0 right-0 z-40 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b border-gray-200 dark:border-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-20">
+          <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-brand-primary to-brand-accent flex items-center justify-center shadow-lg">
-                <BookOpen className="w-6 h-6 text-white" />
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-brand-primary to-brand-accent flex items-center justify-center shadow-lg">
+                <BookOpen className="w-5 h-5 text-white" />
               </div>
               <div>
-                <span className="text-2xl font-bold text-gray-900 dark:text-white font-inter">
+                <span className="text-xl font-bold text-gray-900 dark:text-white font-inter">
                   Muslim<span className="text-brand-primary">Jambite</span>
                 </span>
                 <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">
@@ -116,7 +116,7 @@ export const Navigation = ({ darkMode, toggleDarkMode }: NavigationProps) => {
                   <button
                     onClick={() => item.id === 'programs' ? setShowMegaMenu(!showMegaMenu) : scrollToSection(item.id)}
                     onMouseEnter={() => item.id === 'programs' && setShowMegaMenu(true)}
-                    className={`flex items-center space-x-2 px-4 py-3 rounded-xl transition-all duration-200 font-medium ${
+                    className={`flex items-center space-x-2 px-4 py-2 rounded-xl transition-all duration-200 font-medium ${
                       activeSection === item.id
                         ? 'bg-brand-primary text-white shadow-lg shadow-brand-primary/25'
                         : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-brand-primary'
@@ -135,14 +135,14 @@ export const Navigation = ({ darkMode, toggleDarkMode }: NavigationProps) => {
             <div className="flex items-center space-x-4">
               <button
                 onClick={toggleDarkMode}
-                className="p-3 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                className="p-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
               >
-                {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
               </button>
               
               <button
                 onClick={() => scrollToSection('registration')}
-                className="hidden md:flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-brand-primary to-brand-accent text-white rounded-xl hover:shadow-lg hover:shadow-brand-primary/25 transition-all duration-300 font-semibold"
+                className="hidden md:flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-brand-primary to-brand-accent text-white rounded-xl hover:shadow-lg hover:shadow-brand-primary/25 transition-all duration-300 font-semibold text-sm"
               >
                 <span>Register Now</span>
                 <ArrowRight className="w-4 h-4" />
@@ -153,7 +153,7 @@ export const Navigation = ({ darkMode, toggleDarkMode }: NavigationProps) => {
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                 className="md:hidden p-2 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               >
-                {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </button>
             </div>
           </div>
@@ -205,7 +205,7 @@ export const Navigation = ({ darkMode, toggleDarkMode }: NavigationProps) => {
       )}
 
       {/* Mobile Menu */}
-      <div className={`mobile-menu fixed top-[8rem] left-0 w-full bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 z-50 md:hidden ${isMenuOpen ? 'open' : ''}`}>
+      <div className={`mobile-menu fixed top-[4rem] left-0 w-full bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 z-50 md:hidden ${isMenuOpen ? 'open' : ''}`}>
         <div className="p-6 space-y-4">
           {navItems.map((item) => (
             <button
