@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
@@ -7,7 +8,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from '../components/ui/input';
 import { Textarea } from '../components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { type BlogPost, type BlogComment, type BlogCategory, type Student, type ProspectEntry, type FAQ, type Resource, BlogService, RegistrationService, FAQService, ResourceService } from '../types/sdk';
+import { type BlogPost, type BlogComment, type BlogCategory, type Student, type ProspectEntry, type FAQ, type Resource } from '../types/sdk';
+import { BlogService, RegistrationService, FAQService, ResourceService } from '../lib/sdk';
 import { 
   Users, 
   FileText, 

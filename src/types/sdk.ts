@@ -1,3 +1,4 @@
+
 // Re-export the SDK interfaces and classes
 export interface CloudinaryConfig {
   uploadPreset?: string;
@@ -113,35 +114,39 @@ export interface BlogCategory {
   postCount: number;
 }
 
-// Student types
+// Student types - made many fields optional to match current usage
 export interface Student {
   id: string;
   fullName: string;
   email: string;
-  phone: string;
-  dateOfBirth: string;
-  gender: 'male' | 'female';
-  state: string;
-  lga: string;
-  address: string;
-  parentName: string;
-  parentPhone: string;
-  emergencyContact: string;
-  emergencyPhone: string;
-  academicBackground: string;
-  jambSubjects: string[];
+  phone?: string;
+  dateOfBirth?: string;
+  gender?: 'male' | 'female';
+  state?: string;
+  lga?: string;
+  address?: string;
+  parentName?: string;
+  parentPhone?: string;
+  emergencyContact?: string;
+  emergencyPhone?: string;
+  academicBackground?: string;
+  jambSubjects?: string[];
   techSkill?: string;
-  learningGoals: string[];
-  studySchedule: string;
-  motivations: string[];
-  challenges: string[];
-  expectations: string[];
-  islamicKnowledge: string;
+  learningGoals?: string[];
+  studySchedule?: string;
+  motivations?: string[];
+  challenges?: string[];
+  expectations?: string[];
+  islamicKnowledge?: string;
   isMuslim: boolean;
+  muslimConfirmation?: string;
   program?: string;
   paymentStatus?: string;
   monthlyFee?: number;
   registrationFee?: number;
+  techTrack?: boolean;
+  currentLevel?: string;
+  interests?: string[];
   createdAt: string;
   updatedAt: string;
 }
