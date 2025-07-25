@@ -18,6 +18,8 @@ export const MultiStepForm = ({ onSuccess }: MultiStepFormProps) => {
     email: '',
     fullName: '',
     phone: '',
+    isMuslim: false,
+    muslimConfirmation: '',
     program: 'jamb-prep',
     techTrack: false,
     techSkill: '',

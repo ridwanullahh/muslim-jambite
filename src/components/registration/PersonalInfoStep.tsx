@@ -3,13 +3,16 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2 } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Loader2, AlertCircle } from 'lucide-react';
 
 interface PersonalInfoStepProps {
   data: {
     email: string;
     fullName: string;
     phone: string;
+    isMuslim: boolean;
+    muslimConfirmation: string;
   };
   onNext: (data: any) => void;
   isLoading: boolean;
@@ -19,7 +22,9 @@ export const PersonalInfoStep = ({ data, onNext, isLoading }: PersonalInfoStepPr
   const [formData, setFormData] = useState({
     email: data.email || '',
     fullName: data.fullName || '',
-    phone: data.phone || ''
+    phone: data.phone || '',
+    isMuslim: data.isMuslim || false,
+    muslimConfirmation: data.muslimConfirmation || ''
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -39,6 +44,25 @@ export const PersonalInfoStep = ({ data, onNext, isLoading }: PersonalInfoStepPr
     
     if (!formData.phone) {
       newErrors.phone = 'Phone number is required';
+    }
+
+    if (!formData.isMuslim) {
+      newErrors.isMuslim = 'You must be a Muslim to join this program';
+    }
+
+    if (!formData.muslimConfirmation) {
+      newErrors.muslimConfirmation = 'Please confirm your Islamic faith';
+    } else {
+      // Strict validation for the confirmation text
+      const expectedText = "I am a Muslim. Alhamdulillah!";
+      const normalizedInput = formData.muslimConfirmation.trim()
+        .replace(/\s+/g, ' ')
+        .toLowerCase();
+      const normalizedExpected = expectedText.toLowerCase();
+      
+      if (normalizedInput !== normalizedExpected) {
+        newErrors.muslimConfirmation = 'Please type exactly: "I am a Muslim. Alhamdulillah!"';
+      }
     }
     
     setErrors(newErrors);
@@ -101,6 +125,51 @@ export const PersonalInfoStep = ({ data, onNext, isLoading }: PersonalInfoStepPr
             className={errors.phone ? 'border-red-500' : ''}
           />
           {errors.phone && <p className="text-red-500 text-sm">{errors.phone}</p>}
+        </div>
+
+        {/* Muslim Verification Section */}
+        <div className="bg-green-50 dark:bg-green-900/20 p-6 rounded-lg border border-green-200 dark:border-green-800">
+          <h3 className="text-lg font-semibold text-green-800 dark:text-green-200 mb-4 flex items-center">
+            <span className="text-2xl mr-2">🕌</span>
+            Islamic Faith Verification
+          </h3>
+          <p className="text-green-700 dark:text-green-300 text-sm mb-4">
+            MuslimJambite is exclusively designed for Muslim students. Please confirm your Islamic faith to proceed.
+          </p>
+          
+          <div className="space-y-4">
+            <div className="flex items-center space-x-3">
+              <Checkbox
+                id="isMuslim"
+                checked={formData.isMuslim}
+                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isMuslim: checked as boolean }))}
+              />
+              <Label htmlFor="isMuslim" className="text-green-800 dark:text-green-200 font-medium">
+                I am a Muslim
+              </Label>
+            </div>
+            {errors.isMuslim && <p className="text-red-500 text-sm">{errors.isMuslim}</p>}
+
+            <div className="space-y-2">
+              <Label htmlFor="muslimConfirmation" className="text-green-800 dark:text-green-200">
+                Please type: "I am a Muslim. Alhamdulillah!"
+              </Label>
+              <Input
+                id="muslimConfirmation"
+                type="text"
+                value={formData.muslimConfirmation}
+                onChange={(e) => setFormData(prev => ({ ...prev, muslimConfirmation: e.target.value }))}
+                placeholder="I am a Muslim. Alhamdulillah!"
+                className={errors.muslimConfirmation ? 'border-red-500' : 'border-green-300 focus:border-green-500'}
+              />
+              {errors.muslimConfirmation && (
+                <div className="flex items-center space-x-2 text-red-500 text-sm">
+                  <AlertCircle className="w-4 h-4" />
+                  <span>{errors.muslimConfirmation}</span>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
         <Button 

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Navigation } from '../components/Navigation';
 import { HeroSection } from '../components/HeroSection';
@@ -14,6 +15,7 @@ import { StickyFomoBanner } from '../components/ui/StickyFomoBanner';
 import { ExitIntentModal } from '../components/modals/ExitIntentModal';
 import { initializeSDK } from '../lib/sdk';
 import { MultiStepForm } from '../components/registration/MultiStepForm';
+import { Mail, Phone, MapPin } from 'lucide-react';
 
 const Index = () => {
   const [darkMode, setDarkMode] = useState(false);
@@ -48,6 +50,27 @@ const Index = () => {
   const handleRegistrationSuccess = () => {
     setShowRegistrationSuccess(true);
   };
+
+  // Get current Hijri year (accurate calculation)
+  const getCurrentHijriYear = () => {
+    const gregorianYear = new Date().getFullYear();
+    const gregorianMonth = new Date().getMonth() + 1;
+    const gregorianDay = new Date().getDate();
+    
+    // Approximate Hijri year calculation (more accurate)
+    // Hijri year 1 started on July 16, 622 CE
+    const hijriEpoch = new Date(622, 6, 16);
+    const today = new Date();
+    const diffTime = today.getTime() - hijriEpoch.getTime();
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    
+    // Hijri year is approximately 354.37 days
+    const hijriYear = Math.floor(diffDays / 354.37) + 1;
+    
+    return hijriYear;
+  };
+
+  const currentHijriYear = getCurrentHijriYear();
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-300">
@@ -156,7 +179,7 @@ const Index = () => {
                 Building the future of Islamic education through innovative learning experiences.
               </p>
               <p className="text-sm text-gray-500 dark:text-gray-400 font-inter">
-                © {new Date().getFullYear()} MuslimJambite. All rights reserved.
+                © {new Date().getFullYear()} CE / {currentHijriYear} H MuslimJambite. All rights reserved.
               </p>
             </div>
             
@@ -182,24 +205,23 @@ const Index = () => {
             
             <div>
               <h3 className="font-semibold mb-4 font-inter text-gray-900 dark:text-white">Contact</h3>
-              <ul className="space-y-2 text-gray-600 dark:text-gray-300 font-lora">
-                <li className="flex items-center space-x-2">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-                    <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
-                  </svg>
+              <ul className="space-y-3 text-gray-600 dark:text-gray-300 font-lora">
+                <li className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-brand-primary/10 rounded-lg flex items-center justify-center">
+                    <Mail className="w-5 h-5 text-brand-primary" />
+                  </div>
                   <span>muslimgrowth@gmail.com</span>
                 </li>
-                <li className="flex items-center space-x-2">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
-                  </svg>
+                <li className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-brand-primary/10 rounded-lg flex items-center justify-center">
+                    <Phone className="w-5 h-5 text-brand-primary" />
+                  </div>
                   <span>+2349158480530</span>
                 </li>
-                <li className="flex items-center space-x-2">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-                  </svg>
+                <li className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-brand-primary/10 rounded-lg flex items-center justify-center">
+                    <MapPin className="w-5 h-5 text-brand-primary" />
+                  </div>
                   <span>FUNAAB, Abeokuta, Ogun State</span>
                 </li>
               </ul>
