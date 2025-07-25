@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { 
@@ -90,6 +91,8 @@ const BlogPost: React.FC = () => {
         author: commentAuthor,
         email: commentEmail,
         content: commentContent,
+        status: 'pending',
+        likes: 0
       });
 
       setComments(prevComments => [newComment, ...prevComments]);
