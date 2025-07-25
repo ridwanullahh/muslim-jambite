@@ -1,4 +1,3 @@
-
 // Re-export the SDK interfaces and classes
 export interface CloudinaryConfig {
   uploadPreset?: string;
@@ -139,6 +138,10 @@ export interface Student {
   expectations: string[];
   islamicKnowledge: string;
   isMuslim: boolean;
+  program?: string;
+  paymentStatus?: string;
+  monthlyFee?: number;
+  registrationFee?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -150,6 +153,8 @@ export interface ProspectEntry {
   phone?: string;
   interests?: string[];
   source?: string;
+  step?: number;
+  completed?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -173,6 +178,7 @@ export interface Resource {
   category: string;
   tags: string[];
   isPublic: boolean;
+  downloads?: number;
   createdAt: string;
   updatedAt: string;
 }

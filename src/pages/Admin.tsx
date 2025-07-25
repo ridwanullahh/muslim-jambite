@@ -1,893 +1,797 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
+import { Card } from '../components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import { BlogService, RegistrationService, FAQService, ResourceService } from '../lib/sdk';
-import { BlogPost, BlogComment, BlogCategory, Student, ProspectEntry, FAQ, Resource } from '../types/sdk';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
+import { Input } from '../components/ui/input';
+import { Textarea } from '../components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
+import { type BlogPost, type BlogComment, type BlogCategory, type Student, type ProspectEntry, type FAQ, type Resource, BlogService, RegistrationService, FAQService, ResourceService } from '../types/sdk';
 import { 
-  Plus, 
-  Edit3, 
-  Trash2, 
-  Eye, 
-  Search, 
-  Filter,
-  Users,
-  BookOpen,
-  MessageSquare,
-  FileText,
-  HelpCircle,
-  Library,
+  Users, 
+  FileText, 
+  MessageSquare, 
+  BookOpen, 
   Settings,
-  BarChart3,
+  Plus,
+  Edit,
+  Trash2,
+  Eye,
+  Search,
+  Filter,
+  MoreHorizontal,
   Calendar,
-  Clock,
-  Star,
+  Tag,
   TrendingUp,
+  BarChart3,
+  PieChart,
+  Activity,
   DollarSign,
-  Target,
-  AlertCircle,
+  UserPlus,
+  Mail,
+  Phone,
+  MapPin,
+  GraduationCap,
   CheckCircle,
   XCircle,
-  Save,
-  X
+  Clock,
+  AlertCircle,
+  Download,
+  Upload,
+  RefreshCw,
+  Star,
+  Heart,
+  ThumbsUp,
+  Share2,
+  Link,
+  ExternalLink,
+  Archive,
+  Bookmark,
+  Bell,
+  Shield,
+  Lock,
+  Key,
+  Database,
+  Server,
+  Cloud,
+  Wifi,
+  Battery,
+  Power,
+  Maximize,
+  ZoomIn,
+  Move,
+  Palette,
+  Type,
+  Bold,
+  Italic,
+  List,
+  Quote,
+  Table,
+  Grid,
+  Menu,
+  X,
+  ChevronDown,
+  ChevronUp,
+  ChevronLeft,
+  ChevronRight,
+  ArrowUp,
+  ArrowDown,
+  ArrowLeft,
+  ArrowRight,
+  Home,
+  User,
+  Info,
+  HelpCircle
 } from 'lucide-react';
 
-const Admin = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [password, setPassword] = useState('');
+const AdminPanel = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [loading, setLoading] = useState(false);
-  
-  // Blog state
-  const [posts, setPosts] = useState<BlogPost[]>([]);
-  const [comments, setComments] = useState<BlogComment[]>([]);
-  const [categories, setCategories] = useState<BlogCategory[]>([]);
-  const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
-  const [showPostForm, setShowPostForm] = useState(false);
-  
-  // Registration state
+  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
+  const [blogCategories, setBlogCategories] = useState<BlogCategory[]>([]);
+  const [blogComments, setBlogComments] = useState<BlogComment[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [prospects, setProspects] = useState<ProspectEntry[]>([]);
-  
-  // FAQ state
-  const [faqs, setFAQs] = useState<FAQ[]>([]);
-  const [editingFAQ, setEditingFAQ] = useState<FAQ | null>(null);
-  
-  // Resource state
+  const [faqs, setFaqs] = useState<FAQ[]>([]);
   const [resources, setResources] = useState<Resource[]>([]);
-  const [editingResource, setEditingResource] = useState<Resource | null>(null);
-  
-  // Search and filter state
-  const [searchQuery, setSearchQuery] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
 
+  // Form states
+  const [blogForm, setBlogForm] = useState({
+    title: '',
+    slug: '',
+    excerpt: '',
+    content: '',
+    author: '',
+    category: '',
+    tags: '',
+    status: 'draft' as 'draft' | 'published' | 'archived',
+    featured: false,
+    seoTitle: '',
+    seoDescription: '',
+    seoKeywords: ''
+  });
+
+  const [categoryForm, setCategoryForm] = useState({
+    name: '',
+    slug: '',
+    description: '',
+    color: '#3B82F6'
+  });
+
+  const [faqForm, setFaqForm] = useState({
+    question: '',
+    answer: '',
+    category: '',
+    order: 0
+  });
+
+  const [resourceForm, setResourceForm] = useState({
+    title: '',
+    description: '',
+    type: 'pdf' as 'pdf' | 'video' | 'audio' | 'link' | 'document',
+    url: '',
+    category: '',
+    tags: '',
+    isPublic: true
+  });
+
+  // Load data on component mount
   useEffect(() => {
-    if (isAuthenticated) {
-      loadAllData();
-    }
-  }, [isAuthenticated]);
+    loadData();
+  }, []);
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (password === 'superadmin') {
-      setIsAuthenticated(true);
-    } else {
-      alert('Invalid password');
-    }
-  };
-
-  const loadAllData = async () => {
-    setLoading(true);
+  const loadData = async () => {
+    setIsLoading(true);
     try {
-      const [postsData, commentsData, categoriesData, studentsData, prospectsData, faqsData, resourcesData] = await Promise.all([
+      const [posts, categories, comments, studentsData, prospectsData, faqsData, resourcesData] = await Promise.all([
         BlogService.getPosts(),
-        BlogService.getComments(''),
         BlogService.getCategories(),
+        BlogService.getComments(''),
         RegistrationService.getStudents(),
         RegistrationService.getProspects(),
         FAQService.getFAQs(),
         ResourceService.getResources()
       ]);
-      
-      setPosts(postsData);
-      setComments(commentsData);
-      setCategories(categoriesData);
+
+      setBlogPosts(posts);
+      setBlogCategories(categories);
+      setBlogComments(comments);
       setStudents(studentsData);
       setProspects(prospectsData);
-      setFAQs(faqsData);
+      setFaqs(faqsData);
       setResources(resourcesData);
     } catch (error) {
-      console.error('Failed to load data:', error);
+      console.error('Error loading data:', error);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
-  const handleCreatePost = async (postData: Omit<BlogPost, 'id' | 'createdAt' | 'updatedAt'>) => {
-    try {
-      const newPost = await BlogService.createPost(postData);
-      setPosts([newPost, ...posts]);
-      setShowPostForm(false);
-    } catch (error) {
-      console.error('Failed to create post:', error);
-    }
+  const stats = {
+    totalStudents: students.length,
+    totalPosts: blogPosts.length,
+    totalComments: blogComments.length,
+    totalRevenue: students.reduce((sum, student) => sum + (student.monthlyFee || 0), 0),
+    publishedPosts: blogPosts.filter(post => post.status === 'published').length,
+    draftPosts: blogPosts.filter(post => post.status === 'draft').length,
+    pendingComments: blogComments.filter(comment => comment.status === 'pending').length,
+    approvedComments: blogComments.filter(comment => comment.status === 'approved').length,
+    paidStudents: students.filter(student => student.paymentStatus === 'success').length,
+    pendingStudents: students.filter(student => student.paymentStatus === 'pending').length,
+    completedProspects: prospects.filter(prospect => prospect.completed).length,
+    activeProspects: prospects.filter(prospect => !prospect.completed).length
   };
 
-  const handleUpdatePost = async (id: string, updates: Partial<BlogPost>) => {
-    try {
-      const updatedPost = await BlogService.updatePost(id, updates);
-      if (updatedPost) {
-        setPosts(posts.map(post => post.id === id ? updatedPost : post));
-        setEditingPost(null);
-      }
-    } catch (error) {
-      console.error('Failed to update post:', error);
-    }
-  };
+  const renderDashboard = () => (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Total Students</p>
+              <p className="text-3xl font-bold text-gray-900">{stats.totalStudents}</p>
+            </div>
+            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+              <Users className="w-6 h-6 text-blue-600" />
+            </div>
+          </div>
+          <div className="mt-4 flex items-center text-sm">
+            <span className="text-green-600 font-medium">+{stats.paidStudents} paid</span>
+            <span className="text-gray-500 ml-2">• {stats.pendingStudents} pending</span>
+          </div>
+        </Card>
 
-  const handleDeletePost = async (id: string) => {
-    if (confirm('Are you sure you want to delete this post?')) {
-      try {
-        await BlogService.deletePost(id);
-        setPosts(posts.filter(post => post.id !== id));
-      } catch (error) {
-        console.error('Failed to delete post:', error);
-      }
-    }
-  };
+        <Card className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Blog Posts</p>
+              <p className="text-3xl font-bold text-gray-900">{stats.totalPosts}</p>
+            </div>
+            <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+              <FileText className="w-6 h-6 text-green-600" />
+            </div>
+          </div>
+          <div className="mt-4 flex items-center text-sm">
+            <span className="text-green-600 font-medium">{stats.publishedPosts} published</span>
+            <span className="text-gray-500 ml-2">• {stats.draftPosts} drafts</span>
+          </div>
+        </Card>
 
-  const handleCommentModeration = async (id: string, status: 'approved' | 'rejected') => {
-    try {
-      const updatedComment = await BlogService.updateComment(id, { status });
-      if (updatedComment) {
-        setComments(comments.map(comment => comment.id === id ? updatedComment : comment));
-      }
-    } catch (error) {
-      console.error('Failed to update comment:', error);
-    }
-  };
+        <Card className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Comments</p>
+              <p className="text-3xl font-bold text-gray-900">{stats.totalComments}</p>
+            </div>
+            <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+              <MessageSquare className="w-6 h-6 text-purple-600" />
+            </div>
+          </div>
+          <div className="mt-4 flex items-center text-sm">
+            <span className="text-green-600 font-medium">{stats.approvedComments} approved</span>
+            <span className="text-orange-500 ml-2">• {stats.pendingComments} pending</span>
+          </div>
+        </Card>
 
-  const handleCreateFAQ = async (faqData: Omit<FAQ, 'id' | 'createdAt' | 'updatedAt'>) => {
-    try {
-      const newFAQ = await FAQService.createFAQ(faqData);
-      setFAQs([newFAQ, ...faqs]);
-      setEditingFAQ(null);
-    } catch (error) {
-      console.error('Failed to create FAQ:', error);
-    }
-  };
-
-  const handleUpdateFAQ = async (id: string, updates: Partial<FAQ>) => {
-    try {
-      const updatedFAQ = await FAQService.updateFAQ(id, updates);
-      if (updatedFAQ) {
-        setFAQs(faqs.map(faq => faq.id === id ? updatedFAQ : faq));
-        setEditingFAQ(null);
-      }
-    } catch (error) {
-      console.error('Failed to update FAQ:', error);
-    }
-  };
-
-  const handleDeleteFAQ = async (id: string) => {
-    if (confirm('Are you sure you want to delete this FAQ?')) {
-      try {
-        await FAQService.deleteFAQ(id);
-        setFAQs(faqs.filter(faq => faq.id !== id));
-      } catch (error) {
-        console.error('Failed to delete FAQ:', error);
-      }
-    }
-  };
-
-  const handleCreateResource = async (resourceData: Omit<Resource, 'id' | 'createdAt' | 'updatedAt'>) => {
-    try {
-      const newResource = await ResourceService.createResource(resourceData);
-      setResources([newResource, ...resources]);
-      setEditingResource(null);
-    } catch (error) {
-      console.error('Failed to create resource:', error);
-    }
-  };
-
-  const handleUpdateResource = async (id: string, updates: Partial<Resource>) => {
-    try {
-      const updatedResource = await ResourceService.updateResource(id, updates);
-      if (updatedResource) {
-        setResources(resources.map(resource => resource.id === id ? updatedResource : resource));
-        setEditingResource(null);
-      }
-    } catch (error) {
-      console.error('Failed to update resource:', error);
-    }
-  };
-
-  const handleDeleteResource = async (id: string) => {
-    if (confirm('Are you sure you want to delete this resource?')) {
-      try {
-        await ResourceService.deleteResource(id);
-        setResources(resources.filter(resource => resource.id !== id));
-      } catch (error) {
-        console.error('Failed to delete resource:', error);
-      }
-    }
-  };
-
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle className="text-center">Admin Login</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleLogin} className="space-y-4">
-              <Input
-                type="password"
-                placeholder="Enter admin password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-              <Button type="submit" className="w-full">
-                Login
-              </Button>
-            </form>
-          </CardContent>
+        <Card className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Revenue</p>
+              <p className="text-3xl font-bold text-gray-900">₦{stats.totalRevenue.toLocaleString()}</p>
+            </div>
+            <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
+              <DollarSign className="w-6 h-6 text-yellow-600" />
+            </div>
+          </div>
+          <div className="mt-4 flex items-center text-sm">
+            <span className="text-green-600 font-medium">Monthly recurring</span>
+          </div>
         </Card>
       </div>
-    );
-  }
 
-  const getDashboardStats = () => {
-    const totalPosts = posts.length;
-    const publishedPosts = posts.filter(p => p.status === 'published').length;
-    const totalStudents = students.length;
-    const totalProspects = prospects.length;
-    const pendingComments = comments.filter(c => c.status === 'pending').length;
-    const totalViews = posts.reduce((sum, post) => sum + post.views, 0);
-    const totalLikes = posts.reduce((sum, post) => sum + post.likes, 0);
-    
-    return {
-      totalPosts,
-      publishedPosts,
-      totalStudents,
-      totalProspects,
-      pendingComments,
-      totalViews,
-      totalLikes
-    };
-  };
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card className="p-6">
+          <h3 className="text-lg font-semibold mb-4">Recent Students</h3>
+          <div className="space-y-4">
+            {students.slice(0, 5).map((student) => (
+              <div key={student.id} className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-brand-primary/10 rounded-full flex items-center justify-center">
+                    <User className="w-4 h-4 text-brand-primary" />
+                  </div>
+                  <div>
+                    <p className="font-medium">{student.fullName}</p>
+                    <p className="text-sm text-gray-500">{student.email}</p>
+                  </div>
+                </div>
+                <Badge variant={student.paymentStatus === 'success' ? 'default' : 'secondary'}>
+                  {student.paymentStatus === 'success' ? 'Paid' : 'Pending'}
+                </Badge>
+              </div>
+            ))}
+          </div>
+        </Card>
 
-  const stats = getDashboardStats();
+        <Card className="p-6">
+          <h3 className="text-lg font-semibold mb-4">Recent Blog Posts</h3>
+          <div className="space-y-4">
+            {blogPosts.slice(0, 5).map((post) => (
+              <div key={post.id} className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                    <FileText className="w-4 h-4 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium">{post.title}</p>
+                    <p className="text-sm text-gray-500">{post.author}</p>
+                  </div>
+                </div>
+                <Badge variant={post.status === 'published' ? 'default' : 'secondary'}>
+                  {post.status}
+                </Badge>
+              </div>
+            ))}
+          </div>
+        </Card>
+      </div>
+    </div>
+  );
 
-  return (
-    <div className="min-h-screen bg-gray-100">
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-4">
-              <h1 className="text-2xl font-bold text-gray-900">MuslimJambite Admin</h1>
+  const renderBlogManagement = () => (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold">Blog Management</h2>
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="w-4 h-4 mr-2" />
+              New Post
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Create New Blog Post</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleBlogFormSubmit} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Title</label>
+                  <Input
+                    value={blogForm.title}
+                    onChange={(e) => setBlogForm(prev => ({ ...prev, title: e.target.value }))}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Slug</label>
+                  <Input
+                    value={blogForm.slug}
+                    onChange={(e) => setBlogForm(prev => ({ ...prev, slug: e.target.value }))}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Excerpt</label>
+                <Textarea
+                  value={blogForm.excerpt}
+                  onChange={(e) => setBlogForm(prev => ({ ...prev, excerpt: e.target.value }))}
+                  rows={3}
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Content</label>
+                <Textarea
+                  value={blogForm.content}
+                  onChange={(e) => setBlogForm(prev => ({ ...prev, content: e.target.value }))}
+                  rows={10}
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Author</label>
+                  <Input
+                    value={blogForm.author}
+                    onChange={(e) => setBlogForm(prev => ({ ...prev, author: e.target.value }))}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Category</label>
+                  <Select value={blogForm.category} onValueChange={(value) => setBlogForm(prev => ({ ...prev, category: value }))}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {blogCategories.map((category) => (
+                        <SelectItem key={category.id} value={category.name}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Tags (comma-separated)</label>
+                  <Input
+                    value={blogForm.tags}
+                    onChange={(e) => setBlogForm(prev => ({ ...prev, tags: e.target.value }))}
+                    placeholder="tag1, tag2, tag3"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Status</label>
+                  <Select value={blogForm.status} onValueChange={handleStatusChange}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="draft">Draft</SelectItem>
+                      <SelectItem value="published">Published</SelectItem>
+                      <SelectItem value="archived">Archived</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="featured"
+                  checked={blogForm.featured}
+                  onChange={(e) => setBlogForm(prev => ({ ...prev, featured: e.target.checked }))}
+                  className="rounded"
+                />
+                <label htmlFor="featured" className="text-sm font-medium">Featured Post</label>
+              </div>
+
+              <div className="space-y-4 border-t pt-4">
+                <h4 className="font-medium">SEO Settings</h4>
+                <div>
+                  <label className="block text-sm font-medium mb-2">SEO Title</label>
+                  <Input
+                    value={blogForm.seoTitle}
+                    onChange={(e) => setBlogForm(prev => ({ ...prev, seoTitle: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">SEO Description</label>
+                  <Textarea
+                    value={blogForm.seoDescription}
+                    onChange={(e) => setBlogForm(prev => ({ ...prev, seoDescription: e.target.value }))}
+                    rows={3}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">SEO Keywords (comma-separated)</label>
+                  <Input
+                    value={blogForm.seoKeywords}
+                    onChange={(e) => setBlogForm(prev => ({ ...prev, seoKeywords: e.target.value }))}
+                    placeholder="keyword1, keyword2, keyword3"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-4">
+                <Button type="button" variant="outline">Cancel</Button>
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading ? 'Creating...' : 'Create Post'}
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      <div className="flex items-center space-x-4 mb-6">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <Input
+            placeholder="Search posts..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <Select value={filterStatus} onValueChange={setFilterStatus}>
+          <SelectTrigger className="w-40">
+            <SelectValue placeholder="Filter by status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Posts</SelectItem>
+            <SelectItem value="published">Published</SelectItem>
+            <SelectItem value="draft">Draft</SelectItem>
+            <SelectItem value="archived">Archived</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="grid gap-4">
+        {blogPosts.map((post) => (
+          <Card key={post.id} className="p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                  <FileText className="w-6 h-6 text-green-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">{post.title}</h3>
+                  <p className="text-sm text-gray-600">{post.excerpt}</p>
+                  <div className="flex items-center space-x-4 mt-2 text-sm text-gray-500">
+                    <span>By {post.author}</span>
+                    <span>•</span>
+                    <span>{post.category}</span>
+                    <span>•</span>
+                    <span>{post.views} views</span>
+                    <span>•</span>
+                    <span>{post.likes} likes</span>
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center space-x-4">
+                <Badge variant={post.status === 'published' ? 'default' : 'secondary'}>
+                  {post.status}
+                </Badge>
+                {post.featured && (
+                  <Badge variant="outline">
+                    <Star className="w-3 h-3 mr-1" />
+                    Featured
+                  </Badge>
+                )}
+                <Button variant="outline" size="sm">
+                  <Edit className="w-4 h-4 mr-1" />
+                  Edit
+                </Button>
+                <Button variant="outline" size="sm">
+                  <Eye className="w-4 h-4 mr-1" />
+                  View
+                </Button>
+              </div>
             </div>
-            <div className="flex items-center space-x-4">
-              <Button variant="outline" size="sm" onClick={() => setIsAuthenticated(false)}>
-                Logout
-              </Button>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+
+  const renderStudentManagement = () => (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold">Student Management</h2>
+        <div className="flex items-center space-x-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Input
+              placeholder="Search students..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 w-64"
+            />
+          </div>
+          <Select value={filterStatus} onValueChange={setFilterStatus}>
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Students</SelectItem>
+              <SelectItem value="paid">Paid</SelectItem>
+              <SelectItem value="pending">Pending</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div className="grid gap-4">
+        {students.map((student) => (
+          <Card key={student.id} className="p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 bg-brand-primary/10 rounded-full flex items-center justify-center">
+                  <User className="w-6 h-6 text-brand-primary" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">{student.fullName}</h3>
+                  <p className="text-sm text-gray-600">{student.email}</p>
+                  <p className="text-sm text-gray-500">{student.program || 'JAMB Prep'}</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-4">
+                <Badge variant={student.paymentStatus === 'success' ? 'default' : 'secondary'}>
+                  {student.paymentStatus === 'success' ? 'Paid' : 'Pending'}
+                </Badge>
+                <span className="text-sm font-medium">₦{student.monthlyFee || 1500}</span>
+                <Button variant="outline" size="sm">
+                  <Edit className="w-4 h-4 mr-1" />
+                  Edit
+                </Button>
+              </div>
             </div>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+
+  const renderProspectManagement = () => (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold">Prospect Management</h2>
+        <div className="flex items-center space-x-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Input
+              placeholder="Search prospects..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 w-64"
+            />
           </div>
         </div>
       </div>
 
+      <div className="grid gap-4">
+        {prospects.map((prospect) => (
+          <Card key={prospect.id} className="p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                  <User className="w-6 h-6 text-blue-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">{prospect.fullName || 'Anonymous'}</h3>
+                  <p className="text-sm text-gray-600">{prospect.email}</p>
+                  <p className="text-sm text-gray-500">Step {prospect.step || 1} of 4</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-4">
+                <Badge variant={prospect.completed ? 'default' : 'secondary'}>
+                  {prospect.completed ? 'Completed' : 'In Progress'}
+                </Badge>
+                <Button variant="outline" size="sm">
+                  <Eye className="w-4 h-4 mr-1" />
+                  View
+                </Button>
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+
+  const renderResourceManagement = () => (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold">Resource Management</h2>
+        <Button>
+          <Plus className="w-4 h-4 mr-2" />
+          Add Resource
+        </Button>
+      </div>
+
+      <div className="grid gap-4">
+        {resources.map((resource) => (
+          <Card key={resource.id} className="p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                  <FileText className="w-6 h-6 text-purple-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">{resource.title}</h3>
+                  <p className="text-sm text-gray-600">{resource.description}</p>
+                  <p className="text-sm text-gray-500">{resource.type} • {resource.downloads || 0} downloads</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-4">
+                <Badge variant={resource.isPublic ? 'default' : 'secondary'}>
+                  {resource.isPublic ? 'Public' : 'Private'}
+                </Badge>
+                <Button variant="outline" size="sm">
+                  <Edit className="w-4 h-4 mr-1" />
+                  Edit
+                </Button>
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+
+  const handleBlogFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    
+    try {
+      const postData = {
+        ...blogForm,
+        tags: blogForm.tags.split(',').map(tag => tag.trim()),
+        publishedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        views: 0,
+        likes: 0,
+        seoKeywords: blogForm.seoKeywords.split(',').map(keyword => keyword.trim())
+      };
+
+      await BlogService.createPost(postData);
+      
+      // Reset form
+      setBlogForm({
+        title: '',
+        slug: '',
+        excerpt: '',
+        content: '',
+        author: '',
+        category: '',
+        tags: '',
+        status: 'draft' as 'draft' | 'published' | 'archived',
+        featured: false,
+        seoTitle: '',
+        seoDescription: '',
+        seoKeywords: ''
+      });
+      
+      // Refresh blog posts
+      const posts = await BlogService.getPosts();
+      setBlogPosts(posts);
+      
+      alert('Blog post created successfully!');
+    } catch (error) {
+      console.error('Error creating blog post:', error);
+      alert('Error creating blog post. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleStatusChange = (value: string) => {
+    setBlogForm(prev => ({ 
+      ...prev, 
+      status: value as 'draft' | 'published' | 'archived' 
+    }));
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Admin Panel</h1>
+          <p className="text-gray-600 dark:text-gray-300">Manage your MuslimJambite platform</p>
+        </div>
+
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-6">
-            <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-            <TabsTrigger value="blog">Blog</TabsTrigger>
-            <TabsTrigger value="students">Students</TabsTrigger>
-            <TabsTrigger value="comments">Comments</TabsTrigger>
-            <TabsTrigger value="faqs">FAQs</TabsTrigger>
-            <TabsTrigger value="resources">Resources</TabsTrigger>
+            <TabsTrigger value="dashboard" className="flex items-center space-x-2">
+              <BarChart3 className="w-4 h-4" />
+              <span>Dashboard</span>
+            </TabsTrigger>
+            <TabsTrigger value="blog" className="flex items-center space-x-2">
+              <FileText className="w-4 h-4" />
+              <span>Blog</span>
+            </TabsTrigger>
+            <TabsTrigger value="students" className="flex items-center space-x-2">
+              <Users className="w-4 h-4" />
+              <span>Students</span>
+            </TabsTrigger>
+            <TabsTrigger value="prospects" className="flex items-center space-x-2">
+              <UserPlus className="w-4 h-4" />
+              <span>Prospects</span>
+            </TabsTrigger>
+            <TabsTrigger value="resources" className="flex items-center space-x-2">
+              <BookOpen className="w-4 h-4" />
+              <span>Resources</span>
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="flex items-center space-x-2">
+              <Settings className="w-4 h-4" />
+              <span>Settings</span>
+            </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="dashboard" className="space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Posts</CardTitle>
-                  <BookOpen className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{stats.totalPosts}</div>
-                  <p className="text-xs text-muted-foreground">
-                    {stats.publishedPosts} published
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Students</CardTitle>
-                  <Users className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{stats.totalStudents}</div>
-                  <p className="text-xs text-muted-foreground">
-                    {stats.totalProspects} prospects
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Views</CardTitle>
-                  <Eye className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{stats.totalViews}</div>
-                  <p className="text-xs text-muted-foreground">
-                    Across all posts
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Pending Comments</CardTitle>
-                  <MessageSquare className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{stats.pendingComments}</div>
-                  <p className="text-xs text-muted-foreground">
-                    Need moderation
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Recent Posts</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {posts.slice(0, 5).map((post) => (
-                      <div key={post.id} className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <h4 className="font-medium line-clamp-1">{post.title}</h4>
-                          <p className="text-sm text-gray-500">{post.views} views • {post.likes} likes</p>
-                        </div>
-                        <Badge variant={post.status === 'published' ? 'default' : 'secondary'}>
-                          {post.status}
-                        </Badge>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Recent Students</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {students.slice(0, 5).map((student) => (
-                      <div key={student.id} className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <h4 className="font-medium">{student.fullName}</h4>
-                          <p className="text-sm text-gray-500">{student.email}</p>
-                        </div>
-                        <Badge variant={student.paymentStatus === 'success' ? 'default' : 'secondary'}>
-                          {student.paymentStatus}
-                        </Badge>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+          <TabsContent value="dashboard">
+            {renderDashboard()}
           </TabsContent>
 
-          <TabsContent value="blog" className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold">Blog Management</h2>
-              <Button onClick={() => setShowPostForm(true)}>
-                <Plus className="w-4 h-4 mr-2" />
-                New Post
-              </Button>
-            </div>
-
-            <div className="flex items-center space-x-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input
-                  placeholder="Search posts..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              <select
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg"
-              >
-                <option value="all">All Status</option>
-                <option value="published">Published</option>
-                <option value="draft">Draft</option>
-              </select>
-            </div>
-
-            <div className="grid gap-6">
-              {posts
-                .filter(post => 
-                  post.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
-                  (filterStatus === 'all' || post.status === filterStatus)
-                )
-                .map((post) => (
-                <Card key={post.id}>
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <Badge variant={post.status === 'published' ? 'default' : 'secondary'}>
-                          {post.status}
-                        </Badge>
-                        {post.featured && (
-                          <Badge variant="outline">Featured</Badge>
-                        )}
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setEditingPost(post)}
-                        >
-                          <Edit3 className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeletePost(post.id)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                    <CardTitle>{post.title}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-gray-600 mb-4">{post.excerpt}</p>
-                    <div className="flex items-center justify-between text-sm text-gray-500">
-                      <div className="flex items-center space-x-4">
-                        <span>By {post.author}</span>
-                        <span>{post.category}</span>
-                      </div>
-                      <div className="flex items-center space-x-4">
-                        <span className="flex items-center space-x-1">
-                          <Eye className="w-4 h-4" />
-                          <span>{post.views}</span>
-                        </span>
-                        <span className="flex items-center space-x-1">
-                          <Star className="w-4 h-4" />
-                          <span>{post.likes}</span>
-                        </span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+          <TabsContent value="blog">
+            {renderBlogManagement()}
           </TabsContent>
 
-          <TabsContent value="students" className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold">Student Management</h2>
-              <div className="flex items-center space-x-2">
-                <Badge variant="outline">{students.length} Students</Badge>
-                <Badge variant="outline">{prospects.length} Prospects</Badge>
-              </div>
-            </div>
+          <TabsContent value="students">
+            {renderStudentManagement()}
+          </TabsContent>
 
-            <div className="grid gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Registered Students</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {students.map((student) => (
-                      <div key={student.id} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div className="flex-1">
-                          <h4 className="font-medium">{student.fullName}</h4>
-                          <p className="text-sm text-gray-500">{student.email}</p>
-                          <p className="text-sm text-gray-500">Program: {student.program}</p>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Badge variant={student.paymentStatus === 'success' ? 'default' : 'secondary'}>
-                            {student.paymentStatus}
-                          </Badge>
-                          <span className="text-sm text-gray-500">
-                            ₦{student.monthlyFee}/month
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
+          <TabsContent value="prospects">
+            {renderProspectManagement()}
+          </TabsContent>
+
+          <TabsContent value="resources">
+            {renderResourceManagement()}
+          </TabsContent>
+
+          <TabsContent value="settings">
+            <div className="space-y-6">
+              <h2 className="text-2xl font-bold">Settings</h2>
+              <Card className="p-6">
+                <p className="text-gray-600">Settings panel coming soon...</p>
               </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Prospects</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {prospects.map((prospect) => (
-                      <div key={prospect.id} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div className="flex-1">
-                          <h4 className="font-medium">{prospect.fullName}</h4>
-                          <p className="text-sm text-gray-500">{prospect.email}</p>
-                          <p className="text-sm text-gray-500">Step: {prospect.step}</p>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Badge variant={prospect.completed ? 'default' : 'secondary'}>
-                            {prospect.completed ? 'Completed' : 'In Progress'}
-                          </Badge>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="comments" className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold">Comment Moderation</h2>
-              <Badge variant="outline">{comments.filter(c => c.status === 'pending').length} Pending</Badge>
-            </div>
-
-            <div className="grid gap-6">
-              {comments.map((comment) => (
-                <Card key={comment.id}>
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <span className="font-medium">{comment.author}</span>
-                        <span className="text-sm text-gray-500">{comment.email}</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Badge variant={
-                          comment.status === 'approved' ? 'default' :
-                          comment.status === 'pending' ? 'secondary' : 'destructive'
-                        }>
-                          {comment.status}
-                        </Badge>
-                        {comment.status === 'pending' && (
-                          <>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleCommentModeration(comment.id, 'approved')}
-                            >
-                              <CheckCircle className="w-4 h-4 text-green-600" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleCommentModeration(comment.id, 'rejected')}
-                            >
-                              <XCircle className="w-4 h-4 text-red-600" />
-                            </Button>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-gray-700 mb-4">{comment.content}</p>
-                    <div className="flex items-center justify-between text-sm text-gray-500">
-                      <span>Post: {posts.find(p => p.id === comment.postId)?.title}</span>
-                      <span>{comment.likes} likes</span>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="faqs" className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold">FAQ Management</h2>
-              <Button onClick={() => setEditingFAQ({} as FAQ)}>
-                <Plus className="w-4 h-4 mr-2" />
-                New FAQ
-              </Button>
-            </div>
-
-            <div className="grid gap-6">
-              {faqs.map((faq) => (
-                <Card key={faq.id}>
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <CardTitle>{faq.question}</CardTitle>
-                      <div className="flex items-center space-x-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setEditingFAQ(faq)}
-                        >
-                          <Edit3 className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeleteFAQ(faq.id)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-gray-700">{faq.answer}</p>
-                    <div className="flex items-center justify-between text-sm text-gray-500 mt-4">
-                      <span>Category: {faq.category}</span>
-                      <span>Order: {faq.order}</span>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="resources" className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold">Resource Management</h2>
-              <Button onClick={() => setEditingResource({} as Resource)}>
-                <Plus className="w-4 h-4 mr-2" />
-                New Resource
-              </Button>
-            </div>
-
-            <div className="grid gap-6">
-              {resources.map((resource) => (
-                <Card key={resource.id}>
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <CardTitle>{resource.title}</CardTitle>
-                      <div className="flex items-center space-x-2">
-                        <Badge variant="outline">{resource.type}</Badge>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setEditingResource(resource)}
-                        >
-                          <Edit3 className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeleteResource(resource.id)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-gray-700 mb-4">{resource.description}</p>
-                    <div className="flex items-center justify-between text-sm text-gray-500">
-                      <span>Category: {resource.category}</span>
-                      <span>Downloads: {resource.downloads}</span>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
             </div>
           </TabsContent>
         </Tabs>
       </div>
-
-      {/* Post Form Modal */}
-      {(showPostForm || editingPost) && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">
-                {editingPost ? 'Edit Post' : 'Create New Post'}
-              </h3>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setShowPostForm(false);
-                  setEditingPost(null);
-                }}
-              >
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
-            
-            <PostForm
-              post={editingPost}
-              categories={categories}
-              onSubmit={editingPost ? 
-                (updates) => handleUpdatePost(editingPost.id, updates) :
-                handleCreatePost
-              }
-              onCancel={() => {
-                setShowPostForm(false);
-                setEditingPost(null);
-              }}
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 };
 
-// Post Form Component
-const PostForm = ({ 
-  post, 
-  categories, 
-  onSubmit, 
-  onCancel 
-}: {
-  post: BlogPost | null;
-  categories: BlogCategory[];
-  onSubmit: (data: any) => void;
-  onCancel: () => void;
-}) => {
-  const [formData, setFormData] = useState({
-    title: post?.title || '',
-    slug: post?.slug || '',
-    excerpt: post?.excerpt || '',
-    content: post?.content || '',
-    author: post?.author || '',
-    category: post?.category || '',
-    tags: post?.tags?.join(', ') || '',
-    status: post?.status || 'draft',
-    featured: post?.featured || false,
-    seoTitle: post?.seoTitle || '',
-    seoDescription: post?.seoDescription || '',
-    seoKeywords: post?.seoKeywords?.join(', ') || ''
-  });
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit({
-      ...formData,
-      tags: formData.tags.split(',').map(tag => tag.trim()).filter(Boolean),
-      seoKeywords: formData.seoKeywords.split(',').map(keyword => keyword.trim()).filter(Boolean),
-      slug: formData.slug || formData.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
-      views: post?.views || 0,
-      likes: post?.likes || 0
-    });
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Input
-          placeholder="Post Title"
-          value={formData.title}
-          onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-          required
-        />
-        <Input
-          placeholder="Slug (URL)"
-          value={formData.slug}
-          onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
-        />
-      </div>
-
-      <textarea
-        placeholder="Post Excerpt"
-        value={formData.excerpt}
-        onChange={(e) => setFormData(prev => ({ ...prev, excerpt: e.target.value }))}
-        className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-        rows={3}
-        required
-      />
-
-      <textarea
-        placeholder="Post Content"
-        value={formData.content}
-        onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
-        className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-        rows={10}
-        required
-      />
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Input
-          placeholder="Author"
-          value={formData.author}
-          onChange={(e) => setFormData(prev => ({ ...prev, author: e.target.value }))}
-          required
-        />
-        <select
-          value={formData.category}
-          onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
-          className="px-3 py-2 border border-gray-300 rounded-lg"
-          required
-        >
-          <option value="">Select Category</option>
-          {categories.map(category => (
-            <option key={category.id} value={category.name}>
-              {category.name}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Input
-          placeholder="Tags (comma separated)"
-          value={formData.tags}
-          onChange={(e) => setFormData(prev => ({ ...prev, tags: e.target.value }))}
-        />
-        <select
-          value={formData.status}
-          onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value }))}
-          className="px-3 py-2 border border-gray-300 rounded-lg"
-        >
-          <option value="draft">Draft</option>
-          <option value="published">Published</option>
-        </select>
-      </div>
-
-      <div className="flex items-center space-x-2">
-        <input
-          type="checkbox"
-          id="featured"
-          checked={formData.featured}
-          onChange={(e) => setFormData(prev => ({ ...prev, featured: e.target.checked }))}
-        />
-        <label htmlFor="featured">Featured Post</label>
-      </div>
-
-      <div className="border-t pt-4">
-        <h4 className="font-medium mb-4">SEO Settings</h4>
-        <div className="space-y-4">
-          <Input
-            placeholder="SEO Title"
-            value={formData.seoTitle}
-            onChange={(e) => setFormData(prev => ({ ...prev, seoTitle: e.target.value }))}
-          />
-          <textarea
-            placeholder="SEO Description"
-            value={formData.seoDescription}
-            onChange={(e) => setFormData(prev => ({ ...prev, seoDescription: e.target.value }))}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-            rows={2}
-          />
-          <Input
-            placeholder="SEO Keywords (comma separated)"
-            value={formData.seoKeywords}
-            onChange={(e) => setFormData(prev => ({ ...prev, seoKeywords: e.target.value }))}
-          />
-        </div>
-      </div>
-
-      <div className="flex justify-end space-x-4">
-        <Button type="button" variant="outline" onClick={onCancel}>
-          Cancel
-        </Button>
-        <Button type="submit">
-          <Save className="w-4 h-4 mr-2" />
-          {post ? 'Update Post' : 'Create Post'}
-        </Button>
-      </div>
-    </form>
-  );
-};
-
-export default Admin;
+export default AdminPanel;
