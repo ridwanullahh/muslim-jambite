@@ -16,7 +16,7 @@ import UniversalSDK from '../types/sdk';
 const sdkConfig: UniversalSDKConfig = {
   owner: 'muslimjambite',
   repo: 'data',
-  token: process.env.GITHUB_TOKEN || 'mock-token',
+  token: import.meta.env.VITE_GITHUB_TOKEN || 'mock-token',
   branch: 'main',
   basePath: 'data',
   mediaPath: 'media',
