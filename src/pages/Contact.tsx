@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Navigation } from '../components/Navigation';
 import { Mail, Phone, MapPin, Clock, Send, MessageCircle, CheckCircle } from 'lucide-react';
@@ -7,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { sendContactEmail } from '@/lib/emailService';
-import { FAQSection } from '@/components/sections/FAQSection';
+import FAQSection from '@/components/sections/FAQSection';
 
 const Contact = () => {
   const [darkMode, setDarkMode] = useState(false);

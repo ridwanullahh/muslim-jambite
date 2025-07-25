@@ -9,7 +9,7 @@ import { WhyChooseUsSection } from '../components/sections/WhyChooseUsSection';
 import { StatsSection } from '../components/sections/StatsSection';
 import { ValuePropositionSection } from '../components/sections/ValuePropositionSection';
 import { CommunitySection } from '../components/sections/CommunitySection';
-import { FAQSection } from '../components/sections/FAQSection';
+import FAQSection from '../components/sections/FAQSection';
 import { QuranicVerseSection } from '../components/sections/QuranicVerseSection';
 import { StickyFomoBanner } from '../components/ui/StickyFomoBanner';
 import { ExitIntentModal } from '../components/modals/ExitIntentModal';
