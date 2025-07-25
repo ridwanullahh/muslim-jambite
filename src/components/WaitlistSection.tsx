@@ -10,7 +10,9 @@ export const WaitlistSection = () => {
     program: 'jamb-prep',
     techTrack: false,
     currentLevel: 'ss3',
-    interests: [] as string[]
+    interests: [] as string[],
+    isMuslim: false,
+    muslimConfirmation: ''
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -62,6 +64,26 @@ export const WaitlistSection = () => {
     setError('');
 
     try {
+      // Validate Muslim verification
+      if (!formData.isMuslim) {
+        throw new Error('You must be a Muslim to join this program');
+      }
+
+      if (!formData.muslimConfirmation) {
+        throw new Error('Please confirm your Islamic faith');
+      } else {
+        // Strict validation for the confirmation text
+        const expectedText = "I am a Muslim. Alhamdulillah!";
+        const normalizedInput = formData.muslimConfirmation.trim()
+          .replace(/\s+/g, ' ')
+          .toLowerCase();
+        const normalizedExpected = expectedText.toLowerCase();
+        
+        if (normalizedInput !== normalizedExpected) {
+          throw new Error('Please type exactly: "I am a Muslim. Alhamdulillah!"');
+        }
+      }
+
       await RegistrationService.registerStudent({
         ...formData,
         paymentStatus: 'waitlist',
@@ -76,7 +98,9 @@ export const WaitlistSection = () => {
         program: 'jamb-prep',
         techTrack: false,
         currentLevel: 'ss3',
-        interests: []
+        interests: [],
+        isMuslim: false,
+        muslimConfirmation: ''
       });
     } catch (err) {
       setError('Failed to join waitlist. Please try again.');
@@ -201,6 +225,49 @@ export const WaitlistSection = () => {
                     </option>
                   ))}
                 </select>
+              </div>
+            </div>
+
+            {/* Muslim Verification Section */}
+            <div className="bg-green-50 dark:bg-green-900/20 p-6 rounded-lg border border-green-200 dark:border-green-800">
+              <h3 className="text-lg font-semibold text-green-800 dark:text-green-200 mb-4 flex items-center">
+                <span className="text-2xl mr-2">🕌</span>
+                Islamic Faith Verification
+              </h3>
+              <p className="text-green-700 dark:text-green-300 text-sm mb-4">
+                MuslimJambite is exclusively designed for Muslim students. Please confirm your Islamic faith to proceed.
+              </p>
+              
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  <input
+                    type="checkbox"
+                    id="isMuslim"
+                    name="isMuslim"
+                    checked={formData.isMuslim}
+                    onChange={handleInputChange}
+                    className="w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500 focus:ring-2"
+                  />
+                  <label htmlFor="isMuslim" className="text-green-800 dark:text-green-200 font-medium">
+                    I am a Muslim
+                  </label>
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="muslimConfirmation" className="text-green-800 dark:text-green-200">
+                    Please type: "I am a Muslim. Alhamdulillah!"
+                  </label>
+                  <input
+                    type="text"
+                    id="muslimConfirmation"
+                    name="muslimConfirmation"
+                    value={formData.muslimConfirmation}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-4 py-3 border border-green-300 focus:border-green-500 rounded-lg focus:ring-2 focus:ring-green-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    placeholder="I am a Muslim. Alhamdulillah!"
+                  />
+                </div>
               </div>
             </div>
 
