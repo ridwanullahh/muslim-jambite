@@ -1,3 +1,4 @@
+
 #root {
   max-width: 1280px;
   margin: 0 auto;
@@ -39,4 +40,56 @@
 
 .read-the-docs {
   color: #888;
+}
+
+/* Fix for text alignment issues */
+.text-left {
+  text-align: left !important;
+}
+
+.text-center {
+  text-align: center !important;
+}
+
+.text-right {
+  text-align: right !important;
+}
+
+/* Blog content should be left-aligned */
+.blog-content,
+.blog-content p,
+.blog-content div,
+.blog-content span {
+  text-align: left !important;
+}
+
+/* Prose content should be left-aligned */
+.prose,
+.prose p,
+.prose div,
+.prose span,
+.prose li,
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4,
+.prose h5,
+.prose h6 {
+  text-align: left !important;
+}
+
+/* Ensure card titles are left-aligned */
+.card-title {
+  text-align: left !important;
+}
+
+/* Ensure descriptions are left-aligned */
+.card-description,
+.post-excerpt {
+  text-align: left !important;
+}
+
+/* Comments should be left-aligned */
+.comment-content {
+  text-align: left !important;
 }

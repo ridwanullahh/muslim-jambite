@@ -6,7 +6,7 @@ import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { type BlogPost, type BlogComment } from '../types/sdk';
-import { BlogService } from '../lib/sdk';
+import { BlogService, SiteSettingsService } from '../lib/sdk';
 import { BlogPostMeta } from '../components/blog/BlogPostMeta';
 import { BlogTableOfContents } from '../components/blog/BlogTableOfContents';
 import { BlogSocialShare } from '../components/blog/BlogSocialShare';
@@ -51,6 +51,7 @@ const BlogPostPage = () => {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [isReading, setIsReading] = useState(false);
   const [readingProgress, setReadingProgress] = useState(0);
+  const [commentsEnabled, setCommentsEnabled] = useState(true);
   const [newComment, setNewComment] = useState({
     author: '',
     email: '',
@@ -100,6 +101,20 @@ const BlogPostPage = () => {
   }, [slug]);
 
   useEffect(() => {
+    // Load comment system settings
+    const loadSettings = async () => {
+      try {
+        const commentSetting = await SiteSettingsService.getSetting('comments_enabled');
+        setCommentsEnabled(commentSetting?.value !== 'false');
+      } catch (error) {
+        console.error('Error loading settings:', error);
+      }
+    };
+
+    loadSettings();
+  }, []);
+
+  useEffect(() => {
     // Reading progress tracking
     const handleScroll = () => {
       const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
@@ -125,7 +140,7 @@ const BlogPostPage = () => {
 
   const handleCommentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!post) return;
+    if (!post || !commentsEnabled) return;
 
     try {
       const commentData = {
@@ -272,6 +287,10 @@ const BlogPostPage = () => {
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
           {/* Article Header */}
           <div className="px-8 py-6 border-b border-gray-200 dark:border-gray-700">
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4 leading-tight text-left">
+              {post.title}
+            </h1>
+            
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
                 <div className="flex items-center">
@@ -284,18 +303,8 @@ const BlogPostPage = () => {
                 </div>
                 <span>•</span>
                 <div className="flex items-center">
-                  <User className="w-4 h-4 mr-1" />
-                  {post.author}
-                </div>
-                <span>•</span>
-                <div className="flex items-center">
                   <Clock className="w-4 h-4 mr-1" />
                   {post.readTime || 5} min read
-                </div>
-                <span>•</span>
-                <div className="flex items-center">
-                  <Eye className="w-4 h-4 mr-1" />
-                  {post.views} views
                 </div>
               </div>
               
@@ -321,10 +330,6 @@ const BlogPostPage = () => {
               </div>
             </div>
             
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4 leading-tight">
-              {post.title}
-            </h1>
-            
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 <Badge variant="outline" className="bg-brand-primary/10 text-brand-primary border-brand-primary">
@@ -336,19 +341,6 @@ const BlogPostPage = () => {
                     Featured
                   </Badge>
                 )}
-                <div className="flex items-center space-x-2">
-                  {post.tags.slice(0, 3).map((tag, index) => (
-                    <Badge key={index} variant="secondary" className="text-xs">
-                      <Tag className="w-3 h-3 mr-1" />
-                      {tag}
-                    </Badge>
-                  ))}
-                  {post.tags.length > 3 && (
-                    <Badge variant="secondary" className="text-xs">
-                      +{post.tags.length - 3} more
-                    </Badge>
-                  )}
-                </div>
               </div>
               
               <div className="flex items-center space-x-4">
@@ -371,12 +363,24 @@ const BlogPostPage = () => {
           {/* Article Content */}
           <div className="px-8 py-6">
             <div className="prose prose-lg max-w-none dark:prose-invert">
-              <p className="text-xl text-gray-700 dark:text-gray-300 mb-6 font-medium leading-relaxed">
+              <p className="text-xl text-gray-700 dark:text-gray-300 mb-6 font-medium leading-relaxed text-left">
                 {post.excerpt}
               </p>
-              <div className="whitespace-pre-wrap text-gray-800 dark:text-gray-200 leading-relaxed">
+              <div className="whitespace-pre-wrap text-gray-800 dark:text-gray-200 leading-relaxed text-left">
                 {post.content}
               </div>
+            </div>
+          </div>
+
+          {/* Tags Section */}
+          <div className="px-8 py-4 border-t border-gray-200 dark:border-gray-700">
+            <div className="flex flex-wrap gap-2">
+              {post.tags.map((tag, index) => (
+                <Badge key={index} variant="secondary" className="text-xs">
+                  <Tag className="w-3 h-3 mr-1" />
+                  {tag}
+                </Badge>
+              ))}
             </div>
           </div>
 
@@ -459,122 +463,124 @@ const BlogPostPage = () => {
         </div>
 
         {/* Comments Section */}
-        <div className="mt-12 bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
-          <div className="px-8 py-6 border-b border-gray-200 dark:border-gray-700">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
-              <MessageSquare className="w-6 h-6 mr-2" />
-              Comments ({comments.length})
-            </h2>
-          </div>
+        {commentsEnabled && (
+          <div className="mt-12 bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
+            <div className="px-8 py-6 border-b border-gray-200 dark:border-gray-700">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
+                <MessageSquare className="w-6 h-6 mr-2" />
+                Comments ({comments.length})
+              </h2>
+            </div>
 
-          {/* Comment Form */}
-          <div className="px-8 py-6 border-b border-gray-200 dark:border-gray-700">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Leave a Comment</h3>
-            <form onSubmit={handleCommentSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Name</label>
-                  <input
-                    type="text"
-                    value={newComment.author}
-                    onChange={(e) => setNewComment(prev => ({ ...prev, author: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email</label>
-                  <input
-                    type="email"
-                    value={newComment.email}
-                    onChange={(e) => setNewComment(prev => ({ ...prev, email: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    required
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Comment</label>
-                <textarea
-                  value={newComment.content}
-                  onChange={(e) => setNewComment(prev => ({ ...prev, content: e.target.value }))}
-                  rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  required
-                />
-              </div>
-              <Button type="submit">
-                <Send className="w-4 h-4 mr-2" />
-                Submit Comment
-              </Button>
-            </form>
-          </div>
-
-          {/* Comments List */}
-          <div className="px-8 py-6">
-            {comments.length === 0 ? (
-              <p className="text-gray-500 dark:text-gray-400 text-center py-8">
-                No comments yet. Be the first to comment!
-              </p>
-            ) : (
-              <div className="space-y-6">
-                {comments.map((comment) => (
-                  <div key={comment.id} className="border-b border-gray-200 dark:border-gray-700 pb-6 last:border-b-0">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center space-x-2">
-                        <div className="w-8 h-8 bg-brand-primary/10 rounded-full flex items-center justify-center">
-                          <User className="w-4 h-4 text-brand-primary" />
-                        </div>
-                        <div>
-                          <span className="font-medium text-gray-900 dark:text-white">{comment.author}</span>
-                          <span className="text-sm text-gray-500 dark:text-gray-400 ml-2">
-                            {new Date(comment.createdAt).toLocaleDateString()}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Badge variant={comment.status === 'approved' ? 'default' : 'secondary'}>
-                          {comment.status === 'approved' ? <CheckCircle className="w-3 h-3 mr-1" /> : null}
-                          {comment.status}
-                        </Badge>
-                      </div>
-                    </div>
-                    <p className="text-gray-700 dark:text-gray-300 mb-2">{comment.content}</p>
-                    <div className="flex items-center space-x-4">
-                      <Button variant="ghost" size="sm">
-                        <ThumbsUp className="w-4 h-4 mr-1" />
-                        {comment.likes}
-                      </Button>
-                      <Button variant="ghost" size="sm">
-                        Reply
-                      </Button>
-                    </div>
-                    
-                    {/* Nested Replies */}
-                    {comment.replies && comment.replies.length > 0 && (
-                      <div className="ml-8 mt-4 space-y-4">
-                        {comment.replies.map((reply) => (
-                          <div key={reply.id} className="border-l-2 border-gray-200 dark:border-gray-700 pl-4">
-                            <div className="flex items-center space-x-2 mb-2">
-                              <div className="w-6 h-6 bg-brand-primary/10 rounded-full flex items-center justify-center">
-                                <User className="w-3 h-3 text-brand-primary" />
-                              </div>
-                              <span className="font-medium text-gray-900 dark:text-white text-sm">{reply.author}</span>
-                              <span className="text-xs text-gray-500 dark:text-gray-400">
-                                {new Date(reply.createdAt).toLocaleDateString()}
-                              </span>
-                            </div>
-                            <p className="text-gray-700 dark:text-gray-300 text-sm">{reply.content}</p>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+            {/* Comment Form */}
+            <div className="px-8 py-6 border-b border-gray-200 dark:border-gray-700">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Leave a Comment</h3>
+              <form onSubmit={handleCommentSubmit} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Name</label>
+                    <input
+                      type="text"
+                      value={newComment.author}
+                      onChange={(e) => setNewComment(prev => ({ ...prev, author: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      required
+                    />
                   </div>
-                ))}
-              </div>
-            )}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email</label>
+                    <input
+                      type="email"
+                      value={newComment.email}
+                      onChange={(e) => setNewComment(prev => ({ ...prev, email: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      required
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Comment</label>
+                  <textarea
+                    value={newComment.content}
+                    onChange={(e) => setNewComment(prev => ({ ...prev, content: e.target.value }))}
+                    rows={4}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    required
+                  />
+                </div>
+                <Button type="submit">
+                  <Send className="w-4 h-4 mr-2" />
+                  Submit Comment
+                </Button>
+              </form>
+            </div>
+
+            {/* Comments List */}
+            <div className="px-8 py-6">
+              {comments.length === 0 ? (
+                <p className="text-gray-500 dark:text-gray-400 text-center py-8">
+                  No comments yet. Be the first to comment!
+                </p>
+              ) : (
+                <div className="space-y-6">
+                  {comments.map((comment) => (
+                    <div key={comment.id} className="border-b border-gray-200 dark:border-gray-700 pb-6 last:border-b-0">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-8 h-8 bg-brand-primary/10 rounded-full flex items-center justify-center">
+                            <User className="w-4 h-4 text-brand-primary" />
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-900 dark:text-white">{comment.author}</span>
+                            <span className="text-sm text-gray-500 dark:text-gray-400 ml-2">
+                              {new Date(comment.createdAt).toLocaleDateString()}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Badge variant={comment.status === 'approved' ? 'default' : 'secondary'}>
+                            {comment.status === 'approved' ? <CheckCircle className="w-3 h-3 mr-1" /> : null}
+                            {comment.status}
+                          </Badge>
+                        </div>
+                      </div>
+                      <p className="text-gray-700 dark:text-gray-300 mb-2 text-left">{comment.content}</p>
+                      <div className="flex items-center space-x-4">
+                        <Button variant="ghost" size="sm">
+                          <ThumbsUp className="w-4 h-4 mr-1" />
+                          {comment.likes}
+                        </Button>
+                        <Button variant="ghost" size="sm">
+                          Reply
+                        </Button>
+                      </div>
+                      
+                      {/* Nested Replies */}
+                      {comment.replies && comment.replies.length > 0 && (
+                        <div className="ml-8 mt-4 space-y-4">
+                          {comment.replies.map((reply) => (
+                            <div key={reply.id} className="border-l-2 border-gray-200 dark:border-gray-700 pl-4">
+                              <div className="flex items-center space-x-2 mb-2">
+                                <div className="w-6 h-6 bg-brand-primary/10 rounded-full flex items-center justify-center">
+                                  <User className="w-3 h-3 text-brand-primary" />
+                                </div>
+                                <span className="font-medium text-gray-900 dark:text-white text-sm">{reply.author}</span>
+                                <span className="text-xs text-gray-500 dark:text-gray-400">
+                                  {new Date(reply.createdAt).toLocaleDateString()}
+                                </span>
+                              </div>
+                              <p className="text-gray-700 dark:text-gray-300 text-sm text-left">{reply.content}</p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Related Posts */}
         {relatedPosts.length > 0 && (
@@ -590,15 +596,13 @@ const BlogPostPage = () => {
                 {relatedPosts.map((relatedPost) => (
                   <Link key={relatedPost.id} to={`/blog/${relatedPost.slug}`} className="group">
                     <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow">
-                      <h3 className="font-semibold text-gray-900 dark:text-white group-hover:text-brand-primary mb-2">
+                      <h3 className="font-semibold text-gray-900 dark:text-white group-hover:text-brand-primary mb-2 text-left">
                         {relatedPost.title}
                       </h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">{relatedPost.excerpt}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 text-left">{relatedPost.excerpt}</p>
                       <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
                         <span>{relatedPost.author}</span>
                         <div className="flex items-center space-x-2">
-                          <span>{relatedPost.views} views</span>
-                          <span>•</span>
                           <span>{relatedPost.reactions?.heart || 0} likes</span>
                         </div>
                       </div>

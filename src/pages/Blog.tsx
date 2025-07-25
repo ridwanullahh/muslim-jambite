@@ -1,47 +1,56 @@
 
 import { useState, useEffect } from 'react';
 import { Navigation } from '../components/Navigation';
-import { BlogService, BlogPost, BlogCategory } from '../lib/sdk';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { Button } from '../components/ui/button';
-import { Badge } from '../components/ui/badge';
 import { BlogPostCard } from '../components/blog/BlogPostCard';
 import { BlogSearch } from '../components/blog/BlogSearch';
+import { Button } from '../components/ui/button';
+import { Badge } from '../components/ui/badge';
 import { StickyFomoBanner } from '../components/ui/StickyFomoBanner';
+import { BlogService } from '../lib/sdk';
+import { type BlogPost } from '../types/sdk';
 import { 
   Grid, 
   List, 
+  Filter, 
+  Search, 
+  TrendingUp, 
+  Clock, 
+  Star, 
   BookOpen,
-  TrendingUp,
-  Star,
-  Filter,
-  SortAsc,
-  Calendar,
-  Eye,
-  Heart,
-  MessageSquare,
-  Share2,
-  ArrowRight,
-  ChevronLeft,
-  ChevronRight
+  ChevronDown,
+  Loader2
 } from 'lucide-react';
 
-const Blog = () => {
+const BlogPage = () => {
   const [darkMode, setDarkMode] = useState(false);
   const [posts, setPosts] = useState<BlogPost[]>([]);
-  const [categories, setCategories] = useState<BlogCategory[]>([]);
-  const [featuredPosts, setFeaturedPosts] = useState<BlogPost[]>([]);
-  const [popularPosts, setPopularPosts] = useState<BlogPost[]>([]);
-  const [trendingPosts, setTrendingPosts] = useState<BlogPost[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [filteredPosts, setFilteredPosts] = useState<BlogPost[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [layout, setLayout] = useState<'grid' | 'list' | 'masonry'>('grid');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
-  const [layout, setLayout] = useState<'grid' | 'list'>('grid');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
-  const postsPerPage = 9;
+  const [showFilters, setShowFilters] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [displayedPosts, setDisplayedPosts] = useState(6);
+
+  // Categories for filtering
+  const categories = [
+    { id: 'all', name: 'All Posts', count: 0 },
+    { id: 'Islamic Education', name: 'Islamic Education', count: 0 },
+    { id: 'Academic Preparation', name: 'Academic Preparation', count: 0 },
+    { id: 'Technology', name: 'Technology', count: 0 },
+    { id: 'Career Development', name: 'Career Development', count: 0 },
+    { id: 'Personal Development', name: 'Personal Development', count: 0 }
+  ];
+
+  // Sort options
+  const sortOptions = [
+    { id: 'newest', name: 'Newest First', icon: Clock },
+    { id: 'oldest', name: 'Oldest First', icon: Clock },
+    { id: 'popular', name: 'Most Popular', icon: TrendingUp },
+    { id: 'featured', name: 'Featured', icon: Star }
+  ];
 
   useEffect(() => {
     // Check theme preference
@@ -52,39 +61,62 @@ const Blog = () => {
       setDarkMode(true);
       document.documentElement.classList.add('dark');
     }
-
-    loadData();
   }, []);
 
-  const loadData = async () => {
-    try {
-      setLoading(true);
-      const [postsData, categoriesData, featuredData, popularData, trendingData] = await Promise.all([
-        BlogService.getPosts({ 
-          status: 'published',
-          limit: postsPerPage,
-          offset: 0,
-          sortBy: 'newest'
-        }),
-        BlogService.getCategories(),
-        BlogService.getFeaturedPosts(),
-        BlogService.getPopularPosts(),
-        BlogService.getTrendingPosts()
-      ]);
-      
-      setPosts(postsData);
-      setCategories(categoriesData);
-      setFeaturedPosts(featuredData);
-      setPopularPosts(popularData);
-      setTrendingPosts(trendingData);
-      setTotalPages(Math.ceil(50 / postsPerPage)); // Assuming 50 total posts
-      setHasMore(postsData.length === postsPerPage);
-    } catch (error) {
-      console.error('Failed to load blog data:', error);
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    const loadPosts = async () => {
+      try {
+        setIsLoading(true);
+        const postsData = await BlogService.getPosts();
+        setPosts(postsData);
+        setFilteredPosts(postsData);
+      } catch (error) {
+        console.error('Error loading posts:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadPosts();
+  }, []);
+
+  useEffect(() => {
+    let filtered = [...posts];
+
+    // Apply search filter
+    if (searchQuery) {
+      filtered = filtered.filter(post => 
+        post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        post.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        post.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        post.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+      );
     }
-  };
+
+    // Apply category filter
+    if (selectedCategory !== 'all') {
+      filtered = filtered.filter(post => post.category === selectedCategory);
+    }
+
+    // Apply sorting
+    switch (sortBy) {
+      case 'newest':
+        filtered.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+        break;
+      case 'oldest':
+        filtered.sort((a, b) => new Date(a.publishedAt).getTime() - new Date(b.publishedAt).getTime());
+        break;
+      case 'popular':
+        filtered.sort((a, b) => (b.views || 0) - (a.views || 0));
+        break;
+      case 'featured':
+        filtered.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
+        break;
+    }
+
+    setFilteredPosts(filtered);
+    setDisplayedPosts(6); // Reset displayed posts count
+  }, [posts, searchQuery, selectedCategory, sortBy]);
 
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
@@ -97,198 +129,83 @@ const Blog = () => {
     }
   };
 
-  const handleSearch = async (query: string, filters: any) => {
-    try {
-      setLoading(true);
-      const results = await BlogService.searchPosts(query, {
-        category: filters.category || undefined,
-        tags: filters.tags.length > 0 ? filters.tags : undefined
-      });
-      setPosts(results);
-      setSearchQuery(query);
-      setSelectedCategory(filters.category);
-      setSortBy(filters.sortBy);
-      setCurrentPage(1);
-      setHasMore(false);
-    } catch (error) {
-      console.error('Search failed:', error);
-    } finally {
-      setLoading(false);
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+  };
+
+  const handleLoadMore = () => {
+    setLoadingMore(true);
+    setTimeout(() => {
+      setDisplayedPosts(prev => prev + 6);
+      setLoadingMore(false);
+    }, 500);
+  };
+
+  const getFeaturedPosts = () => {
+    return posts.filter(post => post.featured).slice(0, 3);
+  };
+
+  const getLayoutClass = () => {
+    switch (layout) {
+      case 'list':
+        return 'grid grid-cols-1 gap-6';
+      case 'masonry':
+        return 'columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6';
+      default:
+        return 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6';
     }
   };
 
-  const loadMorePosts = async () => {
-    if (!hasMore || loading) return;
-    
-    try {
-      const nextPage = currentPage + 1;
-      const morePosts = await BlogService.getPosts({
-        status: 'published',
-        limit: postsPerPage,
-        offset: (nextPage - 1) * postsPerPage,
-        sortBy: sortBy as any,
-        category: selectedCategory || undefined,
-        search: searchQuery || undefined
-      });
-      
-      setPosts(prevPosts => [...prevPosts, ...morePosts]);
-      setCurrentPage(nextPage);
-      setHasMore(morePosts.length === postsPerPage);
-    } catch (error) {
-      console.error('Failed to load more posts:', error);
-    }
-  };
-
-  const handlePostReaction = async (postId: string, type: 'like' | 'heart' | 'thumbsUp' | 'celebrate') => {
-    try {
-      await BlogService.reactToPost(postId, type);
-      // Update local state
-      setPosts(prevPosts => 
-        prevPosts.map(post => 
-          post.id === postId 
-            ? { 
-                ...post, 
-                reactions: { 
-                  ...post.reactions, 
-                  [type]: (post.reactions?.[type] || 0) + 1 
-                } 
-              }
-            : post
-        )
-      );
-    } catch (error) {
-      console.error('Failed to react to post:', error);
-    }
-  };
-
-  const handlePostBookmark = async (postId: string) => {
-    try {
-      await BlogService.bookmarkPost(postId);
-      // Update local state
-      setPosts(prevPosts => 
-        prevPosts.map(post => 
-          post.id === postId 
-            ? { ...post, bookmarks: (post.bookmarks || 0) + 1 }
-            : post
-        )
-      );
-    } catch (error) {
-      console.error('Failed to bookmark post:', error);
-    }
-  };
-
-  const handlePostShare = (post: BlogPost) => {
-    // This would be handled by the BlogPostCard component
-    console.log('Share post:', post.title);
-  };
-
-  if (loading && posts.length === 0) {
-    return (
-      <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-300">
-        <StickyFomoBanner />
-        <Navigation darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
-        <div className="pt-32 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-brand-primary"></div>
-        </div>
-      </div>
-    );
-  }
+  const visiblePosts = filteredPosts.slice(0, displayedPosts);
+  const hasMorePosts = displayedPosts < filteredPosts.length;
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-300">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <StickyFomoBanner />
       <Navigation darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
       
-      <main className="pt-32">
-        {/* Hero Section */}
-        <section className="bg-gradient-to-r from-brand-primary to-brand-accent text-white py-20">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center">
-              <h1 className="text-4xl md:text-6xl font-bold mb-6">
-                Islamic Knowledge Hub
-              </h1>
-              <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto">
-                Discover insights, guidance, and inspiration to strengthen your Deen and excel in your studies
-              </p>
-              <div className="flex flex-wrap items-center justify-center gap-4 text-sm">
-                <div className="flex items-center space-x-2">
-                  <BookOpen className="w-4 h-4" />
-                  <span>{posts.length} Articles</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <TrendingUp className="w-4 h-4" />
-                  <span>Updated Daily</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Star className="w-4 h-4" />
-                  <span>Expert Authors</span>
-                </div>
-              </div>
-            </div>
+      <div className="pt-32 pb-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Header */}
+          <div className="text-center mb-12">
+            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
+              Islamic Knowledge Hub
+            </h1>
+            <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+              Discover articles that blend traditional Islamic wisdom with modern educational insights, 
+              helping you excel in both Deen and Dunya.
+            </p>
           </div>
-        </section>
 
-        {/* Featured Posts Slider */}
-        {featuredPosts.length > 0 && (
-          <section className="py-12 bg-gray-50 dark:bg-gray-800">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="flex items-center justify-between mb-8">
-                <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
-                  Featured Articles
-                </h2>
-                <div className="flex items-center space-x-2">
-                  <Button variant="outline" size="sm">
-                    <ChevronLeft className="w-4 h-4" />
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <ChevronRight className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {featuredPosts.slice(0, 3).map((post) => (
-                  <BlogPostCard
-                    key={post.id}
-                    post={post}
-                    onReact={handlePostReaction}
-                    onBookmark={handlePostBookmark}
-                    onShare={handlePostShare}
-                  />
+          {/* Featured Posts Slider */}
+          {getFeaturedPosts().length > 0 && (
+            <div className="mb-12">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center">
+                <Star className="w-6 h-6 mr-2 text-yellow-500" />
+                Featured Posts
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {getFeaturedPosts().map((post) => (
+                  <BlogPostCard key={post.id} post={post} layout="grid" />
                 ))}
               </div>
             </div>
-          </section>
-        )}
+          )}
 
-        {/* Search and Filter Section */}
-        <section className="py-8 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <BlogSearch 
-              onSearch={handleSearch}
-              categories={categories}
-              className="mb-6"
-            />
-            
-            <div className="flex flex-col lg:flex-row gap-6 items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <span className="text-sm text-gray-600 dark:text-gray-400">
-                  {posts.length} articles found
-                </span>
-                {searchQuery && (
-                  <Badge variant="secondary" className="flex items-center space-x-1">
-                    <span>Search: {searchQuery}</span>
-                  </Badge>
-                )}
+          {/* Search and Filters */}
+          <div className="mb-8">
+            <div className="flex flex-col md:flex-row gap-4 items-center justify-between mb-6">
+              <div className="flex-1 max-w-lg">
+                <BlogSearch onSearch={handleSearch} />
               </div>
               
               <div className="flex items-center space-x-4">
-                <div className="flex items-center border border-gray-300 dark:border-gray-600 rounded-lg">
+                {/* Layout Toggle */}
+                <div className="flex items-center space-x-2 bg-white dark:bg-gray-800 rounded-lg p-1">
                   <Button
                     variant={layout === 'grid' ? 'default' : 'ghost'}
                     size="sm"
                     onClick={() => setLayout('grid')}
-                    className="rounded-r-none"
                   >
                     <Grid className="w-4 h-4" />
                   </Button>
@@ -296,161 +213,166 @@ const Blog = () => {
                     variant={layout === 'list' ? 'default' : 'ghost'}
                     size="sm"
                     onClick={() => setLayout('list')}
-                    className="rounded-l-none"
                   >
                     <List className="w-4 h-4" />
                   </Button>
+                  <Button
+                    variant={layout === 'masonry' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setLayout('masonry')}
+                  >
+                    <BookOpen className="w-4 h-4" />
+                  </Button>
+                </div>
+
+                {/* Filters Toggle */}
+                <Button
+                  variant="outline"
+                  onClick={() => setShowFilters(!showFilters)}
+                  className="flex items-center space-x-2"
+                >
+                  <Filter className="w-4 h-4" />
+                  <span>Filters</span>
+                  <ChevronDown className={`w-4 h-4 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
+                </Button>
+              </div>
+            </div>
+
+            {/* Filters Panel */}
+            {showFilters && (
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Category Filter */}
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Categories</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {categories.map((category) => (
+                        <Badge
+                          key={category.id}
+                          variant={selectedCategory === category.id ? 'default' : 'outline'}
+                          className="cursor-pointer hover:bg-brand-primary hover:text-white"
+                          onClick={() => setSelectedCategory(category.id)}
+                        >
+                          {category.name}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Sort Options */}
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Sort By</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {sortOptions.map((option) => (
+                        <Button
+                          key={option.id}
+                          variant={sortBy === option.id ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setSortBy(option.id)}
+                          className="flex items-center space-x-2"
+                        >
+                          <option.icon className="w-4 h-4" />
+                          <span>{option.name}</span>
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
-        </section>
 
-        {/* Main Content */}
-        <section className="py-12">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-              {/* Main Posts Area */}
-              <div className="lg:col-span-3">
-                {posts.length === 0 ? (
-                  <div className="text-center py-12">
-                    <BookOpen className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                      No articles found
-                    </h3>
-                    <p className="text-gray-600 dark:text-gray-400">
-                      Try adjusting your search or filter criteria
-                    </p>
+          {/* Posts Results */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                {searchQuery ? `Search Results for "${searchQuery}"` : 'All Posts'}
+              </h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Showing {visiblePosts.length} of {filteredPosts.length} posts
+              </p>
+            </div>
+
+            {isLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-primary mx-auto mb-4"></div>
+                  <p className="text-gray-600 dark:text-gray-400">Loading posts...</p>
+                </div>
+              </div>
+            ) : filteredPosts.length === 0 ? (
+              <div className="text-center py-12">
+                <Search className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                  No posts found
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-4">
+                  Try adjusting your search query or filters
+                </p>
+                <Button onClick={() => {
+                  setSearchQuery('');
+                  setSelectedCategory('all');
+                  setSortBy('newest');
+                }}>
+                  Clear Filters
+                </Button>
+              </div>
+            ) : (
+              <>
+                <div className={getLayoutClass()}>
+                  {visiblePosts.map((post) => (
+                    <BlogPostCard key={post.id} post={post} layout={layout} />
+                  ))}
+                </div>
+
+                {/* Load More Button */}
+                {hasMorePosts && (
+                  <div className="text-center mt-12">
+                    <Button
+                      variant="outline"
+                      onClick={handleLoadMore}
+                      disabled={loadingMore}
+                      className="flex items-center space-x-2"
+                    >
+                      {loadingMore ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <span>Loading...</span>
+                        </>
+                      ) : (
+                        <>
+                          <BookOpen className="w-4 h-4" />
+                          <span>Load More Posts</span>
+                        </>
+                      )}
+                    </Button>
                   </div>
-                ) : (
-                  <>
-                    <div className={`grid gap-8 ${
-                      layout === 'grid' 
-                        ? 'grid-cols-1 md:grid-cols-2' 
-                        : 'grid-cols-1'
-                    }`}>
-                      {posts.map((post) => (
-                        <BlogPostCard
-                          key={post.id}
-                          post={post}
-                          layout={layout}
-                          onReact={handlePostReaction}
-                          onBookmark={handlePostBookmark}
-                          onShare={handlePostShare}
-                        />
-                      ))}
-                    </div>
-
-                    {hasMore && (
-                      <div className="text-center mt-12">
-                        <Button
-                          onClick={loadMorePosts}
-                          variant="outline"
-                          size="lg"
-                          disabled={loading}
-                        >
-                          {loading ? 'Loading...' : 'Load More Articles'}
-                        </Button>
-                      </div>
-                    )}
-                  </>
                 )}
-              </div>
+              </>
+            )}
+          </div>
 
-              {/* Sidebar */}
-              <div className="lg:col-span-1 space-y-8">
-                {/* Categories */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <Filter className="w-5 h-5 mr-2" />
-                      Categories
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    {categories.map((category) => (
-                      <button
-                        key={category.id}
-                        onClick={() => handleSearch('', { 
-                          query: '', 
-                          category: category.name, 
-                          tags: [], 
-                          sortBy: 'newest' 
-                        })}
-                        className={`w-full flex items-center justify-between p-2 rounded-lg text-left transition-colors ${
-                          selectedCategory === category.name
-                            ? 'bg-brand-primary text-white'
-                            : 'hover:bg-gray-100 dark:hover:bg-gray-800'
-                        }`}
-                      >
-                        <span className="font-medium">{category.name}</span>
-                        <Badge variant="secondary" className="text-xs">
-                          {category.postCount}
-                        </Badge>
-                      </button>
-                    ))}
-                  </CardContent>
-                </Card>
-
-                {/* Popular Posts */}
-                {popularPosts.length > 0 && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center">
-                        <TrendingUp className="w-5 h-5 mr-2" />
-                        Popular Posts
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      {popularPosts.slice(0, 5).map((post) => (
-                        <div key={post.id} className="group">
-                          <h4 className="font-medium text-sm line-clamp-2 group-hover:text-brand-primary transition-colors">
-                            <a href={`/blog/${post.slug}`}>{post.title}</a>
-                          </h4>
-                          <div className="flex items-center space-x-3 text-xs text-gray-500 mt-1">
-                            <div className="flex items-center space-x-1">
-                              <Eye className="w-3 h-3" />
-                              <span>{post.views}</span>
-                            </div>
-                            <div className="flex items-center space-x-1">
-                              <Heart className="w-3 h-3" />
-                              <span>{post.reactions?.heart || 0}</span>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </CardContent>
-                  </Card>
-                )}
-
-                {/* Newsletter Signup */}
-                <Card className="bg-brand-primary text-white">
-                  <CardHeader>
-                    <CardTitle>Stay Updated</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm mb-4">
-                      Get the latest Islamic knowledge and educational content delivered to your inbox.
-                    </p>
-                    <div className="space-y-2">
-                      <input
-                        type="email"
-                        placeholder="Your email address"
-                        className="w-full px-3 py-2 bg-white text-black rounded-md text-sm"
-                      />
-                      <Button variant="secondary" size="sm" className="w-full">
-                        Subscribe
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+          {/* Newsletter Signup */}
+          <div className="bg-gradient-to-r from-brand-primary to-brand-accent text-white rounded-lg p-8 text-center">
+            <h3 className="text-2xl font-bold mb-4">Stay Updated with Islamic Knowledge</h3>
+            <p className="text-lg mb-6 opacity-90">
+              Subscribe to our newsletter for the latest articles, study tips, and Islamic educational content.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
+              <input
+                type="email"
+                placeholder="Enter your email address"
+                className="flex-1 px-4 py-3 rounded-lg text-gray-900 border-0 focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-brand-primary"
+              />
+              <Button variant="secondary" className="bg-white text-brand-primary hover:bg-gray-100">
+                Subscribe
+              </Button>
             </div>
           </div>
-        </section>
-      </main>
+        </div>
+      </div>
     </div>
   );
 };
 
-export default Blog;
+export default BlogPage;

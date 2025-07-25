@@ -1,3 +1,5 @@
+
+import UniversalSDK from '../types/sdk';
 import { 
   BlogPost, 
   BlogComment, 
@@ -5,1229 +7,994 @@ import {
   Student, 
   ProspectEntry, 
   FAQ, 
-  Resource,
-  UniversalSDKConfig,
-  UniversalSDKInterface,
-  SiteSettings
+  Resource, 
+  SiteSettings,
+  Poll,
+  Quiz,
+  Newsletter,
+  Analytics
 } from '../types/sdk';
-import UniversalSDK from '../types/sdk';
 
-// Initialize SDK with environment variables
-const sdkConfig: UniversalSDKConfig = {
+// Initialize SDK with GitHub configuration
+const sdk = new UniversalSDK({
   owner: import.meta.env.VITE_GITHUB_OWNER || 'muslimjambite',
   repo: import.meta.env.VITE_GITHUB_REPO || 'data',
-  token: import.meta.env.VITE_GITHUB_TOKEN || 'mock-token',
+  token: import.meta.env.VITE_GITHUB_TOKEN || '',
   branch: 'main',
   basePath: 'data',
   mediaPath: 'media',
-  templates: {
-    welcome: 'Assalamu alaikum {{name}}, welcome to MuslimJambite!',
-    confirmation: 'Your registration has been confirmed. Barakallahu feek!'
-  },
   schemas: {
-    students: {
-      required: ['fullName', 'email', 'phone', 'isMuslim'],
-      types: {
-        fullName: 'string',
-        email: 'email',
-        phone: 'string',
-        isMuslim: 'boolean'
-      }
-    },
     blog_posts: {
-      required: ['title', 'content', 'author', 'category'],
+      required: ['id', 'title', 'slug', 'content', 'author', 'category', 'publishedAt'],
       types: {
+        id: 'string',
         title: 'string',
-        content: 'text',
+        slug: 'string',
+        content: 'string',
         author: 'string',
-        category: 'string'
+        category: 'string',
+        publishedAt: 'string',
+        featured: 'boolean',
+        status: 'string'
       }
     },
     blog_comments: {
-      required: ['postId', 'author', 'content'],
+      required: ['id', 'postId', 'author', 'content', 'status'],
       types: {
+        id: 'string',
         postId: 'string',
         author: 'string',
-        content: 'text'
+        content: 'string',
+        status: 'string'
+      }
+    },
+    polls: {
+      required: ['id', 'postId', 'question', 'options'],
+      types: {
+        id: 'string',
+        postId: 'string',
+        question: 'string',
+        options: 'array'
+      }
+    },
+    quizzes: {
+      required: ['id', 'postId', 'title', 'questions'],
+      types: {
+        id: 'string',
+        postId: 'string',
+        title: 'string',
+        questions: 'array'
       }
     },
     site_settings: {
-      required: ['key', 'value'],
+      required: ['id', 'key', 'value'],
       types: {
+        id: 'string',
         key: 'string',
-        value: 'string'
+        value: 'string',
+        type: 'string'
+      }
+    },
+    students: {
+      required: ['id', 'fullName', 'email', 'isMuslim'],
+      types: {
+        id: 'string',
+        fullName: 'string',
+        email: 'string',
+        isMuslim: 'boolean'
+      }
+    },
+    newsletters: {
+      required: ['id', 'email'],
+      types: {
+        id: 'string',
+        email: 'string',
+        subscribed: 'boolean'
+      }
+    },
+    analytics: {
+      required: ['id', 'postId', 'action', 'timestamp'],
+      types: {
+        id: 'string',
+        postId: 'string',
+        action: 'string',
+        timestamp: 'string'
       }
     }
-  },
-  auth: {
-    requireEmailVerification: true,
-    otpTriggers: ['login', 'register']
   }
-};
+});
 
-export const sdk = new UniversalSDK(sdkConfig);
-
-export const initializeSDK = async (): Promise<UniversalSDKInterface> => {
-  return await sdk.init();
-};
-
-// Export types for external use
-export type { BlogPost, BlogComment, BlogCategory, Student, ProspectEntry, FAQ, Resource, SiteSettings };
-
-// Enhanced mock data with SEO-rich content
-let mockBlogPosts: BlogPost[] = [
-  {
-    id: '1',
-    title: 'The Complete Guide to Islamic Education: Balancing Deen and Dunya for Modern Muslim Students',
-    slug: 'complete-guide-islamic-education-balancing-deen-dunya-modern-muslim-students',
-    excerpt: 'Master the art of excelling in your studies while maintaining your Islamic values. This comprehensive guide reveals time-tested strategies for academic success rooted in Islamic principles.',
-    content: `# The Complete Guide to Islamic Education: Balancing Deen and Dunya
-
-## Introduction
-
-Education in Islam is not merely about acquiring knowledge for worldly success, but about developing a comprehensive understanding that encompasses both spiritual and intellectual growth. The Prophet Muhammad (peace be upon him) emphasized the importance of seeking knowledge, stating "Seek knowledge from the cradle to the grave."
-
-## Core Principles of Islamic Education
-
-### 1. Intention (Niyyah)
-Start every study session with the right intention. Your pursuit of knowledge should be for Allah's pleasure and to serve humanity.
-
-### 2. Seeking Beneficial Knowledge
-Focus on knowledge that benefits you in this world and the hereafter. The Prophet (SAW) said: "O Allah, I seek refuge in You from knowledge that does not benefit."
-
-### 3. Consistency and Persistence
-Islam teaches us the value of consistent effort. Small, regular study sessions are more beneficial than sporadic intense sessions.
-
-## Practical Study Strategies
-
-### Time Management
-- **Fajr Study Sessions**: The early morning hours after Fajr are blessed and ideal for memorization and deep study
-- **Barakah in Early Rising**: Wake up early to utilize the blessed hours
-- **Prayer Breaks**: Use the five daily prayers as natural study breaks
-
-### Study Environment
-- Keep your study space clean and organized
-- Face the Qibla when possible during study
-- Keep a mushaf (Quran) on your desk for inspiration
-
-## Balancing Religious and Academic Studies
-
-### Integration Approach
-- Connect your academic subjects to Islamic principles
-- Use Islamic examples in your studies where appropriate
-- Remember that all knowledge comes from Allah
-
-### Priority Management
-- Never compromise on your five daily prayers
-- Attend Jumu'ah prayers without fail
-- Make time for Quran recitation daily
-
-## Exam Preparation the Islamic Way
-
-### Before Exams
-- Make du'a asking Allah for success
-- Review your notes after each prayer
-- Maintain your Islamic practices
-
-### During Exams
-- Begin with "Bismillah"
-- Trust in Allah while doing your best
-- Stay calm and focused
-
-## Success Stories from Islamic History
-
-Throughout Islamic history, many scholars excelled in both religious and worldly knowledge. Ibn Sina (Avicenna), Al-Kindi, and Al-Ghazali are prime examples of balanced Islamic education.
-
-## Conclusion
-
-Remember that seeking knowledge is an act of worship in Islam. When you study with the right intention and maintain your Islamic values, you're not just preparing for worldly success but also earning rewards in the hereafter.
-
-May Allah grant us all beneficial knowledge and the ability to act upon it. Ameen.`,
-    author: 'Dr. Amina Hassan',
-    category: 'Islamic Education',
-    tags: ['Education', 'Islam', 'Spirituality', 'Academic Success', 'Student Life', 'Islamic Values', 'Study Tips'],
-    publishedAt: '2024-01-15T10:00:00Z',
-    updatedAt: '2024-01-15T10:00:00Z',
-    status: 'published',
-    featured: true,
-    views: 1250,
-    likes: 89,
-    bookmarks: 45,
-    seoTitle: 'Complete Guide to Islamic Education: Balancing Deen and Dunya for Muslim Students',
-    seoDescription: 'Master academic success while maintaining Islamic values. Comprehensive guide with proven strategies for Muslim students to excel in studies and strengthen their faith.',
-    seoKeywords: ['Islamic education', 'Muslim students', 'Deen and Dunya', 'Islamic values', 'Academic success', 'Study tips Islam', 'Islamic learning methods', 'Muslim academic guide'],
-    readTime: 12,
-    reactions: {
-      like: 89,
-      heart: 156,
-      thumbsUp: 67,
-      celebrate: 23
+// Blog Service
+export const BlogService = {
+  // Get all posts
+  async getPosts(): Promise<BlogPost[]> {
+    try {
+      const posts = await sdk.get<BlogPost>('blog_posts');
+      return posts.filter(post => post.status === 'published').sort((a, b) => 
+        new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
+      );
+    } catch (error) {
+      console.error('Error fetching posts:', error);
+      return this.getSamplePosts();
     }
   },
-  {
-    id: '2',
-    title: 'JAMB Success Stories: How Faith and Hard Work Led to 350+ Scores',
-    slug: 'jamb-success-stories-faith-hard-work-350-plus-scores',
-    excerpt: 'Discover inspiring stories of Muslim students who achieved exceptional JAMB scores through faith, strategic preparation, and unwavering determination.',
-    content: `# JAMB Success Stories: How Faith and Hard Work Led to 350+ Scores
 
-## Introduction
+  // Get post by slug
+  async getPostBySlug(slug: string): Promise<BlogPost | null> {
+    try {
+      const posts = await sdk.get<BlogPost>('blog_posts');
+      return posts.find(post => post.slug === slug && post.status === 'published') || null;
+    } catch (error) {
+      console.error('Error fetching post:', error);
+      return null;
+    }
+  },
 
-Success in JAMB requires more than just academic preparation—it demands a perfect balance of faith, strategic planning, and consistent effort. In this comprehensive guide, we share real success stories from Muslim students who scored 350+ in JAMB while maintaining their Islamic values.
+  // Get posts by category
+  async getPostsByCategory(category: string): Promise<BlogPost[]> {
+    try {
+      const posts = await sdk.get<BlogPost>('blog_posts');
+      return posts.filter(post => post.category === category && post.status === 'published');
+    } catch (error) {
+      console.error('Error fetching posts by category:', error);
+      return [];
+    }
+  },
 
-## Success Story 1: Aisha's Journey to 367
+  // Search posts
+  async searchPosts(query: string): Promise<BlogPost[]> {
+    try {
+      const posts = await sdk.get<BlogPost>('blog_posts');
+      return posts.filter(post => 
+        post.status === 'published' && 
+        (post.title.toLowerCase().includes(query.toLowerCase()) ||
+         post.content.toLowerCase().includes(query.toLowerCase()) ||
+         post.tags.some(tag => tag.toLowerCase().includes(query.toLowerCase())))
+      );
+    } catch (error) {
+      console.error('Error searching posts:', error);
+      return [];
+    }
+  },
 
-### Background
-Aisha from Kano State scored 367 in JAMB 2023 while maintaining her hijab and never missing a single prayer during her preparation period.
+  // Get comments for a post
+  async getComments(postId: string): Promise<BlogComment[]> {
+    try {
+      const comments = await sdk.get<BlogComment>('blog_comments');
+      return comments.filter(comment => comment.postId === postId && comment.status === 'approved');
+    } catch (error) {
+      console.error('Error fetching comments:', error);
+      return [];
+    }
+  },
 
-### Her Strategy
-- **Pre-Fajr Study Sessions**: Studied for 2 hours before Fajr daily
-- **Quranic Memorization**: Used memorization techniques from Quran to remember formulas
-- **Du'a Integration**: Made specific du'as for each subject
-- **Consistent Practice**: Solved past questions for 3 hours daily
+  // Add comment
+  async addComment(comment: Omit<BlogComment, 'id' | 'createdAt' | 'updatedAt'>): Promise<BlogComment> {
+    try {
+      const newComment = {
+        ...comment,
+        id: Date.now().toString(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      await sdk.insert<BlogComment>('blog_comments', newComment);
+      return newComment as BlogComment;
+    } catch (error) {
+      console.error('Error adding comment:', error);
+      throw error;
+    }
+  },
 
-### Key Lessons
-"I never compromised my prayers for studies. Instead, I used them as breaks to refresh my mind," - Aisha
+  // React to post
+  async reactToPost(postId: string, type: 'like' | 'heart' | 'thumbsUp' | 'celebrate'): Promise<void> {
+    try {
+      await sdk.insert('analytics', {
+        id: Date.now().toString(),
+        postId,
+        action: type,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Error reacting to post:', error);
+    }
+  },
 
-## Success Story 2: Muhammad's 354 Score
+  // Bookmark post
+  async bookmarkPost(postId: string): Promise<void> {
+    try {
+      await sdk.insert('analytics', {
+        id: Date.now().toString(),
+        postId,
+        action: 'bookmark',
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Error bookmarking post:', error);
+    }
+  },
 
-### Background
-Muhammad from Lagos combined his passion for Islamic studies with science subjects to achieve 354 in JAMB.
+  // Update post views
+  async updatePostViews(postId: string): Promise<void> {
+    try {
+      await sdk.insert('analytics', {
+        id: Date.now().toString(),
+        postId,
+        action: 'view',
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Error updating views:', error);
+    }
+  },
 
-### His Approach
-- **Integrated Learning**: Connected scientific concepts to Quranic verses
-- **Group Study**: Formed study groups with like-minded Muslim students
-- **Balanced Lifestyle**: Maintained sports and social activities
-- **Consistent Revision**: Daily review of previous day's work
+  // Get related posts
+  async getRelatedPosts(postId: string): Promise<BlogPost[]> {
+    try {
+      const posts = await sdk.get<BlogPost>('blog_posts');
+      const currentPost = posts.find(p => p.id === postId);
+      if (!currentPost) return [];
 
-### Key Insights
-"The discipline I learned from Islamic practices helped me maintain consistency in my studies," - Muhammad
+      return posts
+        .filter(post => 
+          post.id !== postId && 
+          post.status === 'published' &&
+          (post.category === currentPost.category || 
+           post.tags.some(tag => currentPost.tags.includes(tag)))
+        )
+        .slice(0, 4);
+    } catch (error) {
+      console.error('Error fetching related posts:', error);
+      return [];
+    }
+  },
 
-## Common Strategies from All Success Stories
+  // Get sample posts for fallback
+  getSamplePosts(): BlogPost[] {
+    return [
+      {
+        id: '1',
+        title: 'Complete Guide to Islamic Education: Balancing Deen and Dunya for Modern Muslim Students',
+        slug: 'complete-guide-islamic-education-balancing-deen-dunya-modern-muslim-students',
+        excerpt: 'Discover how to excel in both religious and worldly education as a Muslim student. Learn practical strategies for balancing Islamic studies with academic pursuits.',
+        content: `# Complete Guide to Islamic Education: Balancing Deen and Dunya for Modern Muslim Students
+
+In today's rapidly evolving world, Muslim students face the unique challenge of excelling in both religious (Deen) and worldly (Dunya) education. This comprehensive guide will help you navigate this balance while maintaining your Islamic identity and values.
+
+## Understanding the Balance
+
+The concept of balancing Deen and Dunya is not about choosing one over the other, but rather integrating both aspects into a harmonious educational journey. Islam encourages the pursuit of knowledge in all its forms, as the Prophet Muhammad (PBUH) said: "Seek knowledge from the cradle to the grave."
+
+## Key Principles for Success
 
 ### 1. Time Management
-- Early morning study sessions (Fajr time)
-- Using prayer times as natural study breaks
-- Maintaining sleep schedule according to Sunnah
+- Allocate specific times for Islamic studies and academic subjects
+- Use the Barakah (blessing) of early morning hours for Quran recitation
+- Implement the Islamic concept of prioritization in your daily schedule
 
-### 2. Mental Preparation
-- Starting each study session with "Bismillah"
-- Regular du'a and dhikr for mental clarity
-- Trust in Allah while doing maximum effort
+### 2. Intention (Niyyah)
+- Begin every study session with the right intention
+- View your academic pursuits as a form of worship
+- Remember that knowledge is a trust from Allah
 
-### 3. Subject-Specific Strategies
+### 3. Practical Integration
+- Look for connections between Islamic teachings and your academic subjects
+- Apply Islamic ethics in your educational environment
+- Seek halal means of achieving your educational goals
 
-#### Mathematics
-- Practice daily for at least 1 hour
-- Focus on past questions and time management
-- Use Islamic geometric patterns to understand concepts
+## Building Strong Foundations
+
+### Islamic Education Components
+- **Quran Studies**: Regular recitation, memorization, and understanding
+- **Hadith Literature**: Learning the sayings and actions of Prophet Muhammad (PBUH)
+- **Fiqh**: Understanding Islamic jurisprudence for daily life
+- **Seerah**: Studying the life of the Prophet as a practical guide
+
+### Academic Excellence
+- Maintain high standards in your chosen field of study
+- Develop critical thinking skills while staying grounded in Islamic values
+- Participate in extracurricular activities that align with your beliefs
+
+## Modern Challenges and Solutions
+
+### Challenge 1: Time Constraints
+**Solution**: Create a structured schedule that includes both Islamic and academic studies, using techniques like the Pomodoro method adapted for Islamic practices.
+
+### Challenge 2: Conflicting Ideologies
+**Solution**: Develop strong Islamic foundations to critically evaluate different perspectives while maintaining your faith.
+
+### Challenge 3: Social Pressures
+**Solution**: Build a supportive community of like-minded Muslim students and mentors.
+
+## Practical Study Techniques
+
+### The Islamic Study Method
+1. **Begin with Bismillah**: Start every study session with Allah's name
+2. **Make Dua**: Ask for Allah's guidance and blessing on your studies
+3. **Regular Breaks for Dhikr**: Use study breaks for remembrance of Allah
+4. **End with Gratitude**: Thank Allah for the knowledge gained
+
+### Technology Integration
+- Use Islamic apps for prayer times and Quran recitation
+- Find educational resources that align with Islamic values
+- Create digital schedules that include both religious and academic commitments
+
+## Career Planning with Islamic Principles
+
+### Choosing Your Path
+- Consider careers that benefit the Muslim community
+- Look for fields where you can make a positive impact
+- Ensure your career choice aligns with Islamic ethics
+
+### Professional Development
+- Seek mentorship from successful Muslim professionals
+- Develop skills that serve both your career and Islamic community
+- Maintain Islamic ethics in all professional dealings
+
+## Building a Supportive Community
+
+### Finding Your Tribe
+- Join Islamic student organizations
+- Participate in study groups with fellow Muslim students
+- Seek guidance from Islamic scholars and educators
+
+### Giving Back
+- Tutor younger Muslim students
+- Volunteer in Islamic educational programs
+- Share your knowledge with the community
+
+## Conclusion
+
+Balancing Deen and Dunya is not just possible but necessary for the modern Muslim student. By integrating Islamic principles into your educational journey, you create a foundation for success in both this world and the hereafter. Remember, every piece of knowledge gained with the right intention becomes an act of worship.
+
+The key is to view your entire educational experience through the lens of Islamic values, making every moment of learning a step closer to Allah while preparing yourself to serve humanity effectively.
+
+May Allah bless your educational journey and make it a means of closeness to Him. Ameen.`,
+        author: 'Dr. Amina Hassan',
+        category: 'Islamic Education',
+        tags: ['Islamic Education', 'Student Life', 'Academic Success', 'Deen and Dunya', 'Study Tips'],
+        publishedAt: '2024-01-15T00:00:00Z',
+        updatedAt: '2024-01-15T00:00:00Z',
+        status: 'published' as const,
+        featured: true,
+        views: 1251,
+        likes: 89,
+        bookmarks: 45,
+        readTime: 12,
+        seoTitle: 'Complete Guide to Islamic Education: Balancing Deen and Dunya for Modern Muslim Students',
+        seoDescription: 'Discover how to excel in both religious and worldly education as a Muslim student. Learn practical strategies for balancing Islamic studies with academic pursuits.',
+        seoKeywords: ['Islamic Education', 'Muslim Students', 'Deen and Dunya', 'Academic Success', 'Study Tips', 'Religious Education'],
+        reactions: {
+          like: 89,
+          heart: 56,
+          thumbsUp: 73,
+          celebrate: 23
+        }
+      },
+      {
+        id: '2',
+        title: 'JAMB Preparation Strategies for Muslim Students: Excellence in Academic and Spiritual Growth',
+        slug: 'jamb-preparation-strategies-muslim-students-academic-spiritual-growth',
+        excerpt: 'Master JAMB preparation while maintaining your Islamic values. Learn proven strategies that integrate faith with academic excellence.',
+        content: `# JAMB Preparation Strategies for Muslim Students: Excellence in Academic and Spiritual Growth
+
+Preparing for JAMB (Joint Admissions and Matriculation Board) examination is a crucial step for Nigerian students seeking university admission. As Muslim students, we have the unique opportunity to approach this challenge with both academic rigor and spiritual strength.
+
+## The Islamic Approach to Learning
+
+Before diving into specific strategies, it's important to understand that seeking knowledge is a fundamental Islamic value. The Quran states: "And say: My Lord, increase me in knowledge" (Quran 20:114). This verse reminds us that academic pursuit is not separate from our spiritual journey but is an integral part of it.
+
+## Pre-Preparation: Building the Right Foundation
+
+### Spiritual Preparation
+- **Make Dua**: Begin your preparation journey with sincere supplication
+- **Seek Barakah**: Start your study sessions with Bismillah
+- **Regular Dhikr**: Incorporate remembrance of Allah into your study routine
+- **Maintain Prayers**: Never compromise your five daily prayers for study
+
+### Mental Preparation
+- Set clear, achievable goals
+- Develop a growth mindset
+- Cultivate patience and perseverance
+- Build confidence through consistent practice
+
+## Comprehensive Study Plan
+
+### Time Management the Islamic Way
+1. **Fajr Time**: Utilize the blessed early morning hours for the most challenging subjects
+2. **Between Prayers**: Use the intervals between prayers for focused study sessions
+3. **After Maghrib**: Review and consolidate the day's learning
+4. **Before Sleep**: Light revision and gratitude to Allah
+
+### Subject-Specific Strategies
 
 #### English Language
-- Read Quran translation to improve comprehension
-- Practice essay writing on Islamic topics
-- Build vocabulary through Islamic literature
+- Read diverse materials including Islamic literature
+- Practice comprehension with Quranic translations
+- Improve vocabulary through Islamic terminology
+- Write essays on Islamic themes to enhance expression
 
-#### Sciences
-- Connect concepts to creation and Allah's design
-- Use memorization techniques from Islamic education
-- Regular practical application
+#### Mathematics
+- Approach problem-solving with patience and systematic thinking
+- Use Islamic geometric patterns to understand mathematical concepts
+- Practice regularly with the understanding that consistency is key in Islam
+- Seek help when needed, as asking questions is encouraged in Islam
 
-### 4. Mock Exam Strategy
-- Take weekly mock exams
-- Analyze mistakes thoroughly
-- Time management practice
-- Stress management through dhikr
+#### Science Subjects
+- Study the natural world as signs of Allah's creation
+- Appreciate the scientific miracles mentioned in the Quran
+- Use Islamic history of scientific achievements for motivation
+- Apply the Islamic principle of precision and accuracy
 
-## Pre-Exam Preparation
+#### Literature
+- Study works by Muslim authors and poets
+- Understand themes of morality and ethics from an Islamic perspective
+- Analyze character development through Islamic values
+- Appreciate the beauty of language as a gift from Allah
 
-### One Month Before
-- Intensive past question practice
-- Final revision of all topics
-- Increased du'a and istighfar
-- Maintaining regular prayers
+### Effective Study Techniques
 
-### One Week Before
-- Light revision only
-- Increased sleep and rest
-- Special du'as for success
-- Visiting righteous people for prayers
+#### The Islamic Study Cycle
+1. **Intention (Niyyah)**: Begin with the right intention
+2. **Preparation**: Perform ablution and face Qiblah if possible
+3. **Invocation**: Recite study-related duas
+4. **Focus**: Maintain concentration through remembrance of Allah
+5. **Review**: Reflect on what you've learned
+6. **Gratitude**: Thank Allah for the knowledge gained
 
-### Day of Exam
-- Wake up early for Fajr and du'a
-- Eat a light, healthy breakfast
-- Recite Ayatul Kursi and specific du'as
-- Maintain calmness through dhikr
+#### Memory Enhancement
+- Use the techniques learned from Quran memorization
+- Create associations with Islamic concepts
+- Practice spaced repetition, a method that aligns with Islamic learning principles
+- Use mind maps incorporating Islamic symbols and concepts
 
-## Du'as for JAMB Success
+## Managing Stress and Anxiety
 
-### Before Studying
-"Allahumma la sahla illa ma ja'altahu sahla, wa anta taj'alul hazna idha shi'ta sahla"
+### Spiritual Remedies
+- **Tawakkul**: Trust in Allah while taking necessary actions
+- **Istighfar**: Seek forgiveness to remove anxiety
+- **Dhikr**: Remember Allah to find peace of heart
+- **Dua**: Make specific supplications for success
 
-### During Exam
-"Rabbish-radni sabiila" (My Lord, guide me to the right path)
+### Practical Stress Management
+- Maintain regular sleep schedule
+- Exercise regularly (consider Islamic sports like archery)
+- Eat halal, nutritious food
+- Stay hydrated
+- Take regular breaks for prayer and reflection
 
-### After Exam
-"Hasbunallahu wa ni'mal wakeel" (Allah is sufficient for us and He is the best disposer of affairs)
+## Building Support Systems
 
-## Overcoming Challenges
+### Islamic Community Support
+- Form study groups with fellow Muslim students
+- Seek guidance from Islamic scholars about balancing studies and faith
+- Join Islamic student organizations
+- Participate in community prayers and gatherings
 
-### Managing Stress
-- Regular dhikr and du'a
-- Maintaining connection with Allah
-- Seeking support from family and friends
-- Physical exercise and healthy diet
-
-### Dealing with Difficult Topics
-- Break down complex concepts
-- Use Islamic examples where possible
-- Seek help from teachers and peers
-- Make du'a for understanding
-
-## Post-JAMB Advice
-
-### While Waiting for Results
-- Continue making du'a
-- Prepare for post-JAMB screening
-- Research university choices
-- Maintain good deeds
-
-### After Results
-- Be grateful regardless of the outcome
-- Trust in Allah's plan
-- Continue striving for excellence
-- Help others with their preparation
-
-## Conclusion
-
-These success stories prove that with proper planning, consistent effort, and strong faith, achieving excellent JAMB scores is possible while maintaining Islamic values. Remember, success comes from Allah, but He expects us to make the effort.
-
-The key is to trust in Allah's plan while putting in maximum effort. May Allah grant success to all Muslim students preparing for JAMB. Ameen.
-
-## Additional Resources
-
-- Daily du'a for students
-- Islamic time management techniques
-- Balancing religious and academic studies
-- Building confidence through faith
-
-Remember: "And whoever relies upon Allah - then He is sufficient for him. Indeed, Allah will accomplish His purpose." (Quran 65:3)`,
-    author: 'Ustaz Ibrahim Musa',
-    category: 'Success Stories',
-    tags: ['JAMB', 'Success Stories', 'Faith', 'Achievement', 'Muslim Students', 'Exam Preparation', 'Academic Excellence'],
-    publishedAt: '2024-01-10T14:30:00Z',
-    updatedAt: '2024-01-10T14:30:00Z',
-    status: 'published',
-    featured: true,
-    views: 2150,
-    likes: 145,
-    bookmarks: 89,
-    seoTitle: 'JAMB Success Stories: Muslim Students Score 350+ Through Faith and Hard Work',
-    seoDescription: 'Inspiring real success stories of Muslim students who achieved 350+ JAMB scores. Learn their strategies, preparation methods, and how faith guided their success.',
-    seoKeywords: ['JAMB success stories', 'Muslim students JAMB', 'JAMB 350 plus score', 'Islamic study methods', 'JAMB preparation tips', 'Faith and academic success', 'Muslim JAMB achievers'],
-    readTime: 15,
-    reactions: {
-      like: 145,
-      heart: 203,
-      thumbsUp: 178,
-      celebrate: 67
-    }
-  },
-  {
-    id: '3',
-    title: 'The Power of Du\'a in Academic Success: Scientific Evidence and Islamic Perspective',
-    slug: 'power-of-dua-academic-success-scientific-evidence-islamic-perspective',
-    excerpt: 'Explore the profound impact of du\'a on academic performance, backed by scientific research and Islamic teachings for Muslim students.',
-    content: `# The Power of Du'a in Academic Success: Scientific Evidence and Islamic Perspective
-
-## Introduction
-
-In the pursuit of academic excellence, Muslim students often wonder about the role of du'a (supplication) in their success. This comprehensive guide explores both the Islamic perspective and scientific evidence supporting the power of du'a in academic achievement.
-
-## Islamic Foundation of Du'a in Learning
-
-### Quranic Guidance
-The Quran provides clear guidance on seeking knowledge through du'a:
-
-"And say: My Lord, increase me in knowledge" (Quran 20:114)
-
-This verse, revealed about Prophet Muhammad (SAW), emphasizes the importance of constantly seeking increased knowledge through supplication.
-
-### Prophetic Teachings
-The Prophet (SAW) taught us specific du'as for learning:
-
-"Allahumma infa'ni bima 'allamtani wa 'allimni ma yanfa'uni"
-(O Allah, benefit me with what You have taught me and teach me what will benefit me)
-
-## Scientific Evidence Supporting Du'a
-
-### Neurological Benefits
-Recent neuroscientific research has shown that regular prayer and meditation:
-- Reduce cortisol levels (stress hormone)
-- Improve memory consolidation
-- Enhance cognitive function
-- Increase neuroplasticity
-
-### Psychological Benefits
-Studies indicate that spiritual practices like du'a:
-- Reduce anxiety and depression
-- Improve focus and concentration
-- Enhance emotional regulation
-- Boost self-confidence
-
-### Performance Enhancement
-Research shows that students who engage in regular spiritual practices:
-- Show improved academic performance
-- Have better stress management
-- Display increased resilience
-- Maintain better work-life balance
-
-## Specific Du'as for Different Academic Needs
-
-### Before Studying
-**Arabic:** "Rabbish-radni sabiila"
-**Translation:** "My Lord, guide me to the right path"
-**Purpose:** Seeking guidance for understanding
-
-### During Difficult Concepts
-**Arabic:** "Allahumma la sahla illa ma ja'altahu sahla"
-**Translation:** "O Allah, nothing is easy except what You make easy"
-**Purpose:** Seeking ease in understanding complex topics
-
-### Before Exams
-**Arabic:** "Hasbunallahu wa ni'mal wakeel"
-**Translation:** "Allah is sufficient for us and He is the best disposer of affairs"
-**Purpose:** Placing complete trust in Allah
-
-### After Studying
-**Arabic:** "Allahumma barik lana fima 'allamtana"
-**Translation:** "O Allah, bless us in what You have taught us"
-**Purpose:** Seeking blessing in acquired knowledge
-
-## The Science Behind Spiritual Practices
-
-### Stress Reduction
-Regular du'a activates the parasympathetic nervous system, leading to:
-- Reduced heart rate
-- Lower blood pressure
-- Decreased muscle tension
-- Improved digestion
-
-### Memory Enhancement
-Spiritual practices have been shown to:
-- Increase hippocampal volume
-- Improve long-term memory formation
-- Enhance recall ability
-- Strengthen neural pathways
-
-### Emotional Regulation
-Du'a helps in:
-- Balancing neurotransmitters
-- Reducing negative emotions
-- Increasing positive emotions
-- Improving overall mental health
-
-## Practical Implementation
-
-### Creating a Du'a Routine
-1. **Morning Du'a** (After Fajr):
-   - Seek Allah's blessing for the day
-   - Ask for beneficial knowledge
-   - Request ease in understanding
-
-2. **Study Session Du'a**:
-   - Begin each study session with du'a
-   - Ask for focus and concentration
-   - Seek protection from distractions
-
-3. **Evening Du'a** (Before Maghrib):
-   - Thank Allah for the day's learning
-   - Ask for retention of knowledge
-   - Seek forgiveness for any shortcomings
-
-### Combining Du'a with Study Techniques
-
-#### Active Recall with Du'a
-- Begin recall sessions with du'a
-- Ask Allah for accurate memory
-- Thank Allah after successful recall
-
-#### Spaced Repetition with Spiritual Reflection
-- Use du'a intervals between study sessions
-- Reflect on Allah's creation while reviewing science
-- Connect knowledge to Islamic principles
-
-## Case Studies: Real Student Experiences
-
-### Case Study 1: Fatima's Chemistry Success
-Fatima struggled with organic chemistry until she started:
-- Making du'a before each study session
-- Connecting chemical processes to Allah's creation
-- Maintaining regular prayers throughout study periods
-**Result:** Improved from 45% to 85% in chemistry
-
-### Case Study 2: Yusuf's Mathematics Breakthrough
-Yusuf overcame his fear of mathematics through:
-- Specific du'as for mathematical understanding
-- Viewing numbers as signs of Allah's order
-- Maintaining spiritual practices during exam period
-**Result:** Achieved 92% in mathematics
-
-## Common Misconceptions
-
-### Myth 1: Du'a Replaces Hard Work
-**Reality:** Du'a complements effort, not replaces it. Allah helps those who help themselves.
-
-### Myth 2: Immediate Results Expected
-**Reality:** Du'a works according to Allah's wisdom and timing, not our immediate expectations.
-
-### Myth 3: Only Arabic Du'a Works
-**Reality:** Du'a in any language is acceptable, though Arabic duas from Quran and Sunnah are preferred.
-
-## Building a Sustainable Practice
-
-### Weekly Schedule
-- **Monday:** Focus on new learning du'as
-- **Tuesday:** Revision and retention du'as
-- **Wednesday:** Problem-solving du'as
-- **Thursday:** Exam preparation du'as
-- **Friday:** Gratitude and reflection du'as
-- **Saturday:** Comprehensive review du'as
-- **Sunday:** Rest and spiritual renewal
-
-### Monthly Goals
-- Memorize new du'as each month
-- Track academic improvement
-- Reflect on spiritual growth
-- Share experiences with peers
-
-## Integration with Modern Study Methods
-
-### Technology and Du'a
-- Use apps for du'a reminders
-- Create digital du'a collections
-- Set prayer alarms during study sessions
-- Use Islamic study playlists
-
-### Group Study with Spiritual Elements
-- Begin group sessions with du'a
-- Include spiritual discussions
-- Support each other's spiritual growth
+### Family and Peer Support
+- Involve family in your preparation journey
+- Share your goals with supportive friends
 - Create accountability partnerships
+- Celebrate small victories together
 
-## Measuring Success
+## Practical Tips for JAMB Day
 
-### Academic Metrics
-- Grade improvements
-- Better understanding of concepts
-- Improved exam performance
-- Increased confidence
+### Pre-Exam Preparation
+- **Make Dua**: Start the day with sincere supplication
+- **Recite Quran**: Read calming verses for peace of mind
+- **Healthy Breakfast**: Eat nutritious, halal food
+- **Arrive Early**: Follow the Islamic principle of punctuality
 
-### Spiritual Metrics
-- Stronger connection with Allah
-- Better stress management
-- Increased gratitude
-- Enhanced character development
+### During the Exam
+- **Begin with Bismillah**: Start each section with Allah's name
+- **Stay Calm**: Remember that Allah is with you
+- **Think Clearly**: Use the analytical skills developed through Islamic education
+- **Manage Time**: Apply the time management skills from your Islamic studies
 
-## Long-term Benefits
+### After the Exam
+- **Thank Allah**: Regardless of how you feel about your performance
+- **Avoid Comparison**: Focus on your own journey
+- **Make Dua**: Pray for good results
+- **Trust Allah**: Have faith in divine wisdom
 
-### Career Success
-Students who maintain spiritual practices often show:
-- Better leadership qualities
-- Stronger ethical foundation
-- Improved interpersonal skills
-- Greater resilience in challenges
+## Beyond JAMB: Maintaining Islamic Values in Higher Education
 
-### Personal Development
-- Enhanced self-awareness
-- Better decision-making
-- Stronger character
-- Increased life satisfaction
+### Preparing for University Life
+- Research Islamic facilities on campus
+- Plan for maintaining religious practices
+- Identify Muslim student communities
+- Prepare for new challenges while staying grounded in faith
+
+### Career Considerations
+- Consider how your chosen field can serve the Muslim community
+- Look for career paths that align with Islamic values
+- Plan for continuous learning and growth
+- Prepare to be a positive representative of Islam
 
 ## Conclusion
 
-The integration of du'a into academic life is not just a religious practice but a scientifically supported method for enhancing learning and performance. By combining sincere supplication with dedicated effort, Muslim students can achieve both worldly success and spiritual growth.
+JAMB preparation is not just about academic success; it's an opportunity to strengthen your relationship with Allah while developing the skills and knowledge needed for your future. By integrating Islamic values into your study routine, you create a foundation for success that extends beyond examination results.
 
-Remember, du'a is not a magic formula but a means of seeking Allah's help while putting in sincere effort. The key is consistency, sincerity, and trust in Allah's wisdom.
+Remember, success comes from Allah, and our role is to make sincere effort while trusting in His wisdom. May your JAMB preparation be blessed, and may you achieve success in both this world and the hereafter.
 
-May Allah grant success to all students who seek knowledge for His sake and for the benefit of humanity. Ameen.
+As you embark on this journey, carry with you the words of the Prophet Muhammad (PBUH): "Allah makes the way to Paradise easy for him who treads the path in search of knowledge."
 
-## Resources for Further Learning
-
-- Collection of student du'as
-- Scientific studies on prayer and performance
-- Islamic perspective on education
-- Practical implementation guides
-
-"And whoever relies upon Allah - then He is sufficient for him. Indeed, Allah will accomplish His purpose." (Quran 65:3)`,
-    author: 'Dr. Khadijah Al-Ansari',
-    category: 'Islamic Education',
-    tags: ['Du\'a', 'Academic Success', 'Islamic Psychology', 'Spirituality', 'Student Life', 'Scientific Research', 'Islamic Studies'],
-    publishedAt: '2024-01-05T09:00:00Z',
-    updatedAt: '2024-01-05T09:00:00Z',
-    status: 'published',
-    featured: false,
-    views: 1876,
-    likes: 234,
-    bookmarks: 156,
-    seoTitle: 'The Power of Du\'a in Academic Success: Scientific Evidence and Islamic Perspective',
-    seoDescription: 'Discover how du\'a enhances academic performance through scientific research and Islamic teachings. Complete guide for Muslim students seeking academic excellence.',
-    seoKeywords: ['dua for students', 'Islamic study methods', 'academic success Islam', 'prayer and learning', 'Muslim student guidance', 'spiritual academic success', 'Islamic education psychology'],
-    readTime: 18,
-    reactions: {
-      like: 234,
-      heart: 189,
-      thumbsUp: 156,
-      celebrate: 45
-    }
-  }
-];
-
-let mockBlogComments: BlogComment[] = [
-  {
-    id: '1',
-    postId: '1',
-    author: 'Fatima Al-Zahra',
-    email: 'fatima@example.com',
-    content: 'This article beautifully explains the balance between spiritual and academic growth. The practical strategies are exactly what I needed for my JAMB preparation. JazakAllahu khair for sharing this comprehensive guide.',
-    status: 'approved',
-    likes: 12,
-    replies: [
-      {
-        id: '1-1',
-        postId: '1',
-        parentId: '1',
-        author: 'Dr. Amina Hassan',
-        email: 'amina@muslimjambite.com',
-        content: 'Wa iyyaki sister Fatima. I\'m glad you found the strategies helpful. May Allah grant you success in your JAMB preparation. Remember to stay consistent with your du\'a and studies.',
-        status: 'approved',
-        likes: 8,
-        createdAt: '2024-01-16T10:30:00Z',
-        updatedAt: '2024-01-16T10:30:00Z'
-      }
-    ],
-    createdAt: '2024-01-16T09:30:00Z',
-    updatedAt: '2024-01-16T09:30:00Z'
-  },
-  {
-    id: '2',
-    postId: '1',
-    author: 'Muhammad Ali',
-    email: 'ali@example.com',
-    content: 'As a student preparing for JAMB, this perspective has completely changed how I approach my studies. The integration of Islamic principles with modern study techniques is brilliant. Barakallahu feeki for this valuable resource.',
-    status: 'approved',
-    likes: 18,
-    replies: [],
-    createdAt: '2024-01-16T15:45:00Z',
-    updatedAt: '2024-01-16T15:45:00Z'
-  },
-  {
-    id: '3',
-    postId: '2',
-    author: 'Aisha Mustapha',
-    email: 'aisha@example.com',
-    content: 'I achieved 359 in JAMB last year using similar strategies! The emphasis on maintaining prayers while studying is so important. Many students think they need to choose between deen and academic success, but this shows they complement each other perfectly.',
-    status: 'approved',
-    likes: 25,
-    replies: [],
-    createdAt: '2024-01-11T08:20:00Z',
-    updatedAt: '2024-01-11T08:20:00Z'
-  }
-];
-
-let mockBlogCategories: BlogCategory[] = [
-  {
-    id: '1',
-    name: 'Islamic Education',
-    slug: 'islamic-education',
-    description: 'Comprehensive articles about Islamic approach to learning, education, and spiritual development for Muslim students.',
-    color: '#10B981',
-    postCount: 15,
-    featured: true
-  },
-  {
-    id: '2',
-    name: 'JAMB Preparation',
-    slug: 'jamb-preparation',
-    description: 'Expert tips, strategies, and comprehensive guides for excelling in JAMB examinations while maintaining Islamic values.',
-    color: '#3B82F6',
-    postCount: 23,
-    featured: true
-  },
-  {
-    id: '3',
-    name: 'Success Stories',
-    slug: 'success-stories',
-    description: 'Inspiring real-life stories from Muslim students who achieved academic excellence through faith and hard work.',
-    color: '#F59E0B',
-    postCount: 12,
-    featured: true
-  },
-  {
-    id: '4',
-    name: 'Islamic Values',
-    slug: 'islamic-values',
-    description: 'Guidance on living as a Muslim student in modern times, balancing faith with academic and social life.',
-    color: '#8B5CF6',
-    postCount: 18,
-    featured: false
-  },
-  {
-    id: '5',
-    name: 'Study Techniques',
-    slug: 'study-techniques',
-    description: 'Proven Islamic and modern study methods, time management, and productivity tips for Muslim students.',
-    color: '#EF4444',
-    postCount: 20,
-    featured: false
-  },
-  {
-    id: '6',
-    name: 'Career Guidance',
-    slug: 'career-guidance',
-    description: 'Islamic perspective on career choices, professional development, and building a successful halal career.',
-    color: '#06B6D4',
-    postCount: 14,
-    featured: false
-  }
-];
-
-let mockSiteSettings: SiteSettings[] = [
-  {
-    id: '1',
-    key: 'banner_enabled',
-    value: 'true',
-    description: 'Enable or disable the sticky FOMO banner',
-    type: 'boolean',
-    createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-01-01T00:00:00Z'
-  },
-  {
-    id: '2',
-    key: 'registration_enabled',
-    value: 'true',
-    description: 'Enable or disable the registration form',
-    type: 'boolean',
-    createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-01-01T00:00:00Z'
-  },
-  {
-    id: '3',
-    key: 'banner_text',
-    value: 'Early Bird ends:',
-    description: 'Text displayed on the banner',
-    type: 'string',
-    createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-01-01T00:00:00Z'
-  },
-  {
-    id: '4',
-    key: 'early_bird_price',
-    value: '₦500',
-    description: 'Early bird pricing display',
-    type: 'string',
-    createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-01-01T00:00:00Z'
-  }
-];
-
-let mockStudents: Student[] = [];
-let mockProspects: ProspectEntry[] = [];
-let mockFAQs: FAQ[] = [];
-let mockResources: Resource[] = [];
-
-// Simulate API delays
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
-// Enhanced BlogService with all required features
-export const BlogService = {
-  async getPosts(filters?: { 
-    category?: string; 
-    status?: string; 
-    featured?: boolean; 
-    search?: string;
-    limit?: number;
-    offset?: number;
-    sortBy?: 'newest' | 'oldest' | 'popular' | 'liked';
-  }): Promise<BlogPost[]> {
-    await delay(300);
-    let filteredPosts = [...mockBlogPosts];
-    
-    if (filters?.search) {
-      const searchTerm = filters.search.toLowerCase();
-      filteredPosts = filteredPosts.filter(post => 
-        post.title.toLowerCase().includes(searchTerm) ||
-        post.content.toLowerCase().includes(searchTerm) ||
-        post.tags.some(tag => tag.toLowerCase().includes(searchTerm)) ||
-        post.author.toLowerCase().includes(searchTerm)
-      );
-    }
-    
-    if (filters?.category) {
-      filteredPosts = filteredPosts.filter(post => post.category === filters.category);
-    }
-    
-    if (filters?.status) {
-      filteredPosts = filteredPosts.filter(post => post.status === filters.status);
-    }
-    
-    if (filters?.featured !== undefined) {
-      filteredPosts = filteredPosts.filter(post => post.featured === filters.featured);
-    }
-    
-    // Sort posts
-    if (filters?.sortBy) {
-      filteredPosts.sort((a, b) => {
-        switch (filters.sortBy) {
-          case 'newest':
-            return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime();
-          case 'oldest':
-            return new Date(a.publishedAt).getTime() - new Date(b.publishedAt).getTime();
-          case 'popular':
-            return b.views - a.views;
-          case 'liked':
-            return (b.reactions?.like || 0) - (a.reactions?.like || 0);
-          default:
-            return 0;
+May Allah grant you success in your examinations and bless your educational journey. Ameen.`,
+        author: 'Prof. Muhammad Ibrahim',
+        category: 'Academic Preparation',
+        tags: ['JAMB', 'Academic Preparation', 'Islamic Values', 'Study Strategies', 'University Admission'],
+        publishedAt: '2024-01-10T00:00:00Z',
+        updatedAt: '2024-01-10T00:00:00Z',
+        status: 'published' as const,
+        featured: true,
+        views: 892,
+        likes: 67,
+        bookmarks: 34,
+        readTime: 15,
+        seoTitle: 'JAMB Preparation Strategies for Muslim Students: Excellence in Academic and Spiritual Growth',
+        seoDescription: 'Master JAMB preparation while maintaining your Islamic values. Learn proven strategies that integrate faith with academic excellence.',
+        seoKeywords: ['JAMB Preparation', 'Muslim Students', 'Academic Excellence', 'Study Strategies', 'Islamic Education', 'University Admission'],
+        reactions: {
+          like: 67,
+          heart: 45,
+          thumbsUp: 82,
+          celebrate: 19
         }
-      });
-    }
-    
-    // Apply pagination
-    if (filters?.limit) {
-      const offset = filters.offset || 0;
-      filteredPosts = filteredPosts.slice(offset, offset + filters.limit);
-    }
-    
-    return filteredPosts;
-  },
+      },
+      {
+        id: '3',
+        title: 'Tech Skills for Muslim Students: Navigating the Digital Age with Islamic Ethics',
+        slug: 'tech-skills-muslim-students-digital-age-islamic-ethics',
+        excerpt: 'Discover how to develop technological skills while maintaining Islamic values. Learn about ethical technology use and career opportunities in tech.',
+        content: `# Tech Skills for Muslim Students: Navigating the Digital Age with Islamic Ethics
 
-  async getPostById(id: string): Promise<BlogPost | null> {
-    await delay(300);
-    return mockBlogPosts.find(post => post.id === id) || null;
-  },
+In our increasingly digital world, technology skills have become essential for success in virtually every field. As Muslim students, we have the unique opportunity to approach technology learning through the lens of Islamic values and ethics, creating a foundation for responsible and beneficial use of technology.
 
-  async getPostBySlug(slug: string): Promise<BlogPost | null> {
-    await delay(300);
-    return mockBlogPosts.find(post => post.slug === slug) || null;
-  },
+## Islamic Perspective on Technology
 
-  async getRelatedPosts(postId: string, limit: number = 4): Promise<BlogPost[]> {
-    await delay(300);
-    const post = mockBlogPosts.find(p => p.id === postId);
-    if (!post) return [];
-    
-    return mockBlogPosts
-      .filter(p => p.id !== postId && (
-        p.category === post.category || 
-        p.tags.some(tag => post.tags.includes(tag))
-      ))
-      .sort((a, b) => b.views - a.views)
-      .slice(0, limit);
-  },
+Islam encourages the pursuit of beneficial knowledge and the use of tools that serve humanity. The Quran states: "And We made from them leaders guiding by Our command when they were patient and were certain of Our signs" (Quran 32:24). Technology, when used correctly, can be a powerful tool for spreading knowledge, connecting communities, and serving Allah's creation.
 
-  async getPopularPosts(limit: number = 5): Promise<BlogPost[]> {
-    await delay(300);
-    return mockBlogPosts
-      .sort((a, b) => b.views - a.views)
-      .slice(0, limit);
-  },
+## Essential Tech Skills for Modern Muslim Students
 
-  async getTrendingPosts(limit: number = 5): Promise<BlogPost[]> {
-    await delay(300);
-    return mockBlogPosts
-      .sort((a, b) => (b.reactions?.like || 0) - (a.reactions?.like || 0))
-      .slice(0, limit);
-  },
+### 1. Programming and Software Development
+Programming is like learning a new language – one that allows you to communicate with computers and create solutions for real-world problems. From an Islamic perspective, programming can be viewed as a form of creation and problem-solving that serves the greater good.
 
-  async getFeaturedPosts(): Promise<BlogPost[]> {
-    await delay(300);
-    return mockBlogPosts.filter(post => post.featured);
-  },
+**Key Programming Languages to Learn:**
+- **Python**: Excellent for beginners and widely used in data science
+- **JavaScript**: Essential for web development
+- **Java**: Popular in enterprise applications
+- **C++**: Powerful for system programming
+- **Swift/Kotlin**: For mobile app development
 
-  async createPost(post: Omit<BlogPost, 'id' | 'createdAt' | 'updatedAt'>): Promise<BlogPost> {
-    await delay(500);
-    const newPost: BlogPost = {
-      ...post,
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-    mockBlogPosts.unshift(newPost);
-    return newPost;
-  },
+**Islamic Applications:**
+- Develop prayer time applications
+- Create Quran study tools
+- Build community management systems for mosques
+- Design educational platforms for Islamic studies
 
-  async updatePost(id: string, updates: Partial<BlogPost>): Promise<BlogPost | null> {
-    await delay(500);
-    const index = mockBlogPosts.findIndex(post => post.id === id);
-    if (index === -1) return null;
-    
-    mockBlogPosts[index] = {
-      ...mockBlogPosts[index],
-      ...updates,
-      updatedAt: new Date().toISOString()
-    };
-    return mockBlogPosts[index];
-  },
+### 2. Digital Design and User Experience (UX)
+Good design is about creating interfaces that are intuitive, accessible, and serve users' needs effectively. This aligns with the Islamic principle of making things easy for people, as mentioned in the hadith: "Make things easy and do not make them difficult."
 
-  async deletePost(id: string): Promise<boolean> {
-    await delay(500);
-    const index = mockBlogPosts.findIndex(post => post.id === id);
-    if (index === -1) return false;
-    
-    mockBlogPosts.splice(index, 1);
-    return true;
-  },
+**Skills to Develop:**
+- Graphic design using tools like Adobe Creative Suite or Figma
+- User interface (UI) design principles
+- User experience (UX) research and design
+- Web design and responsive layouts
 
-  async updatePostViews(id: string): Promise<void> {
-    await delay(100);
-    const post = mockBlogPosts.find(p => p.id === id);
-    if (post) {
-      post.views += 1;
-    }
-  },
+**Islamic Considerations:**
+- Design with accessibility in mind (serving those with disabilities)
+- Create inclusive designs that respect cultural diversity
+- Avoid imagery that conflicts with Islamic values
+- Focus on functional beauty that serves a purpose
 
-  async reactToPost(id: string, reactionType: 'like' | 'heart' | 'thumbsUp' | 'celebrate'): Promise<void> {
-    await delay(200);
-    const post = mockBlogPosts.find(p => p.id === id);
-    if (post) {
-      if (!post.reactions) {
-        post.reactions = { like: 0, heart: 0, thumbsUp: 0, celebrate: 0 };
+### 3. Data Science and Analytics
+Data science involves extracting insights from data to make informed decisions. This field aligns with the Islamic emphasis on knowledge and evidence-based decision making.
+
+**Core Skills:**
+- Statistical analysis and interpretation
+- Data visualization tools (Tableau, Power BI)
+- Machine learning algorithms
+- Database management (SQL)
+- Python libraries (Pandas, NumPy, Scikit-learn)
+
+**Ethical Considerations:**
+- Ensure data privacy and security
+- Avoid bias in algorithms and analysis
+- Use data for beneficial purposes
+- Respect user consent and transparency
+
+### 4. Cybersecurity
+Protecting digital assets and privacy is crucial in today's interconnected world. From an Islamic perspective, cybersecurity involves protecting trust (amanah) and preventing harm.
+
+**Important Areas:**
+- Network security fundamentals
+- Ethical hacking and penetration testing
+- Risk assessment and management
+- Incident response and recovery
+- Privacy protection techniques
+
+**Islamic Ethics in Cybersecurity:**
+- Protect others' data as you would your own
+- Use security skills to defend, not attack
+- Maintain honesty in security assessments
+- Respect privacy and confidentiality
+
+## Learning Strategies for Tech Skills
+
+### The Islamic Approach to Learning Technology
+
+#### 1. Intention and Purpose
+Begin your tech learning journey with the right intention (niyyah). Ask yourself:
+- How can these skills serve Allah and humanity?
+- What problems can I solve with this knowledge?
+- How can I use technology to spread beneficial knowledge?
+
+#### 2. Structured Learning Path
+Just as Islamic education follows a systematic approach, tech learning should be structured:
+
+**Phase 1: Foundation (1-3 months)**
+- Basic computer literacy
+- Understanding of how technology works
+- Introduction to programming concepts
+- Digital citizenship and ethics
+
+**Phase 2: Specialization (3-12 months)**
+- Choose a specific area of focus
+- Deep dive into chosen programming language
+- Build practical projects
+- Learn industry tools and practices
+
+**Phase 3: Application (Ongoing)**
+- Contribute to open-source projects
+- Build solutions for your community
+- Continuous learning and skill updates
+- Mentoring others in their tech journey
+
+#### 3. Practical Application
+The Prophet Muhammad (PBUH) emphasized learning through practice. Apply this principle to tech learning:
+
+- Build projects that solve real problems
+- Contribute to Islamic tech initiatives
+- Participate in coding challenges and hackathons
+- Create portfolios showcasing your work
+
+### Time Management for Tech Learning
+
+#### Integrating Tech Study with Islamic Practices
+- **Fajr Time**: Use the blessed early morning hours for complex coding problems
+- **Between Prayers**: Quick review sessions and reading tech articles
+- **After Maghrib**: Collaborative learning and project work
+- **Weekend Intensives**: Dedicated time for major projects and learning
+
+#### The 1% Rule
+Commit to improving your tech skills by just 1% each day. This compound approach, combined with patience (sabr) and persistence, will lead to significant growth over time.
+
+## Building a Halal Tech Career
+
+### Career Paths in Technology
+
+#### 1. Software Development
+- Web development
+- Mobile app development
+- Desktop application development
+- Game development (ensuring halal content)
+
+#### 2. Data and Analytics
+- Data analyst
+- Data scientist
+- Business intelligence analyst
+- Machine learning engineer
+
+#### 3. Design and User Experience
+- UI/UX designer
+- Graphic designer
+- Product designer
+- Design researcher
+
+#### 4. Cybersecurity
+- Security analyst
+- Penetration tester
+- Security consultant
+- Compliance officer
+
+#### 5. Technology Management
+- Project manager
+- Product manager
+- Technology consultant
+- Startup founder
+
+### Networking and Community Building
+
+#### Islamic Tech Communities
+- Join Muslim tech professionals groups
+- Participate in Islamic tech conferences
+- Contribute to Muslim-led tech initiatives
+- Build relationships with like-minded professionals
+
+#### Professional Development
+- Attend tech meetups and conferences
+- Build a professional online presence
+- Contribute to open-source projects
+- Seek mentorship from experienced professionals
+
+## Technology Ethics in Islam
+
+### Core Principles
+
+#### 1. Trustworthiness (Amanah)
+- Protect user data and privacy
+- Deliver quality work on time
+- Be honest about capabilities and limitations
+- Maintain confidentiality when required
+
+#### 2. Justice (Adl)
+- Avoid bias in algorithms and systems
+- Ensure equal access to technology
+- Fair compensation for work
+- Respect intellectual property rights
+
+#### 3. Benefit (Maslaha)
+- Focus on technology that benefits society
+- Avoid harmful applications
+- Consider long-term impacts
+- Prioritize user wellbeing
+
+#### 4. Responsibility (Taklif)
+- Take responsibility for your code and its impact
+- Consider the environmental impact of technology
+- Educate others about responsible tech use
+- Advocate for ethical technology practices
+
+### Dealing with Ethical Dilemmas
+
+When faced with ethical challenges in tech:
+1. Consult Islamic scholars and ethics guidelines
+2. Seek advice from experienced Muslim professionals
+3. Consider the long-term impacts on society
+4. Choose the path that aligns with Islamic values
+5. Don't compromise your principles for short-term gain
+
+## Resources for Learning
+
+### Online Learning Platforms
+- **Coursera**: University-level courses in technology
+- **edX**: Free courses from top universities
+- **Udemy**: Practical, skill-focused courses
+- **Khan Academy**: Free, beginner-friendly content
+- **freeCodeCamp**: Comprehensive web development curriculum
+
+### Islamic Tech Resources
+- Muslim tech communities on social media
+- Islamic tech podcasts and YouTube channels
+- Books on technology ethics from Islamic perspective
+- Conferences and workshops for Muslim tech professionals
+
+### Practice Platforms
+- **GitHub**: For code sharing and collaboration
+- **HackerRank**: Coding challenges and competitions
+- **LeetCode**: Algorithm and data structure practice
+- **Kaggle**: Data science competitions and datasets
+
+## Conclusion
+
+Technology skills are not just about career advancement; they're about becoming equipped to serve Allah and humanity in the digital age. As Muslim students, you have the opportunity to approach technology learning with purpose, ethics, and a commitment to beneficial impact.
+
+Remember that every skill you develop, every problem you solve, and every innovation you create can be a form of worship when done with the right intention. The digital world needs Muslim voices and perspectives to ensure technology serves humanity's highest values.
+
+As you embark on your tech learning journey, carry with you the Islamic principles of excellence (ihsan), continuous learning, and service to others. May Allah bless your efforts and make your technological skills a means of earning His pleasure and serving His creation.
+
+The future of technology is in your hands. Use it wisely, ethically, and for the betterment of all humanity.
+
+May Allah grant you success in your technological endeavors and make you among those who use their skills for the greater good. Ameen.`,
+        author: 'Dr. Sarah Ahmed',
+        category: 'Technology',
+        tags: ['Technology', 'Programming', 'Career Development', 'Islamic Ethics', 'Digital Skills'],
+        publishedAt: '2024-01-05T00:00:00Z',
+        updatedAt: '2024-01-05T00:00:00Z',
+        status: 'published' as const,
+        featured: false,
+        views: 645,
+        likes: 52,
+        bookmarks: 28,
+        readTime: 18,
+        seoTitle: 'Tech Skills for Muslim Students: Navigating the Digital Age with Islamic Ethics',
+        seoDescription: 'Discover how to develop technological skills while maintaining Islamic values. Learn about ethical technology use and career opportunities in tech.',
+        seoKeywords: ['Technology Skills', 'Muslim Students', 'Programming', 'Islamic Ethics', 'Career Development', 'Digital Age'],
+        reactions: {
+          like: 52,
+          heart: 38,
+          thumbsUp: 61,
+          celebrate: 15
+        }
       }
-      post.reactions[reactionType] += 1;
+    ];
+  }
+};
+
+// Quiz Service
+export const QuizService = {
+  async getQuizzesByPost(postId: string): Promise<Quiz[]> {
+    try {
+      const quizzes = await sdk.get<Quiz>('quizzes');
+      return quizzes.filter(quiz => quiz.postId === postId);
+    } catch (error) {
+      console.error('Error fetching quizzes:', error);
+      return [];
     }
   },
 
-  async bookmarkPost(id: string): Promise<void> {
-    await delay(200);
-    const post = mockBlogPosts.find(p => p.id === id);
-    if (post) {
-      post.bookmarks = (post.bookmarks || 0) + 1;
+  async createQuiz(quiz: Omit<Quiz, 'id' | 'createdAt' | 'updatedAt'>): Promise<Quiz> {
+    try {
+      const newQuiz = {
+        ...quiz,
+        id: Date.now().toString(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      await sdk.insert<Quiz>('quizzes', newQuiz);
+      return newQuiz as Quiz;
+    } catch (error) {
+      console.error('Error creating quiz:', error);
+      throw error;
+    }
+  }
+};
+
+// Poll Service
+export const PollService = {
+  async getPollsByPost(postId: string): Promise<Poll[]> {
+    try {
+      const polls = await sdk.get<Poll>('polls');
+      return polls.filter(poll => poll.postId === postId);
+    } catch (error) {
+      console.error('Error fetching polls:', error);
+      return [];
     }
   },
 
-  async getComments(postId: string): Promise<BlogComment[]> {
-    await delay(300);
-    return mockBlogComments.filter(comment => comment.postId === postId);
-  },
-
-  async addComment(comment: Omit<BlogComment, 'id' | 'createdAt' | 'updatedAt'>): Promise<BlogComment> {
-    await delay(500);
-    const newComment: BlogComment = {
-      ...comment,
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-    mockBlogComments.push(newComment);
-    return newComment;
-  },
-
-  async updateComment(id: string, updates: Partial<BlogComment>): Promise<BlogComment | null> {
-    await delay(500);
-    const index = mockBlogComments.findIndex(comment => comment.id === id);
-    if (index === -1) return null;
-    
-    mockBlogComments[index] = {
-      ...mockBlogComments[index],
-      ...updates,
-      updatedAt: new Date().toISOString()
-    };
-    return mockBlogComments[index];
-  },
-
-  async deleteComment(id: string): Promise<boolean> {
-    await delay(500);
-    const index = mockBlogComments.findIndex(comment => comment.id === id);
-    if (index === -1) return false;
-    
-    mockBlogComments.splice(index, 1);
-    return true;
-  },
-
-  async approveComment(id: string): Promise<boolean> {
-    await delay(300);
-    const comment = mockBlogComments.find(c => c.id === id);
-    if (comment) {
-      comment.status = 'approved';
-      comment.updatedAt = new Date().toISOString();
-      return true;
+  async createPoll(poll: Omit<Poll, 'id' | 'createdAt' | 'updatedAt'>): Promise<Poll> {
+    try {
+      const newPoll = {
+        ...poll,
+        id: Date.now().toString(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      await sdk.insert<Poll>('polls', newPoll);
+      return newPoll as Poll;
+    } catch (error) {
+      console.error('Error creating poll:', error);
+      throw error;
     }
-    return false;
   },
 
-  async rejectComment(id: string): Promise<boolean> {
-    await delay(300);
-    const comment = mockBlogComments.find(c => c.id === id);
-    if (comment) {
-      comment.status = 'rejected';
-      comment.updatedAt = new Date().toISOString();
-      return true;
+  async voteOnPoll(pollId: string, optionId: string): Promise<void> {
+    try {
+      await sdk.insert('analytics', {
+        id: Date.now().toString(),
+        postId: pollId,
+        action: 'vote',
+        metadata: { optionId },
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Error voting on poll:', error);
     }
-    return false;
-  },
-
-  async getCategories(): Promise<BlogCategory[]> {
-    await delay(300);
-    return mockBlogCategories;
-  },
-
-  async createCategory(category: Omit<BlogCategory, 'id' | 'postCount'>): Promise<BlogCategory> {
-    await delay(500);
-    const newCategory: BlogCategory = {
-      ...category,
-      id: Date.now().toString(),
-      postCount: 0
-    };
-    mockBlogCategories.push(newCategory);
-    return newCategory;
-  },
-
-  async updateCategory(id: string, updates: Partial<BlogCategory>): Promise<BlogCategory | null> {
-    await delay(500);
-    const index = mockBlogCategories.findIndex(category => category.id === id);
-    if (index === -1) return null;
-    
-    mockBlogCategories[index] = {
-      ...mockBlogCategories[index],
-      ...updates
-    };
-    return mockBlogCategories[index];
-  },
-
-  async deleteCategory(id: string): Promise<boolean> {
-    await delay(500);
-    const index = mockBlogCategories.findIndex(category => category.id === id);
-    if (index === -1) return false;
-    
-    mockBlogCategories.splice(index, 1);
-    return true;
-  },
-
-  async searchPosts(query: string, filters?: {
-    category?: string;
-    tags?: string[];
-    dateRange?: { from: string; to: string };
-  }): Promise<BlogPost[]> {
-    await delay(400);
-    let results = mockBlogPosts;
-    
-    if (query) {
-      const searchTerm = query.toLowerCase();
-      results = results.filter(post => 
-        post.title.toLowerCase().includes(searchTerm) ||
-        post.content.toLowerCase().includes(searchTerm) ||
-        post.tags.some(tag => tag.toLowerCase().includes(searchTerm)) ||
-        post.author.toLowerCase().includes(searchTerm)
-      );
-    }
-    
-    if (filters?.category) {
-      results = results.filter(post => post.category === filters.category);
-    }
-    
-    if (filters?.tags?.length) {
-      results = results.filter(post => 
-        post.tags.some(tag => filters.tags!.includes(tag))
-      );
-    }
-    
-    if (filters?.dateRange) {
-      const { from, to } = filters.dateRange;
-      results = results.filter(post => 
-        post.publishedAt >= from && post.publishedAt <= to
-      );
-    }
-    
-    return results;
   }
 };
 
 // Site Settings Service
 export const SiteSettingsService = {
-  async getSettings(): Promise<SiteSettings[]> {
-    await delay(300);
-    return mockSiteSettings;
-  },
-
   async getSetting(key: string): Promise<SiteSettings | null> {
-    await delay(200);
-    return mockSiteSettings.find(setting => setting.key === key) || null;
+    try {
+      const settings = await sdk.get<SiteSettings>('site_settings');
+      return settings.find(setting => setting.key === key) || null;
+    } catch (error) {
+      console.error('Error fetching setting:', error);
+      return null;
+    }
   },
 
-  async updateSetting(key: string, value: string): Promise<SiteSettings | null> {
-    await delay(500);
-    const index = mockSiteSettings.findIndex(setting => setting.key === key);
-    if (index === -1) return null;
-    
-    mockSiteSettings[index] = {
-      ...mockSiteSettings[index],
-      value,
-      updatedAt: new Date().toISOString()
-    };
-    return mockSiteSettings[index];
-  },
-
-  async createSetting(setting: Omit<SiteSettings, 'id' | 'createdAt' | 'updatedAt'>): Promise<SiteSettings> {
-    await delay(500);
-    const newSetting: SiteSettings = {
-      ...setting,
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-    mockSiteSettings.push(newSetting);
-    return newSetting;
+  async updateSetting(key: string, value: string, type: 'string' | 'boolean' | 'number' | 'json' = 'string'): Promise<void> {
+    try {
+      const settings = await sdk.get<SiteSettings>('site_settings');
+      const existingSetting = settings.find(s => s.key === key);
+      
+      if (existingSetting) {
+        await sdk.update('site_settings', existingSetting.id, {
+          value,
+          type,
+          updatedAt: new Date().toISOString()
+        });
+      } else {
+        await sdk.insert('site_settings', {
+          id: Date.now().toString(),
+          key,
+          value,
+          type,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        });
+      }
+    } catch (error) {
+      console.error('Error updating setting:', error);
+    }
   }
 };
 
-export const RegistrationService = {
-  async registerStudent(student: Omit<Student, 'id' | 'createdAt' | 'updatedAt'>): Promise<Student> {
-    await delay(1000);
-    const newStudent: Student = {
-      ...student,
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-    mockStudents.push(newStudent);
-    return newStudent;
-  },
-
+// Student Service
+export const StudentService = {
   async getStudents(): Promise<Student[]> {
-    await delay(500);
-    return mockStudents;
+    try {
+      return await sdk.get<Student>('students');
+    } catch (error) {
+      console.error('Error fetching students:', error);
+      return [];
+    }
   },
 
-  async getStudent(id: string): Promise<Student | null> {
-    await delay(300);
-    return mockStudents.find(student => student.id === id) || null;
-  },
-
-  async updateStudent(id: string, updates: Partial<Student>): Promise<Student | null> {
-    await delay(500);
-    const index = mockStudents.findIndex(student => student.id === id);
-    if (index === -1) return null;
-    
-    mockStudents[index] = {
-      ...mockStudents[index],
-      ...updates,
-      updatedAt: new Date().toISOString()
-    };
-    return mockStudents[index];
-  },
-
-  async saveProspect(prospect: Omit<ProspectEntry, 'id' | 'createdAt' | 'updatedAt'>): Promise<ProspectEntry> {
-    await delay(500);
-    const existingIndex = mockProspects.findIndex(p => p.email === prospect.email);
-    
-    if (existingIndex !== -1) {
-      mockProspects[existingIndex] = {
-        ...mockProspects[existingIndex],
-        ...prospect,
+  async addStudent(student: Omit<Student, 'id' | 'createdAt' | 'updatedAt'>): Promise<Student> {
+    try {
+      const newStudent = {
+        ...student,
+        id: Date.now().toString(),
+        createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
-      return mockProspects[existingIndex];
+      
+      await sdk.insert<Student>('students', newStudent);
+      return newStudent as Student;
+    } catch (error) {
+      console.error('Error adding student:', error);
+      throw error;
     }
-    
-    const newProspect: ProspectEntry = {
-      ...prospect,
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-    mockProspects.push(newProspect);
-    return newProspect;
-  },
-
-  async getProspect(email: string): Promise<ProspectEntry | null> {
-    await delay(300);
-    return mockProspects.find(prospect => prospect.email === email) || null;
-  },
-
-  async getProspects(): Promise<ProspectEntry[]> {
-    await delay(500);
-    return mockProspects;
   }
 };
 
-export const FAQService = {
-  async getFAQs(): Promise<FAQ[]> {
-    await delay(300);
-    return mockFAQs;
-  },
-
-  async createFAQ(faq: Omit<FAQ, 'id' | 'createdAt' | 'updatedAt'>): Promise<FAQ> {
-    await delay(500);
-    const newFAQ: FAQ = {
-      ...faq,
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-    mockFAQs.push(newFAQ);
-    return newFAQ;
-  },
-
-  async updateFAQ(id: string, updates: Partial<FAQ>): Promise<FAQ | null> {
-    await delay(500);
-    const index = mockFAQs.findIndex(faq => faq.id === id);
-    if (index === -1) return null;
-    
-    mockFAQs[index] = {
-      ...mockFAQs[index],
-      ...updates,
-      updatedAt: new Date().toISOString()
-    };
-    return mockFAQs[index];
-  },
-
-  async deleteFAQ(id: string): Promise<boolean> {
-    await delay(500);
-    const index = mockFAQs.findIndex(faq => faq.id === id);
-    if (index === -1) return false;
-    
-    mockFAQs.splice(index, 1);
-    return true;
+// Newsletter Service
+export const NewsletterService = {
+  async subscribe(email: string, name?: string): Promise<void> {
+    try {
+      await sdk.insert('newsletters', {
+        id: Date.now().toString(),
+        email,
+        name,
+        subscribed: true,
+        categories: ['general'],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Error subscribing to newsletter:', error);
+      throw error;
+    }
   }
 };
 
-export const ResourceService = {
-  async getResources(): Promise<Resource[]> {
-    await delay(300);
-    return mockResources;
-  },
-
-  async createResource(resource: Omit<Resource, 'id' | 'createdAt' | 'updatedAt'>): Promise<Resource> {
-    await delay(500);
-    const newResource: Resource = {
-      ...resource,
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-    mockResources.push(newResource);
-    return newResource;
-  },
-
-  async updateResource(id: string, updates: Partial<Resource>): Promise<Resource | null> {
-    await delay(500);
-    const index = mockResources.findIndex(resource => resource.id === id);
-    if (index === -1) return null;
-    
-    mockResources[index] = {
-      ...mockResources[index],
-      ...updates,
-      updatedAt: new Date().toISOString()
-    };
-    return mockResources[index];
-  },
-
-  async deleteResource(id: string): Promise<boolean> {
-    await delay(500);
-    const index = mockResources.findIndex(resource => resource.id === id);
-    if (index === -1) return false;
-    
-    mockResources.splice(index, 1);
-    return true;
+// Analytics Service
+export const AnalyticsService = {
+  async trackEvent(postId: string, action: string, metadata?: Record<string, any>): Promise<void> {
+    try {
+      await sdk.insert('analytics', {
+        id: Date.now().toString(),
+        postId,
+        action,
+        metadata,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Error tracking event:', error);
+    }
   }
 };
+
+// Initialize SDK
+sdk.init().then(() => {
+  console.log('SDK initialized successfully');
+}).catch(error => {
+  console.error('SDK initialization error:', error);
+});
+
+export default sdk;

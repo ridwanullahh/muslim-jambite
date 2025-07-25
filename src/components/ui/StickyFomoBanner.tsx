@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { X, ArrowRight } from 'lucide-react';
+import { X, ArrowRight, Timer } from 'lucide-react';
 import { SiteSettingsService } from '../../lib/sdk';
 
 export const StickyFomoBanner = () => {
@@ -25,7 +25,7 @@ export const StickyFomoBanner = () => {
           SiteSettingsService.getSetting('early_bird_price')
         ]);
 
-        setBannerEnabled(bannerEnabledSetting?.value === 'true');
+        setBannerEnabled(bannerEnabledSetting?.value !== 'false');
         setBannerText(bannerTextSetting?.value || 'Early Bird ends:');
         setEarlyBirdPrice(priceSetting?.value || '₦500');
       } catch (error) {
@@ -39,6 +39,8 @@ export const StickyFomoBanner = () => {
   useEffect(() => {
     if (!bannerEnabled) {
       setIsVisible(false);
+      // Remove padding from body when banner is disabled
+      document.body.style.paddingTop = '0';
       return;
     }
 
@@ -46,10 +48,13 @@ export const StickyFomoBanner = () => {
     const dismissed = localStorage.getItem('banner_dismissed');
     if (dismissed) {
       setIsVisible(false);
+      document.body.style.paddingTop = '0';
       return;
     }
 
     setIsVisible(true);
+    // Add padding to body to prevent header overlap
+    document.body.style.paddingTop = '48px';
 
     // Set target date (30 days from now for early bird offer)
     const targetDate = new Date();
@@ -68,10 +73,14 @@ export const StickyFomoBanner = () => {
         });
       } else {
         setIsVisible(false);
+        document.body.style.paddingTop = '0';
       }
     }, 1000);
 
-    return () => clearInterval(timer);
+    return () => {
+      clearInterval(timer);
+      document.body.style.paddingTop = '0';
+    };
   }, [bannerEnabled]);
 
   const scrollToRegistration = () => {
@@ -83,6 +92,7 @@ export const StickyFomoBanner = () => {
 
   const handleDismiss = () => {
     setIsVisible(false);
+    document.body.style.paddingTop = '0';
     localStorage.setItem('banner_dismissed', 'true');
   };
 
