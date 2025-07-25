@@ -11,6 +11,15 @@ export const BlogPostMeta = ({ post }: BlogPostMetaProps) => {
   const [siteUrl] = useState(import.meta.env.VITE_SITE_URL || 'https://muslimjambite.com');
   const [siteName] = useState(import.meta.env.VITE_SITE_NAME || 'MuslimJambite');
   
+  if (!post) {
+    return (
+      <Helmet>
+        <title>{siteName}</title>
+        <meta name="description" content="Islamic Excellence in Education" />
+      </Helmet>
+    );
+  }
+  
   const postUrl = `${siteUrl}/blog/${post.slug}`;
   const publishedTime = new Date(post.publishedAt).toISOString();
   const modifiedTime = new Date(post.updatedAt).toISOString();
