@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
-import { ExitIntentModal } from './components/modals/ExitIntentModal';
 import { StickyFomoBanner } from './components/ui/StickyFomoBanner';
 import Index from './pages/Index';
 import About from './pages/About';
@@ -17,19 +16,6 @@ import './App.css';
 const queryClient = new QueryClient();
 
 function App() {
-  const [showExitModal, setShowExitModal] = useState(false);
-
-  useEffect(() => {
-    const handleMouseLeave = (e: MouseEvent) => {
-      if (e.clientY <= 0) {
-        setShowExitModal(true);
-      }
-    };
-
-    document.addEventListener('mouseleave', handleMouseLeave);
-    return () => document.removeEventListener('mouseleave', handleMouseLeave);
-  }, []);
-
   return (
     <QueryClientProvider client={queryClient}>
       <Router>
@@ -44,10 +30,6 @@ function App() {
             <Route path="/admin" element={<Admin />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
-          <ExitIntentModal 
-            isOpen={showExitModal} 
-            onClose={() => setShowExitModal(false)} 
-          />
           <Toaster position="top-center" />
         </div>
       </Router>

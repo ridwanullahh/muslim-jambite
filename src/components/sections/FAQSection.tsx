@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { sdk } from '@/lib/sdk';
+import { sdk } from '../../../lib/sdk';
 
 interface FAQ {
   id: string;

@@ -1,5 +1,63 @@
 
-import { BlogPost, BlogComment, BlogCategory, Student, ProspectEntry, FAQ, Resource } from '../types/sdk';
+import { 
+  BlogPost, 
+  BlogComment, 
+  BlogCategory, 
+  Student, 
+  ProspectEntry, 
+  FAQ, 
+  Resource,
+  UniversalSDKConfig,
+  UniversalSDKInterface
+} from '../types/sdk';
+import UniversalSDK from '../types/sdk';
+
+// Initialize SDK
+const sdkConfig: UniversalSDKConfig = {
+  owner: 'muslimjambite',
+  repo: 'data',
+  token: process.env.GITHUB_TOKEN || 'mock-token',
+  branch: 'main',
+  basePath: 'data',
+  mediaPath: 'media',
+  templates: {
+    welcome: 'Assalamu alaikum {{name}}, welcome to MuslimJambite!',
+    confirmation: 'Your registration has been confirmed. Barakallahu feek!'
+  },
+  schemas: {
+    students: {
+      required: ['fullName', 'email', 'phone', 'isMuslim'],
+      types: {
+        fullName: 'string',
+        email: 'email',
+        phone: 'string',
+        isMuslim: 'boolean'
+      }
+    },
+    blog_posts: {
+      required: ['title', 'content', 'author', 'category'],
+      types: {
+        title: 'string',
+        content: 'text',
+        author: 'string',
+        category: 'string'
+      }
+    }
+  },
+  auth: {
+    requireEmailVerification: true,
+    otpTriggers: ['login', 'register']
+  }
+};
+
+export const sdk = new UniversalSDK(sdkConfig);
+
+export const initializeSDK = async (): Promise<UniversalSDKInterface> => {
+  return await sdk.init();
+};
+
+// Export types for external use
+export type { BlogPost, BlogComment, BlogCategory, Student, ProspectEntry, FAQ, Resource };
 
 // Mock data for development
 let mockBlogPosts: BlogPost[] = [

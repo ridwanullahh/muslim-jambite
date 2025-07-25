@@ -70,6 +70,113 @@ export interface CloudinaryUploadResult {
   [key: string]: any;
 }
 
+// Blog types
+export interface BlogPost {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  content: string;
+  author: string;
+  category: string;
+  tags: string[];
+  publishedAt: string;
+  updatedAt: string;
+  status: 'draft' | 'published' | 'archived';
+  featured: boolean;
+  views: number;
+  likes: number;
+  seoTitle?: string;
+  seoDescription?: string;
+  seoKeywords?: string[];
+  createdAt?: string;
+}
+
+export interface BlogComment {
+  id: string;
+  postId: string;
+  author: string;
+  email: string;
+  content: string;
+  status: 'pending' | 'approved' | 'rejected';
+  likes: number;
+  parentId?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface BlogCategory {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  color: string;
+  postCount: number;
+}
+
+// Student types
+export interface Student {
+  id: string;
+  fullName: string;
+  email: string;
+  phone: string;
+  dateOfBirth: string;
+  gender: 'male' | 'female';
+  state: string;
+  lga: string;
+  address: string;
+  parentName: string;
+  parentPhone: string;
+  emergencyContact: string;
+  emergencyPhone: string;
+  academicBackground: string;
+  jambSubjects: string[];
+  techSkill?: string;
+  learningGoals: string[];
+  studySchedule: string;
+  motivations: string[];
+  challenges: string[];
+  expectations: string[];
+  islamicKnowledge: string;
+  isMuslim: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProspectEntry {
+  id: string;
+  email: string;
+  fullName?: string;
+  phone?: string;
+  interests?: string[];
+  source?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface FAQ {
+  id: string;
+  question: string;
+  answer: string;
+  category: string;
+  order?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Resource {
+  id: string;
+  title: string;
+  description: string;
+  type: 'pdf' | 'video' | 'audio' | 'link' | 'document';
+  url: string;
+  category: string;
+  tags: string[];
+  isPublic: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 // The main SDK class interface - only type definitions
 export interface UniversalSDKInterface {
   init(): Promise<UniversalSDKInterface>;
