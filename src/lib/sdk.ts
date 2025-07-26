@@ -195,6 +195,24 @@ export const RegistrationService = {
       console.error('Error getting prospect:', error);
       return null;
     }
+  },
+
+  async getProspects(): Promise<ProspectEntry[]> {
+    try {
+      return await sdk.get<ProspectEntry>('prospects');
+    } catch (error) {
+      console.error('Error getting prospects:', error);
+      return [];
+    }
+  },
+
+  async getStudents(): Promise<Student[]> {
+    try {
+      return await sdk.get<Student>('students');
+    } catch (error) {
+      console.error('Error getting students:', error);
+      return [];
+    }
   }
 };
 
@@ -809,4 +827,5 @@ sdk.init().then(() => {
   console.error('SDK initialization error:', error);
 });
 
+export { ProspectEntry, sdk };
 export default sdk;

@@ -91,10 +91,7 @@ export const Blog = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        <BlogPostMeta
-          title="Blog - MuslimJambite"
-          description="Discover insightful articles about Islamic education, academic preparation, and technology for Muslim students."
-        />
+        <BlogPostMeta />
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="animate-pulse">
@@ -112,10 +109,7 @@ export const Blog = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <BlogPostMeta
-        title="Blog - MuslimJambite"
-        description="Discover insightful articles about Islamic education, academic preparation, and technology for Muslim students."
-      />
+      <BlogPostMeta />
       
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-brand-primary to-brand-accent text-white py-16">
@@ -254,3 +248,5 @@ export const Blog = () => {
     </div>
   );
 };
+
+export default Blog;

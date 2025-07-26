@@ -1,8 +1,6 @@
-
 import { useState } from 'react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Card } from '@/components/ui/card';
-import { sdk } from '@/lib/sdk';
 
 const FAQSection = () => {
   const [faqs] = useState([
@@ -13,7 +11,7 @@ const FAQSection = () => {
       category: 'General'
     },
     {
-      id: '2',
+      id: '2', 
       question: 'How does the program balance Islamic teachings with academic excellence?',
       answer: 'Our program integrates Islamic principles into the learning process, incorporating Quranic verses, Hadith, and Islamic ethics into study materials while maintaining academic rigor.',
       category: 'Academic'

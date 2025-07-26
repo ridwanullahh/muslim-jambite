@@ -7,7 +7,7 @@ import { StickyFomoBanner } from './components/ui/StickyFomoBanner';
 import Index from './pages/Index';
 import About from './pages/About';
 import Contact from './pages/Contact';
-import Blog from './pages/Blog';
+import { Blog } from './pages/Blog';
 import BlogPost from './pages/BlogPost';
 import Admin from './pages/Admin';
 import NotFound from './pages/NotFound';
