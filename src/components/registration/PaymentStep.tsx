@@ -3,8 +3,9 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, ArrowLeft, CreditCard, Check } from 'lucide-react';
+import { Loader2, ArrowLeft, CreditCard, Check, Shield, AlertTriangle } from 'lucide-react';
 import { PaymentService } from '@/services/PaymentService';
+import { RegistrationService } from '@/lib/sdk';
 
 interface PaymentStepProps {
   data: {
@@ -24,13 +25,20 @@ interface PaymentStepProps {
 export const PaymentStep = ({ data, onSuccess, onBack, isLoading }: PaymentStepProps) => {
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [paymentError, setPaymentError] = useState('');
+  const [verificationStatus, setVerificationStatus] = useState<'idle' | 'verifying' | 'success' | 'failed'>('idle');
 
   const registrationFee = 500;
   const monthlyFee = data.techTrack ? 2000 : 1500;
 
   const handlePayment = async () => {
+    if (!PaymentService.validateConfig()) {
+      setPaymentError('Payment service is not properly configured. Please contact support.');
+      return;
+    }
+
     setPaymentLoading(true);
     setPaymentError('');
+    setVerificationStatus('idle');
 
     try {
       const reference = PaymentService.generateReference();
@@ -47,23 +55,78 @@ export const PaymentStep = ({ data, onSuccess, onBack, isLoading }: PaymentStepP
             techTrack: data.techTrack,
             techSkill: data.techSkill,
             currentLevel: data.currentLevel,
-            interests: data.interests
+            interests: data.interests.join(', ')
           }
         },
         async (response) => {
-          // Payment successful
-          console.log('Payment successful:', response);
-          onSuccess();
+          // Payment successful - verify and save to database
+          setVerificationStatus('verifying');
+          
+          try {
+            // Verify payment
+            const verification = await PaymentService.verifyPayment(response.reference);
+            
+            if (verification.status && verification.data.status === 'success') {
+              // Save student registration to database
+              await RegistrationService.registerStudent({
+                fullName: data.fullName,
+                email: data.email,
+                program: data.program,
+                techTrack: data.techTrack,
+                techSkill: data.techSkill,
+                currentLevel: data.currentLevel,
+                interests: data.interests,
+                paymentStatus: 'paid',
+                registrationFee: registrationFee,
+                monthlyFee: monthlyFee,
+                isMuslim: true,
+                phone: verification.data.customer.first_name || '',
+                dateOfBirth: '',
+                gender: 'male',
+                state: '',
+                lga: '',
+                address: '',
+                parentName: '',
+                parentPhone: '',
+                emergencyContact: '',
+                emergencyPhone: '',
+                academicBackground: '',
+                jambSubjects: data.interests,
+                learningGoals: [],
+                studySchedule: '',
+                motivations: [],
+                challenges: [],
+                expectations: [],
+                islamicKnowledge: '',
+                muslimConfirmation: 'yes'
+              });
+              
+              setVerificationStatus('success');
+              setTimeout(() => {
+                onSuccess();
+              }, 2000);
+            } else {
+              throw new Error('Payment verification failed');
+            }
+          } catch (error) {
+            console.error('Payment verification error:', error);
+            setVerificationStatus('failed');
+            setPaymentError('Payment verification failed. Please contact support with reference: ' + response.reference);
+          }
+          
+          setPaymentLoading(false);
         },
         () => {
           // Payment closed
           setPaymentLoading(false);
+          setVerificationStatus('idle');
         }
       );
     } catch (error) {
       console.error('Payment error:', error);
-      setPaymentError('Payment failed. Please try again.');
+      setPaymentError(error instanceof Error ? error.message : 'Payment failed. Please try again.');
       setPaymentLoading(false);
+      setVerificationStatus('idle');
     }
   };
 
@@ -74,7 +137,7 @@ export const PaymentStep = ({ data, onSuccess, onBack, isLoading }: PaymentStepP
           Complete Your Registration
         </h2>
         <p className="text-gray-600 dark:text-gray-400">
-          Review your selection and complete payment
+          Secure payment powered by Paystack
         </p>
       </div>
 
@@ -140,12 +203,40 @@ export const PaymentStep = ({ data, onSuccess, onBack, isLoading }: PaymentStepP
               <span>₦{monthlyFee.toLocaleString()}/month</span>
             </div>
           </div>
+
+          <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+            <Shield className="h-4 w-4 text-green-600" />
+            <span className="text-sm text-green-800 dark:text-green-200">
+              Secure payment protected by Paystack encryption
+            </span>
+          </div>
         </CardContent>
       </Card>
 
       {paymentError && (
         <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-          <p className="text-red-600 dark:text-red-400">{paymentError}</p>
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4 text-red-600" />
+            <p className="text-red-600 dark:text-red-400">{paymentError}</p>
+          </div>
+        </div>
+      )}
+
+      {verificationStatus === 'verifying' && (
+        <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+          <div className="flex items-center gap-2">
+            <Loader2 className="h-4 w-4 text-blue-600 animate-spin" />
+            <p className="text-blue-600 dark:text-blue-400">Verifying payment...</p>
+          </div>
+        </div>
+      )}
+
+      {verificationStatus === 'success' && (
+        <div className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+          <div className="flex items-center gap-2">
+            <Check className="h-4 w-4 text-green-600" />
+            <p className="text-green-600 dark:text-green-400">Payment verified successfully! Completing registration...</p>
+          </div>
         </div>
       )}
 
@@ -155,7 +246,7 @@ export const PaymentStep = ({ data, onSuccess, onBack, isLoading }: PaymentStepP
           variant="outline" 
           onClick={onBack}
           className="flex-1"
-          disabled={paymentLoading}
+          disabled={paymentLoading || verificationStatus === 'verifying'}
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back
@@ -163,12 +254,12 @@ export const PaymentStep = ({ data, onSuccess, onBack, isLoading }: PaymentStepP
         <Button 
           onClick={handlePayment}
           className="flex-1"
-          disabled={paymentLoading || isLoading}
+          disabled={paymentLoading || isLoading || verificationStatus === 'verifying'}
         >
-          {paymentLoading ? (
+          {paymentLoading || verificationStatus === 'verifying' ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Processing...
+              {verificationStatus === 'verifying' ? 'Verifying...' : 'Processing...'}
             </>
           ) : (
             <>

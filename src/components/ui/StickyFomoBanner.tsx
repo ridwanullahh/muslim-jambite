@@ -39,8 +39,6 @@ export const StickyFomoBanner = () => {
   useEffect(() => {
     if (!bannerEnabled) {
       setIsVisible(false);
-      // Remove padding from body when banner is disabled
-      document.body.style.paddingTop = '0';
       return;
     }
 
@@ -48,13 +46,10 @@ export const StickyFomoBanner = () => {
     const dismissed = localStorage.getItem('banner_dismissed');
     if (dismissed) {
       setIsVisible(false);
-      document.body.style.paddingTop = '0';
       return;
     }
 
     setIsVisible(true);
-    // Add padding to body to prevent header overlap
-    document.body.style.paddingTop = '48px';
 
     // Set target date (30 days from now for early bird offer)
     const targetDate = new Date();
@@ -73,13 +68,11 @@ export const StickyFomoBanner = () => {
         });
       } else {
         setIsVisible(false);
-        document.body.style.paddingTop = '0';
       }
     }, 1000);
 
     return () => {
       clearInterval(timer);
-      document.body.style.paddingTop = '0';
     };
   }, [bannerEnabled]);
 
@@ -92,8 +85,10 @@ export const StickyFomoBanner = () => {
 
   const handleDismiss = () => {
     setIsVisible(false);
-    document.body.style.paddingTop = '0';
     localStorage.setItem('banner_dismissed', 'true');
+    
+    // Dispatch custom event to notify other components
+    window.dispatchEvent(new CustomEvent('bannerDismissed'));
   };
 
   if (!isVisible || !bannerEnabled) {

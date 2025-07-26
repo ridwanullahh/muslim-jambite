@@ -65,21 +65,68 @@ export interface VerificationResponse {
 export class PaymentService {
   private static readonly PAYSTACK_BASE_URL = 'https://api.paystack.co';
   private static config: PaystackConfig = {
-    publicKey: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_test_xxxx',
-    secretKey: import.meta.env.VITE_PAYSTACK_SECRET_KEY || 'sk_test_xxxx'
+    publicKey: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || '',
+    secretKey: import.meta.env.VITE_PAYSTACK_SECRET_KEY || ''
   };
 
   static setConfig(config: PaystackConfig) {
     this.config = { ...this.config, ...config };
   }
 
+  static validateConfig(): boolean {
+    if (!this.config.publicKey || !this.config.secretKey) {
+      console.error('Paystack configuration is incomplete');
+      return false;
+    }
+    return true;
+  }
+
   static generateReference(): string {
-    const timestamp = Date.now().toString(36);
-    const random = Math.random().toString(36).substr(2, 5);
-    return `MJ_${timestamp}_${random}`.toUpperCase();
+    const timestamp = Date.now();
+    const random = Math.random().toString(36).substr(2, 9);
+    const hash = btoa(`${timestamp}-${random}`).replace(/[^a-zA-Z0-9]/g, '').substr(0, 10);
+    return `MJ_${timestamp}_${hash}`.toUpperCase();
+  }
+
+  static validateAmount(amount: number): boolean {
+    return amount > 0 && amount <= 1000000 && Number.isInteger(amount * 100);
+  }
+
+  static sanitizeMetadata(metadata: any): any {
+    if (!metadata || typeof metadata !== 'object') return {};
+    
+    const sanitized: any = {};
+    const allowedKeys = ['fullName', 'program', 'techTrack', 'techSkill', 'currentLevel', 'interests', 'phone'];
+    
+    allowedKeys.forEach(key => {
+      if (metadata[key]) {
+        sanitized[key] = String(metadata[key]).substring(0, 255);
+      }
+    });
+    
+    return sanitized;
   }
 
   static async initializePayment(paymentData: PaymentData): Promise<PaymentResponse> {
+    if (!this.validateConfig()) {
+      throw new Error('Paystack configuration is invalid');
+    }
+
+    if (!this.validateEmail(paymentData.email)) {
+      throw new Error('Invalid email address');
+    }
+
+    if (!this.validateAmount(paymentData.amount)) {
+      throw new Error('Invalid payment amount');
+    }
+
+    const sanitizedData = {
+      ...paymentData,
+      amount: Math.round(paymentData.amount * 100), // Convert to kobo
+      metadata: this.sanitizeMetadata(paymentData.metadata),
+      channels: paymentData.channels || ['card', 'bank', 'ussd', 'bank_transfer']
+    };
+
     try {
       const response = await fetch(`${this.PAYSTACK_BASE_URL}/transaction/initialize`, {
         method: 'POST',
@@ -87,7 +134,7 @@ export class PaymentService {
           'Authorization': `Bearer ${this.config.secretKey}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(paymentData),
+        body: JSON.stringify(sanitizedData),
       });
 
       const result = await response.json();
@@ -104,8 +151,16 @@ export class PaymentService {
   }
 
   static async verifyPayment(reference: string): Promise<VerificationResponse> {
+    if (!this.validateConfig()) {
+      throw new Error('Paystack configuration is invalid');
+    }
+
+    if (!reference || typeof reference !== 'string' || reference.length < 10) {
+      throw new Error('Invalid payment reference');
+    }
+
     try {
-      const response = await fetch(`${this.PAYSTACK_BASE_URL}/transaction/verify/${reference}`, {
+      const response = await fetch(`${this.PAYSTACK_BASE_URL}/transaction/verify/${encodeURIComponent(reference)}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${this.config.secretKey}`,
@@ -131,6 +186,18 @@ export class PaymentService {
     onSuccess: (response: any) => void,
     onClose: () => void
   ): Promise<void> {
+    if (!this.validateConfig()) {
+      throw new Error('Paystack configuration is invalid');
+    }
+
+    if (!this.validateEmail(paymentData.email)) {
+      throw new Error('Invalid email address');
+    }
+
+    if (!this.validateAmount(paymentData.amount)) {
+      throw new Error('Invalid payment amount');
+    }
+
     // Load Paystack inline script if not already loaded
     if (!window.PaystackPop) {
       await this.loadPaystackScript();
@@ -139,12 +206,25 @@ export class PaymentService {
     const handler = window.PaystackPop.setup({
       key: this.config.publicKey,
       email: paymentData.email,
-      amount: paymentData.amount * 100, // Convert to kobo
+      amount: Math.round(paymentData.amount * 100), // Convert to kobo
       currency: paymentData.currency || 'NGN',
       ref: paymentData.reference,
-      metadata: paymentData.metadata || {},
-      channels: paymentData.channels || ['card', 'bank', 'ussd', 'qr', 'mobile_money', 'bank_transfer'],
-      callback: onSuccess,
+      metadata: this.sanitizeMetadata(paymentData.metadata) || {},
+      channels: paymentData.channels || ['card', 'bank', 'ussd', 'bank_transfer'],
+      callback: async (response: any) => {
+        try {
+          // Verify payment on the backend before calling success
+          const verification = await this.verifyPayment(response.reference);
+          if (verification.status && verification.data.status === 'success') {
+            onSuccess(response);
+          } else {
+            throw new Error('Payment verification failed');
+          }
+        } catch (error) {
+          console.error('Payment callback error:', error);
+          throw error;
+        }
+      },
       onClose: onClose,
     });
 
@@ -176,7 +256,7 @@ export class PaymentService {
 
   static validateEmail(email: string): boolean {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
+    return emailRegex.test(email) && email.length <= 254;
   }
 
   static sanitizePhone(phone: string): string {
@@ -200,6 +280,16 @@ export class PaymentService {
     
     // Default: assume Nigerian number
     return `+234${digits}`;
+  }
+
+  // Security helper methods
+  static isValidReference(reference: string): boolean {
+    return /^MJ_\d+_[A-Z0-9]+$/.test(reference);
+  }
+
+  static generateSecureHash(data: string): string {
+    // Simple hash for reference validation
+    return btoa(data).replace(/[^a-zA-Z0-9]/g, '').substr(0, 16);
   }
 }
 

@@ -91,7 +91,9 @@ const sdk = new UniversalSDK({
         id: 'string',
         fullName: 'string',
         email: 'string',
-        isMuslim: 'boolean'
+        isMuslim: 'boolean',
+        paymentStatus: 'string',
+        paymentReference: 'string'
       }
     },
     prospects: {
@@ -138,6 +140,17 @@ const sdk = new UniversalSDK({
         postId: 'string',
         action: 'string',
         timestamp: 'string'
+      }
+    },
+    payments: {
+      required: ['id', 'reference', 'email', 'amount', 'status'],
+      types: {
+        id: 'string',
+        reference: 'string',
+        email: 'string',
+        amount: 'number',
+        status: 'string',
+        verifiedAt: 'string'
       }
     }
   }
@@ -270,6 +283,52 @@ export const ResourceService = {
     } catch (error) {
       console.error('Error creating resource:', error);
       throw error;
+    }
+  }
+};
+
+// Payment Tracking Service
+export const PaymentTrackingService = {
+  async recordPayment(paymentData: {
+    reference: string;
+    email: string;
+    amount: number;
+    status: string;
+    metadata?: any;
+  }): Promise<void> {
+    try {
+      await sdk.insert('payments', {
+        id: Date.now().toString(),
+        reference: paymentData.reference,
+        email: paymentData.email,
+        amount: paymentData.amount,
+        status: paymentData.status,
+        metadata: paymentData.metadata,
+        createdAt: new Date().toISOString(),
+        verifiedAt: paymentData.status === 'success' ? new Date().toISOString() : ''
+      });
+    } catch (error) {
+      console.error('Error recording payment:', error);
+    }
+  },
+
+  async getPaymentByReference(reference: string): Promise<any> {
+    try {
+      const payments = await sdk.get('payments');
+      return payments.find((p: any) => p.reference === reference);
+    } catch (error) {
+      console.error('Error fetching payment:', error);
+      return null;
+    }
+  },
+
+  async getPaymentsByEmail(email: string): Promise<any[]> {
+    try {
+      const payments = await sdk.get('payments');
+      return payments.filter((p: any) => p.email === email);
+    } catch (error) {
+      console.error('Error fetching payments:', error);
+      return [];
     }
   }
 };

@@ -11,6 +11,8 @@ export const Navigation = ({ darkMode, toggleDarkMode }: NavigationProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('home');
   const [showMegaMenu, setShowMegaMenu] = useState(false);
+  const [showMobileMegaMenu, setShowMobileMegaMenu] = useState(false);
+  const [bannerVisible, setBannerVisible] = useState(false);
 
   const navItems = [
     { id: 'home', label: 'Home' },
@@ -48,6 +50,28 @@ export const Navigation = ({ darkMode, toggleDarkMode }: NavigationProps) => {
   ];
 
   useEffect(() => {
+    // Check banner visibility
+    const checkBannerVisibility = () => {
+      const dismissed = localStorage.getItem('banner_dismissed');
+      setBannerVisible(!dismissed);
+    };
+
+    checkBannerVisibility();
+
+    // Listen for storage changes to update banner visibility
+    const handleStorageChange = () => {
+      checkBannerVisibility();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Also listen for custom events when banner is dismissed
+    const handleBannerDismiss = () => {
+      setBannerVisible(false);
+    };
+
+    window.addEventListener('bannerDismissed', handleBannerDismiss);
+
     const handleScroll = () => {
       const sections = navItems.map(item => document.getElementById(item.id));
       const scrollPosition = window.scrollY + 100;
@@ -65,7 +89,12 @@ export const Navigation = ({ darkMode, toggleDarkMode }: NavigationProps) => {
     };
 
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('bannerDismissed', handleBannerDismiss);
+    };
   }, []);
 
   const scrollToSection = (sectionId: string) => {
@@ -76,7 +105,7 @@ export const Navigation = ({ darkMode, toggleDarkMode }: NavigationProps) => {
     
     const section = document.getElementById(sectionId);
     if (section) {
-      const headerHeight = 80; // Reduced from 120 for smaller banner
+      const headerHeight = bannerVisible ? 120 : 80;
       const sectionTop = section.offsetTop - headerHeight;
       
       window.scrollTo({
@@ -86,12 +115,15 @@ export const Navigation = ({ darkMode, toggleDarkMode }: NavigationProps) => {
     }
     setIsMenuOpen(false);
     setShowMegaMenu(false);
+    setShowMobileMegaMenu(false);
   };
+
+  const topOffset = bannerVisible ? '2rem' : '0';
 
   return (
     <>
       {/* Desktop Navigation */}
-      <nav className="fixed top-[2rem] left-0 right-0 z-40 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b border-gray-200 dark:border-gray-800">
+      <nav className={`fixed left-0 right-0 z-40 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b border-gray-200 dark:border-gray-800`} style={{ top: topOffset }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
@@ -159,7 +191,7 @@ export const Navigation = ({ darkMode, toggleDarkMode }: NavigationProps) => {
           </div>
         </div>
 
-        {/* Mega Menu */}
+        {/* Desktop Mega Menu */}
         {showMegaMenu && (
           <div 
             className="absolute top-full left-0 right-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-2xl"
@@ -205,20 +237,60 @@ export const Navigation = ({ darkMode, toggleDarkMode }: NavigationProps) => {
       )}
 
       {/* Mobile Menu */}
-      <div className={`mobile-menu fixed top-[4rem] left-0 w-full bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 z-50 md:hidden ${isMenuOpen ? 'open' : ''}`}>
+      <div className={`mobile-menu fixed left-0 w-full bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 z-50 md:hidden ${isMenuOpen ? 'open' : ''}`} style={{ top: bannerVisible ? '4rem' : '2rem' }}>
         <div className="p-6 space-y-4">
           {navItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => scrollToSection(item.id)}
-              className={`flex items-center space-x-3 w-full px-4 py-3 rounded-xl transition-all duration-200 ${
-                activeSection === item.id
-                  ? 'bg-brand-primary text-white'
-                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
-              }`}
-            >
-              <span className="font-medium">{item.label}</span>
-            </button>
+            <div key={item.id}>
+              <button
+                onClick={() => {
+                  if (item.id === 'programs') {
+                    setShowMobileMegaMenu(!showMobileMegaMenu);
+                  } else {
+                    scrollToSection(item.id);
+                  }
+                }}
+                className={`flex items-center justify-between w-full px-4 py-3 rounded-xl transition-all duration-200 ${
+                  activeSection === item.id
+                    ? 'bg-brand-primary text-white'
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                }`}
+              >
+                <span className="font-medium">{item.label}</span>
+                {item.id === 'programs' && (
+                  <ChevronDown className={`w-4 h-4 transition-transform ${showMobileMegaMenu ? 'rotate-180' : ''}`} />
+                )}
+              </button>
+              
+              {/* Mobile Mega Menu */}
+              {item.id === 'programs' && showMobileMegaMenu && (
+                <div className="mt-2 ml-4 space-y-2">
+                  {megaMenuItems.map((category, index) => (
+                    <div key={index} className="border-l-2 border-gray-200 dark:border-gray-700 pl-4">
+                      <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">
+                        {category.category}
+                      </h4>
+                      <div className="space-y-2">
+                        {category.items.map((subItem, subIndex) => (
+                          <a
+                            key={subIndex}
+                            href={subItem.link}
+                            onClick={() => setIsMenuOpen(false)}
+                            className="block p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                          >
+                            <div className="text-sm font-medium text-gray-900 dark:text-white">
+                              {subItem.name}
+                            </div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                              {subItem.description}
+                            </div>
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           ))}
           
           <div className="pt-4 mt-4 border-t border-gray-200 dark:border-gray-800">
