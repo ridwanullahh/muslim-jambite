@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Menu, X, Moon, Sun, BookOpen, Users, Award, Phone, MessageCircle, ChevronDown, ArrowRight } from 'lucide-react';
 
@@ -253,7 +254,7 @@ export const Navigation = ({ darkMode, toggleDarkMode }: NavigationProps) => {
                     scrollToSection(item.id);
                   }
                 }}
-                className={`flex items-center justify-between w-full px-4 py-3 rounded-xl transition-all duration-200 ${
+                className={`flex items-center justify-between w-full px-4 py-3 rounded-xl transition-all duration-200 text-left ${
                   activeSection === item.id
                     ? 'bg-brand-primary text-white'
                     : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
@@ -315,16 +316,6 @@ export const Navigation = ({ darkMode, toggleDarkMode }: NavigationProps) => {
           </div>
         </div>
       </div>
-
-      <style jsx>{`
-        .mobile-menu {
-          transition: transform 0.3s ease-in-out;
-          transform: translateY(-100%);
-        }
-        .mobile-menu.open {
-          transform: translateY(0);
-        }
-      `}</style>
     </>
   );
 };
