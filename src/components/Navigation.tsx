@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Menu, X, Moon, Sun, BookOpen, Users, Award, Phone, MessageCircle, ChevronDown, ArrowRight } from 'lucide-react';
 
@@ -123,7 +122,7 @@ export const Navigation = ({ darkMode, toggleDarkMode }: NavigationProps) => {
   return (
     <>
       {/* Desktop Navigation */}
-      <nav className={`fixed left-0 right-0 z-40 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b border-gray-200 dark:border-gray-800`} style={{ top: topOffset }}>
+      <nav className={`fixed left-0 right-0 z-40 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 transition-all duration-300`} style={{ top: topOffset }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
@@ -237,8 +236,13 @@ export const Navigation = ({ darkMode, toggleDarkMode }: NavigationProps) => {
       )}
 
       {/* Mobile Menu */}
-      <div className={`mobile-menu fixed left-0 w-full bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 z-50 md:hidden ${isMenuOpen ? 'open' : ''}`} style={{ top: bannerVisible ? '4rem' : '2rem' }}>
-        <div className="p-6 space-y-4">
+      <div 
+        className={`fixed left-0 w-full bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 z-50 md:hidden transition-all duration-300 ${
+          isMenuOpen ? 'translate-y-0' : '-translate-y-full'
+        }`} 
+        style={{ top: bannerVisible ? '4rem' : '2rem' }}
+      >
+        <div className="p-6 space-y-4 max-h-screen overflow-y-auto">
           {navItems.map((item) => (
             <div key={item.id}>
               <button
@@ -262,32 +266,37 @@ export const Navigation = ({ darkMode, toggleDarkMode }: NavigationProps) => {
               </button>
               
               {/* Mobile Mega Menu */}
-              {item.id === 'programs' && showMobileMegaMenu && (
-                <div className="mt-2 ml-4 space-y-2">
-                  {megaMenuItems.map((category, index) => (
-                    <div key={index} className="border-l-2 border-gray-200 dark:border-gray-700 pl-4">
-                      <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">
-                        {category.category}
-                      </h4>
-                      <div className="space-y-2">
-                        {category.items.map((subItem, subIndex) => (
-                          <a
-                            key={subIndex}
-                            href={subItem.link}
-                            onClick={() => setIsMenuOpen(false)}
-                            className="block p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                          >
-                            <div className="text-sm font-medium text-gray-900 dark:text-white">
-                              {subItem.name}
-                            </div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                              {subItem.description}
-                            </div>
-                          </a>
-                        ))}
+              {item.id === 'programs' && (
+                <div className={`overflow-hidden transition-all duration-300 ${showMobileMegaMenu ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
+                  <div className="mt-2 ml-4 space-y-3">
+                    {megaMenuItems.map((category, index) => (
+                      <div key={index} className="border-l-2 border-gray-200 dark:border-gray-700 pl-4">
+                        <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-2 text-left">
+                          {category.category}
+                        </h4>
+                        <div className="space-y-2">
+                          {category.items.map((subItem, subIndex) => (
+                            <a
+                              key={subIndex}
+                              href={subItem.link}
+                              onClick={() => {
+                                setIsMenuOpen(false);
+                                setShowMobileMegaMenu(false);
+                              }}
+                              className="block p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                            >
+                              <div className="text-sm font-medium text-gray-900 dark:text-white text-left">
+                                {subItem.name}
+                              </div>
+                              <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 text-left">
+                                {subItem.description}
+                              </div>
+                            </a>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
@@ -306,6 +315,16 @@ export const Navigation = ({ darkMode, toggleDarkMode }: NavigationProps) => {
           </div>
         </div>
       </div>
+
+      <style jsx>{`
+        .mobile-menu {
+          transition: transform 0.3s ease-in-out;
+          transform: translateY(-100%);
+        }
+        .mobile-menu.open {
+          transform: translateY(0);
+        }
+      `}</style>
     </>
   );
 };

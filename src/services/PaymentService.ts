@@ -1,4 +1,3 @@
-
 export interface PaystackConfig {
   publicKey: string;
   secretKey?: string;
@@ -290,6 +289,74 @@ export class PaymentService {
   static generateSecureHash(data: string): string {
     // Simple hash for reference validation
     return btoa(data).replace(/[^a-zA-Z0-9]/g, '').substr(0, 16);
+  }
+
+  // Enhanced security methods
+  static hashPassword(password: string, salt: string): string {
+    // Simple hash implementation - in production use proper crypto
+    return btoa(password + salt).replace(/[^a-zA-Z0-9]/g, '').substr(0, 32);
+  }
+
+  static verifyIntegrity(data: any, expectedHash: string): boolean {
+    const dataString = JSON.stringify(data);
+    const computedHash = this.generateSecureHash(dataString);
+    return computedHash === expectedHash;
+  }
+
+  static rateLimit(identifier: string, limit: number = 5, windowMs: number = 60000): boolean {
+    const key = `rate_limit_${identifier}`;
+    const now = Date.now();
+    const requests = JSON.parse(localStorage.getItem(key) || '[]');
+    
+    // Remove old requests outside the window
+    const validRequests = requests.filter((time: number) => now - time < windowMs);
+    
+    if (validRequests.length >= limit) {
+      return false; // Rate limit exceeded
+    }
+    
+    validRequests.push(now);
+    localStorage.setItem(key, JSON.stringify(validRequests));
+    return true;
+  }
+
+  static async securePaymentFlow(paymentData: PaymentData): Promise<{ success: boolean; reference?: string; error?: string }> {
+    try {
+      // Rate limiting check
+      if (!this.rateLimit(paymentData.email, 3, 300000)) { // 3 attempts per 5 minutes
+        throw new Error('Too many payment attempts. Please wait before trying again.');
+      }
+
+      // Generate secure reference with timestamp
+      const reference = this.generateReference();
+      const timestamp = Date.now();
+      
+      // Create payment with enhanced metadata
+      const enhancedPaymentData = {
+        ...paymentData,
+        reference,
+        metadata: {
+          ...this.sanitizeMetadata(paymentData.metadata),
+          timestamp,
+          userAgent: navigator.userAgent.substring(0, 100),
+          origin: window.location.origin
+        }
+      };
+
+      const result = await this.initializePayment(enhancedPaymentData);
+      
+      if (result.status) {
+        return { success: true, reference: result.data.reference };
+      } else {
+        throw new Error(result.message || 'Payment initialization failed');
+      }
+    } catch (error) {
+      console.error('Secure payment flow error:', error);
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Payment processing failed' 
+      };
+    }
   }
 }
 
