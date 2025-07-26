@@ -1,4 +1,3 @@
-
 import UniversalSDK from '../types/sdk';
 import { 
   BlogPost, 
@@ -48,6 +47,17 @@ const sdk = new UniversalSDK({
         status: 'string'
       }
     },
+    blog_categories: {
+      required: ['id', 'name', 'slug'],
+      types: {
+        id: 'string',
+        name: 'string',
+        slug: 'string',
+        description: 'string',
+        color: 'string',
+        postCount: 'number'
+      }
+    },
     polls: {
       required: ['id', 'postId', 'question', 'options'],
       types: {
@@ -84,6 +94,35 @@ const sdk = new UniversalSDK({
         isMuslim: 'boolean'
       }
     },
+    prospects: {
+      required: ['id', 'email'],
+      types: {
+        id: 'string',
+        email: 'string',
+        fullName: 'string',
+        completed: 'boolean',
+        step: 'number'
+      }
+    },
+    faqs: {
+      required: ['id', 'question', 'answer'],
+      types: {
+        id: 'string',
+        question: 'string',
+        answer: 'string',
+        category: 'string'
+      }
+    },
+    resources: {
+      required: ['id', 'title', 'type', 'url'],
+      types: {
+        id: 'string',
+        title: 'string',
+        type: 'string',
+        url: 'string',
+        category: 'string'
+      }
+    },
     newsletters: {
       required: ['id', 'email'],
       types: {
@@ -104,7 +143,120 @@ const sdk = new UniversalSDK({
   }
 });
 
-// Blog Service
+// Registration Service
+export const RegistrationService = {
+  async registerStudent(student: Omit<Student, 'id' | 'createdAt' | 'updatedAt'>): Promise<Student> {
+    try {
+      const newStudent = {
+        ...student,
+        id: Date.now().toString(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      await sdk.insert<Student>('students', newStudent);
+      return newStudent as Student;
+    } catch (error) {
+      console.error('Error registering student:', error);
+      throw error;
+    }
+  },
+
+  async saveProspect(prospect: Partial<ProspectEntry>): Promise<ProspectEntry> {
+    try {
+      const existingProspects = await sdk.get<ProspectEntry>('prospects');
+      const existing = existingProspects.find(p => p.email === prospect.email);
+      
+      if (existing) {
+        const updated = { ...existing, ...prospect, updatedAt: new Date().toISOString() };
+        await sdk.update('prospects', existing.id, updated);
+        return updated as ProspectEntry;
+      } else {
+        const newProspect = {
+          ...prospect,
+          id: Date.now().toString(),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+        await sdk.insert<ProspectEntry>('prospects', newProspect);
+        return newProspect as ProspectEntry;
+      }
+    } catch (error) {
+      console.error('Error saving prospect:', error);
+      throw error;
+    }
+  },
+
+  async getProspect(email: string): Promise<ProspectEntry | null> {
+    try {
+      const prospects = await sdk.get<ProspectEntry>('prospects');
+      return prospects.find(p => p.email === email) || null;
+    } catch (error) {
+      console.error('Error getting prospect:', error);
+      return null;
+    }
+  }
+};
+
+// FAQ Service
+export const FAQService = {
+  async getFAQs(): Promise<FAQ[]> {
+    try {
+      return await sdk.get<FAQ>('faqs');
+    } catch (error) {
+      console.error('Error fetching FAQs:', error);
+      return [];
+    }
+  },
+
+  async createFAQ(faq: Omit<FAQ, 'id' | 'createdAt' | 'updatedAt'>): Promise<FAQ> {
+    try {
+      const newFAQ = {
+        ...faq,
+        id: Date.now().toString(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      await sdk.insert<FAQ>('faqs', newFAQ);
+      return newFAQ as FAQ;
+    } catch (error) {
+      console.error('Error creating FAQ:', error);
+      throw error;
+    }
+  }
+};
+
+// Resource Service
+export const ResourceService = {
+  async getResources(): Promise<Resource[]> {
+    try {
+      return await sdk.get<Resource>('resources');
+    } catch (error) {
+      console.error('Error fetching resources:', error);
+      return [];
+    }
+  },
+
+  async createResource(resource: Omit<Resource, 'id' | 'createdAt' | 'updatedAt'>): Promise<Resource> {
+    try {
+      const newResource = {
+        ...resource,
+        id: Date.now().toString(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      await sdk.insert<Resource>('resources', newResource);
+      return newResource as Resource;
+    } catch (error) {
+      console.error('Error creating resource:', error);
+      throw error;
+    }
+  }
+};
+
+// Blog Service (enhanced)
 export const BlogService = {
   // Get all posts
   async getPosts(): Promise<BlogPost[]> {
@@ -141,19 +293,65 @@ export const BlogService = {
     }
   },
 
-  // Search posts
-  async searchPosts(query: string): Promise<BlogPost[]> {
+  // Search posts - fix the signature
+  async searchPosts(query: string, filters?: { category?: string; tags?: string[] }): Promise<BlogPost[]> {
     try {
       const posts = await sdk.get<BlogPost>('blog_posts');
-      return posts.filter(post => 
-        post.status === 'published' && 
-        (post.title.toLowerCase().includes(query.toLowerCase()) ||
-         post.content.toLowerCase().includes(query.toLowerCase()) ||
-         post.tags.some(tag => tag.toLowerCase().includes(query.toLowerCase())))
-      );
+      let filteredPosts = posts.filter(post => post.status === 'published');
+
+      if (query) {
+        filteredPosts = filteredPosts.filter(post => 
+          post.title.toLowerCase().includes(query.toLowerCase()) ||
+          post.content.toLowerCase().includes(query.toLowerCase()) ||
+          post.tags.some(tag => tag.toLowerCase().includes(query.toLowerCase()))
+        );
+      }
+
+      if (filters?.category) {
+        filteredPosts = filteredPosts.filter(post => post.category === filters.category);
+      }
+
+      if (filters?.tags && filters.tags.length > 0) {
+        filteredPosts = filteredPosts.filter(post => 
+          filters.tags!.some(tag => post.tags.includes(tag))
+        );
+      }
+
+      return filteredPosts;
     } catch (error) {
       console.error('Error searching posts:', error);
       return [];
+    }
+  },
+
+  // Add missing methods
+  async getCategories(): Promise<BlogCategory[]> {
+    try {
+      return await sdk.get<BlogCategory>('blog_categories');
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      return [
+        { id: '1', name: 'Islamic Education', slug: 'islamic-education', description: 'Articles about Islamic education', color: 'green', postCount: 0 },
+        { id: '2', name: 'Academic Preparation', slug: 'academic-preparation', description: 'JAMB and academic preparation', color: 'blue', postCount: 0 },
+        { id: '3', name: 'Technology', slug: 'technology', description: 'Technology and programming', color: 'purple', postCount: 0 }
+      ];
+    }
+  },
+
+  async createPost(post: Omit<BlogPost, 'id' | 'createdAt' | 'updatedAt'>): Promise<BlogPost> {
+    try {
+      const newPost = {
+        ...post,
+        id: Date.now().toString(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      await sdk.insert<BlogPost>('blog_posts', newPost);
+      return newPost as BlogPost;
+    } catch (error) {
+      console.error('Error creating post:', error);
+      throw error;
     }
   },
 
@@ -295,59 +493,9 @@ The concept of balancing Deen and Dunya is not about choosing one over the other
 - Develop critical thinking skills while staying grounded in Islamic values
 - Participate in extracurricular activities that align with your beliefs
 
-## Modern Challenges and Solutions
-
-### Challenge 1: Time Constraints
-**Solution**: Create a structured schedule that includes both Islamic and academic studies, using techniques like the Pomodoro method adapted for Islamic practices.
-
-### Challenge 2: Conflicting Ideologies
-**Solution**: Develop strong Islamic foundations to critically evaluate different perspectives while maintaining your faith.
-
-### Challenge 3: Social Pressures
-**Solution**: Build a supportive community of like-minded Muslim students and mentors.
-
-## Practical Study Techniques
-
-### The Islamic Study Method
-1. **Begin with Bismillah**: Start every study session with Allah's name
-2. **Make Dua**: Ask for Allah's guidance and blessing on your studies
-3. **Regular Breaks for Dhikr**: Use study breaks for remembrance of Allah
-4. **End with Gratitude**: Thank Allah for the knowledge gained
-
-### Technology Integration
-- Use Islamic apps for prayer times and Quran recitation
-- Find educational resources that align with Islamic values
-- Create digital schedules that include both religious and academic commitments
-
-## Career Planning with Islamic Principles
-
-### Choosing Your Path
-- Consider careers that benefit the Muslim community
-- Look for fields where you can make a positive impact
-- Ensure your career choice aligns with Islamic ethics
-
-### Professional Development
-- Seek mentorship from successful Muslim professionals
-- Develop skills that serve both your career and Islamic community
-- Maintain Islamic ethics in all professional dealings
-
-## Building a Supportive Community
-
-### Finding Your Tribe
-- Join Islamic student organizations
-- Participate in study groups with fellow Muslim students
-- Seek guidance from Islamic scholars and educators
-
-### Giving Back
-- Tutor younger Muslim students
-- Volunteer in Islamic educational programs
-- Share your knowledge with the community
-
 ## Conclusion
 
-Balancing Deen and Dunya is not just possible but necessary for the modern Muslim student. By integrating Islamic principles into your educational journey, you create a foundation for success in both this world and the hereafter. Remember, every piece of knowledge gained with the right intention becomes an act of worship.
-
-The key is to view your entire educational experience through the lens of Islamic values, making every moment of learning a step closer to Allah while preparing yourself to serve humanity effectively.
+Balancing Deen and Dunya is not just possible but necessary for the modern Muslim student. By integrating Islamic principles into your educational journey, you create a foundation for success in both this world and the hereafter.
 
 May Allah bless your educational journey and make it a means of closeness to Him. Ameen.`,
         author: 'Dr. Amina Hassan',
@@ -384,20 +532,6 @@ Preparing for JAMB (Joint Admissions and Matriculation Board) examination is a c
 
 Before diving into specific strategies, it's important to understand that seeking knowledge is a fundamental Islamic value. The Quran states: "And say: My Lord, increase me in knowledge" (Quran 20:114). This verse reminds us that academic pursuit is not separate from our spiritual journey but is an integral part of it.
 
-## Pre-Preparation: Building the Right Foundation
-
-### Spiritual Preparation
-- **Make Dua**: Begin your preparation journey with sincere supplication
-- **Seek Barakah**: Start your study sessions with Bismillah
-- **Regular Dhikr**: Incorporate remembrance of Allah into your study routine
-- **Maintain Prayers**: Never compromise your five daily prayers for study
-
-### Mental Preparation
-- Set clear, achievable goals
-- Develop a growth mindset
-- Cultivate patience and perseverance
-- Build confidence through consistent practice
-
 ## Comprehensive Study Plan
 
 ### Time Management the Islamic Way
@@ -406,118 +540,9 @@ Before diving into specific strategies, it's important to understand that seekin
 3. **After Maghrib**: Review and consolidate the day's learning
 4. **Before Sleep**: Light revision and gratitude to Allah
 
-### Subject-Specific Strategies
-
-#### English Language
-- Read diverse materials including Islamic literature
-- Practice comprehension with Quranic translations
-- Improve vocabulary through Islamic terminology
-- Write essays on Islamic themes to enhance expression
-
-#### Mathematics
-- Approach problem-solving with patience and systematic thinking
-- Use Islamic geometric patterns to understand mathematical concepts
-- Practice regularly with the understanding that consistency is key in Islam
-- Seek help when needed, as asking questions is encouraged in Islam
-
-#### Science Subjects
-- Study the natural world as signs of Allah's creation
-- Appreciate the scientific miracles mentioned in the Quran
-- Use Islamic history of scientific achievements for motivation
-- Apply the Islamic principle of precision and accuracy
-
-#### Literature
-- Study works by Muslim authors and poets
-- Understand themes of morality and ethics from an Islamic perspective
-- Analyze character development through Islamic values
-- Appreciate the beauty of language as a gift from Allah
-
-### Effective Study Techniques
-
-#### The Islamic Study Cycle
-1. **Intention (Niyyah)**: Begin with the right intention
-2. **Preparation**: Perform ablution and face Qiblah if possible
-3. **Invocation**: Recite study-related duas
-4. **Focus**: Maintain concentration through remembrance of Allah
-5. **Review**: Reflect on what you've learned
-6. **Gratitude**: Thank Allah for the knowledge gained
-
-#### Memory Enhancement
-- Use the techniques learned from Quran memorization
-- Create associations with Islamic concepts
-- Practice spaced repetition, a method that aligns with Islamic learning principles
-- Use mind maps incorporating Islamic symbols and concepts
-
-## Managing Stress and Anxiety
-
-### Spiritual Remedies
-- **Tawakkul**: Trust in Allah while taking necessary actions
-- **Istighfar**: Seek forgiveness to remove anxiety
-- **Dhikr**: Remember Allah to find peace of heart
-- **Dua**: Make specific supplications for success
-
-### Practical Stress Management
-- Maintain regular sleep schedule
-- Exercise regularly (consider Islamic sports like archery)
-- Eat halal, nutritious food
-- Stay hydrated
-- Take regular breaks for prayer and reflection
-
-## Building Support Systems
-
-### Islamic Community Support
-- Form study groups with fellow Muslim students
-- Seek guidance from Islamic scholars about balancing studies and faith
-- Join Islamic student organizations
-- Participate in community prayers and gatherings
-
-### Family and Peer Support
-- Involve family in your preparation journey
-- Share your goals with supportive friends
-- Create accountability partnerships
-- Celebrate small victories together
-
-## Practical Tips for JAMB Day
-
-### Pre-Exam Preparation
-- **Make Dua**: Start the day with sincere supplication
-- **Recite Quran**: Read calming verses for peace of mind
-- **Healthy Breakfast**: Eat nutritious, halal food
-- **Arrive Early**: Follow the Islamic principle of punctuality
-
-### During the Exam
-- **Begin with Bismillah**: Start each section with Allah's name
-- **Stay Calm**: Remember that Allah is with you
-- **Think Clearly**: Use the analytical skills developed through Islamic education
-- **Manage Time**: Apply the time management skills from your Islamic studies
-
-### After the Exam
-- **Thank Allah**: Regardless of how you feel about your performance
-- **Avoid Comparison**: Focus on your own journey
-- **Make Dua**: Pray for good results
-- **Trust Allah**: Have faith in divine wisdom
-
-## Beyond JAMB: Maintaining Islamic Values in Higher Education
-
-### Preparing for University Life
-- Research Islamic facilities on campus
-- Plan for maintaining religious practices
-- Identify Muslim student communities
-- Prepare for new challenges while staying grounded in faith
-
-### Career Considerations
-- Consider how your chosen field can serve the Muslim community
-- Look for career paths that align with Islamic values
-- Plan for continuous learning and growth
-- Prepare to be a positive representative of Islam
-
 ## Conclusion
 
 JAMB preparation is not just about academic success; it's an opportunity to strengthen your relationship with Allah while developing the skills and knowledge needed for your future. By integrating Islamic values into your study routine, you create a foundation for success that extends beyond examination results.
-
-Remember, success comes from Allah, and our role is to make sincere effort while trusting in His wisdom. May your JAMB preparation be blessed, and may you achieve success in both this world and the hereafter.
-
-As you embark on this journey, carry with you the words of the Prophet Muhammad (PBUH): "Allah makes the way to Paradise easy for him who treads the path in search of knowledge."
 
 May Allah grant you success in your examinations and bless your educational journey. Ameen.`,
         author: 'Prof. Muhammad Ibrahim',
@@ -548,242 +573,19 @@ May Allah grant you success in your examinations and bless your educational jour
         excerpt: 'Discover how to develop technological skills while maintaining Islamic values. Learn about ethical technology use and career opportunities in tech.',
         content: `# Tech Skills for Muslim Students: Navigating the Digital Age with Islamic Ethics
 
-In our increasingly digital world, technology skills have become essential for success in virtually every field. As Muslim students, we have the unique opportunity to approach technology learning through the lens of Islamic values and ethics, creating a foundation for responsible and beneficial use of technology.
-
-## Islamic Perspective on Technology
-
-Islam encourages the pursuit of beneficial knowledge and the use of tools that serve humanity. The Quran states: "And We made from them leaders guiding by Our command when they were patient and were certain of Our signs" (Quran 32:24). Technology, when used correctly, can be a powerful tool for spreading knowledge, connecting communities, and serving Allah's creation.
+In our increasingly digital world, technology skills have become essential for success in virtually every field. As Muslim students, we have the opportunity to approach technology learning through the lens of Islamic values and ethics.
 
 ## Essential Tech Skills for Modern Muslim Students
 
 ### 1. Programming and Software Development
-Programming is like learning a new language – one that allows you to communicate with computers and create solutions for real-world problems. From an Islamic perspective, programming can be viewed as a form of creation and problem-solving that serves the greater good.
-
-**Key Programming Languages to Learn:**
-- **Python**: Excellent for beginners and widely used in data science
-- **JavaScript**: Essential for web development
-- **Java**: Popular in enterprise applications
-- **C++**: Powerful for system programming
-- **Swift/Kotlin**: For mobile app development
-
-**Islamic Applications:**
-- Develop prayer time applications
-- Create Quran study tools
-- Build community management systems for mosques
-- Design educational platforms for Islamic studies
+Programming is like learning a new language – one that allows you to communicate with computers and create solutions for real-world problems.
 
 ### 2. Digital Design and User Experience (UX)
-Good design is about creating interfaces that are intuitive, accessible, and serve users' needs effectively. This aligns with the Islamic principle of making things easy for people, as mentioned in the hadith: "Make things easy and do not make them difficult."
-
-**Skills to Develop:**
-- Graphic design using tools like Adobe Creative Suite or Figma
-- User interface (UI) design principles
-- User experience (UX) research and design
-- Web design and responsive layouts
-
-**Islamic Considerations:**
-- Design with accessibility in mind (serving those with disabilities)
-- Create inclusive designs that respect cultural diversity
-- Avoid imagery that conflicts with Islamic values
-- Focus on functional beauty that serves a purpose
-
-### 3. Data Science and Analytics
-Data science involves extracting insights from data to make informed decisions. This field aligns with the Islamic emphasis on knowledge and evidence-based decision making.
-
-**Core Skills:**
-- Statistical analysis and interpretation
-- Data visualization tools (Tableau, Power BI)
-- Machine learning algorithms
-- Database management (SQL)
-- Python libraries (Pandas, NumPy, Scikit-learn)
-
-**Ethical Considerations:**
-- Ensure data privacy and security
-- Avoid bias in algorithms and analysis
-- Use data for beneficial purposes
-- Respect user consent and transparency
-
-### 4. Cybersecurity
-Protecting digital assets and privacy is crucial in today's interconnected world. From an Islamic perspective, cybersecurity involves protecting trust (amanah) and preventing harm.
-
-**Important Areas:**
-- Network security fundamentals
-- Ethical hacking and penetration testing
-- Risk assessment and management
-- Incident response and recovery
-- Privacy protection techniques
-
-**Islamic Ethics in Cybersecurity:**
-- Protect others' data as you would your own
-- Use security skills to defend, not attack
-- Maintain honesty in security assessments
-- Respect privacy and confidentiality
-
-## Learning Strategies for Tech Skills
-
-### The Islamic Approach to Learning Technology
-
-#### 1. Intention and Purpose
-Begin your tech learning journey with the right intention (niyyah). Ask yourself:
-- How can these skills serve Allah and humanity?
-- What problems can I solve with this knowledge?
-- How can I use technology to spread beneficial knowledge?
-
-#### 2. Structured Learning Path
-Just as Islamic education follows a systematic approach, tech learning should be structured:
-
-**Phase 1: Foundation (1-3 months)**
-- Basic computer literacy
-- Understanding of how technology works
-- Introduction to programming concepts
-- Digital citizenship and ethics
-
-**Phase 2: Specialization (3-12 months)**
-- Choose a specific area of focus
-- Deep dive into chosen programming language
-- Build practical projects
-- Learn industry tools and practices
-
-**Phase 3: Application (Ongoing)**
-- Contribute to open-source projects
-- Build solutions for your community
-- Continuous learning and skill updates
-- Mentoring others in their tech journey
-
-#### 3. Practical Application
-The Prophet Muhammad (PBUH) emphasized learning through practice. Apply this principle to tech learning:
-
-- Build projects that solve real problems
-- Contribute to Islamic tech initiatives
-- Participate in coding challenges and hackathons
-- Create portfolios showcasing your work
-
-### Time Management for Tech Learning
-
-#### Integrating Tech Study with Islamic Practices
-- **Fajr Time**: Use the blessed early morning hours for complex coding problems
-- **Between Prayers**: Quick review sessions and reading tech articles
-- **After Maghrib**: Collaborative learning and project work
-- **Weekend Intensives**: Dedicated time for major projects and learning
-
-#### The 1% Rule
-Commit to improving your tech skills by just 1% each day. This compound approach, combined with patience (sabr) and persistence, will lead to significant growth over time.
-
-## Building a Halal Tech Career
-
-### Career Paths in Technology
-
-#### 1. Software Development
-- Web development
-- Mobile app development
-- Desktop application development
-- Game development (ensuring halal content)
-
-#### 2. Data and Analytics
-- Data analyst
-- Data scientist
-- Business intelligence analyst
-- Machine learning engineer
-
-#### 3. Design and User Experience
-- UI/UX designer
-- Graphic designer
-- Product designer
-- Design researcher
-
-#### 4. Cybersecurity
-- Security analyst
-- Penetration tester
-- Security consultant
-- Compliance officer
-
-#### 5. Technology Management
-- Project manager
-- Product manager
-- Technology consultant
-- Startup founder
-
-### Networking and Community Building
-
-#### Islamic Tech Communities
-- Join Muslim tech professionals groups
-- Participate in Islamic tech conferences
-- Contribute to Muslim-led tech initiatives
-- Build relationships with like-minded professionals
-
-#### Professional Development
-- Attend tech meetups and conferences
-- Build a professional online presence
-- Contribute to open-source projects
-- Seek mentorship from experienced professionals
-
-## Technology Ethics in Islam
-
-### Core Principles
-
-#### 1. Trustworthiness (Amanah)
-- Protect user data and privacy
-- Deliver quality work on time
-- Be honest about capabilities and limitations
-- Maintain confidentiality when required
-
-#### 2. Justice (Adl)
-- Avoid bias in algorithms and systems
-- Ensure equal access to technology
-- Fair compensation for work
-- Respect intellectual property rights
-
-#### 3. Benefit (Maslaha)
-- Focus on technology that benefits society
-- Avoid harmful applications
-- Consider long-term impacts
-- Prioritize user wellbeing
-
-#### 4. Responsibility (Taklif)
-- Take responsibility for your code and its impact
-- Consider the environmental impact of technology
-- Educate others about responsible tech use
-- Advocate for ethical technology practices
-
-### Dealing with Ethical Dilemmas
-
-When faced with ethical challenges in tech:
-1. Consult Islamic scholars and ethics guidelines
-2. Seek advice from experienced Muslim professionals
-3. Consider the long-term impacts on society
-4. Choose the path that aligns with Islamic values
-5. Don't compromise your principles for short-term gain
-
-## Resources for Learning
-
-### Online Learning Platforms
-- **Coursera**: University-level courses in technology
-- **edX**: Free courses from top universities
-- **Udemy**: Practical, skill-focused courses
-- **Khan Academy**: Free, beginner-friendly content
-- **freeCodeCamp**: Comprehensive web development curriculum
-
-### Islamic Tech Resources
-- Muslim tech communities on social media
-- Islamic tech podcasts and YouTube channels
-- Books on technology ethics from Islamic perspective
-- Conferences and workshops for Muslim tech professionals
-
-### Practice Platforms
-- **GitHub**: For code sharing and collaboration
-- **HackerRank**: Coding challenges and competitions
-- **LeetCode**: Algorithm and data structure practice
-- **Kaggle**: Data science competitions and datasets
+Good design is about creating interfaces that are intuitive, accessible, and serve users' needs effectively.
 
 ## Conclusion
 
 Technology skills are not just about career advancement; they're about becoming equipped to serve Allah and humanity in the digital age. As Muslim students, you have the opportunity to approach technology learning with purpose, ethics, and a commitment to beneficial impact.
-
-Remember that every skill you develop, every problem you solve, and every innovation you create can be a form of worship when done with the right intention. The digital world needs Muslim voices and perspectives to ensure technology serves humanity's highest values.
-
-As you embark on your tech learning journey, carry with you the Islamic principles of excellence (ihsan), continuous learning, and service to others. May Allah bless your efforts and make your technological skills a means of earning His pleasure and serving His creation.
-
-The future of technology is in your hands. Use it wisely, ethically, and for the betterment of all humanity.
 
 May Allah grant you success in your technological endeavors and make you among those who use their skills for the greater good. Ameen.`,
         author: 'Dr. Sarah Ahmed',
@@ -987,6 +789,16 @@ export const AnalyticsService = {
     } catch (error) {
       console.error('Error tracking event:', error);
     }
+  }
+};
+
+// Initialize SDK function
+export const initializeSDK = async () => {
+  try {
+    await sdk.init();
+    console.log('SDK initialized successfully');
+  } catch (error) {
+    console.error('SDK initialization error:', error);
   }
 };
 
