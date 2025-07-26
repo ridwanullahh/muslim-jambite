@@ -827,5 +827,6 @@ sdk.init().then(() => {
   console.error('SDK initialization error:', error);
 });
 
-export { ProspectEntry, sdk };
+export type { ProspectEntry };
+export { sdk };
 export default sdk;

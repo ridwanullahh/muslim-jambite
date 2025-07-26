@@ -4,18 +4,22 @@ import { Helmet } from 'react-helmet-async';
 import { BlogPost } from '../../types/sdk';
 
 interface BlogPostMetaProps {
-  post: BlogPost;
+  post?: BlogPost;
+  title?: string;
+  description?: string;
 }
 
-export const BlogPostMeta = ({ post }: BlogPostMetaProps) => {
+export const BlogPostMeta = ({ post, title, description }: BlogPostMetaProps) => {
   const [siteUrl] = useState(import.meta.env.VITE_SITE_URL || 'https://muslimjambite.com');
   const [siteName] = useState(import.meta.env.VITE_SITE_NAME || 'MuslimJambite');
   
   if (!post) {
     return (
       <Helmet>
-        <title>{siteName}</title>
-        <meta name="description" content="Islamic Excellence in Education" />
+        <title>{title || `${siteName} - Islamic Excellence in Education`}</title>
+        <meta name="description" content={description || "Empowering Muslim students with knowledge that bridges Deen and Dunya"} />
+        <meta name="robots" content="index, follow" />
+        <link rel="canonical" href={siteUrl} />
       </Helmet>
     );
   }
