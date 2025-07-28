@@ -40,10 +40,14 @@ export const AdminDashboard = () => {
         <Route path="/" element={<AdminDashboardHome />} />
         <Route path="/blog" element={<AdminBlogManager />} />
         <Route path="/students" element={<AdminStudentManager />} />
+        <Route path="/prospects" element={<AdminStudentManager />} />
         <Route path="/resources" element={<AdminResourceManager />} />
+        <Route path="/faq" element={<div className="p-6"><h1 className="text-2xl font-bold">FAQ Management</h1><p>Coming soon...</p></div>} />
         <Route path="/quiz-polls" element={<AdminQuizPollManager />} />
+        <Route path="/analytics" element={<div className="p-6"><h1 className="text-2xl font-bold">Analytics</h1><p>Coming soon...</p></div>} />
+        <Route path="/database" element={<div className="p-6"><h1 className="text-2xl font-bold">Database Management</h1><p>Coming soon...</p></div>} />
         <Route path="/settings" element={<AdminSettings />} />
-        <Route path="*" element={<Navigate to="/admin" replace />} />
+        <Route path="*" element={<Navigate to="/admin-dashboard" replace />} />
       </Routes>
     </AdminLayout>
   );

@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Settings, Globe, Users, Shield, Database, Mail } from 'lucide-react';
+import { SiteSettingsService } from '@/lib/sdk';
 
 interface SiteSettings {
   siteName: string;
@@ -23,6 +24,9 @@ interface SiteSettings {
   contactPhone: string;
   whatsappChannel: string;
   telegramChannel: string;
+  bannerText: string;
+  earlyBirdPrice: string;
+  countdownDays: number;
 }
 
 export const AdminSettings = () => {
@@ -38,7 +42,10 @@ export const AdminSettings = () => {
     contactEmail: 'muslimgrowth@gmail.com',
     contactPhone: '+2349158480530',
     whatsappChannel: '',
-    telegramChannel: ''
+    telegramChannel: '',
+    bannerText: 'Early Bird ends:',
+    earlyBirdPrice: '₦500',
+    countdownDays: 30
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -50,9 +57,22 @@ export const AdminSettings = () => {
 
   const loadSettings = async () => {
     try {
-      // Load settings from SDK
       console.log('Loading site settings...');
-      // Placeholder for actual SDK calls
+      const settingsData = await SiteSettingsService.getSettings();
+      
+      // Map settings to state
+      const settingsMap = settingsData.reduce((acc, setting) => {
+        acc[setting.key] = setting.value;
+        return acc;
+      }, {} as Record<string, string>);
+
+      setSettings(prev => ({
+        ...prev,
+        bannerEnabled: settingsMap.banner_enabled !== 'false',
+        bannerText: settingsMap.banner_text || prev.bannerText,
+        earlyBirdPrice: settingsMap.early_bird_price || prev.earlyBirdPrice,
+        countdownDays: parseInt(settingsMap.countdown_days || '30')
+      }));
     } catch (error) {
       console.error('Error loading settings:', error);
     }
@@ -61,9 +81,28 @@ export const AdminSettings = () => {
   const saveSettings = async () => {
     setIsLoading(true);
     try {
-      // Save settings to SDK
       console.log('Saving settings:', settings);
-      // Placeholder for actual SDK calls
+      
+      // Save individual settings
+      await Promise.all([
+        SiteSettingsService.setSetting('banner_enabled', settings.bannerEnabled.toString(), 'boolean'),
+        SiteSettingsService.setSetting('banner_text', settings.bannerText, 'string'),
+        SiteSettingsService.setSetting('early_bird_price', settings.earlyBirdPrice, 'string'),
+        SiteSettingsService.setSetting('countdown_days', settings.countdownDays.toString(), 'number'),
+        SiteSettingsService.setSetting('registration_enabled', settings.registrationEnabled.toString(), 'boolean'),
+        SiteSettingsService.setSetting('maintenance_mode', settings.maintenanceMode.toString(), 'boolean'),
+        SiteSettingsService.setSetting('monthly_fee', settings.monthlyFee.toString(), 'number'),
+        SiteSettingsService.setSetting('registration_fee', settings.registrationFee.toString(), 'number'),
+        SiteSettingsService.setSetting('max_students', settings.maxStudents.toString(), 'number'),
+        SiteSettingsService.setSetting('contact_email', settings.contactEmail, 'string'),
+        SiteSettingsService.setSetting('contact_phone', settings.contactPhone, 'string'),
+        SiteSettingsService.setSetting('whatsapp_channel', settings.whatsappChannel, 'string'),
+        SiteSettingsService.setSetting('telegram_channel', settings.telegramChannel, 'string')
+      ]);
+
+      // Clear countdown target date to restart countdown
+      localStorage.removeItem('countdown_target_date');
+      
       alert('Settings saved successfully!');
     } catch (error) {
       console.error('Error saving settings:', error);
@@ -144,7 +183,7 @@ export const AdminSettings = () => {
 
           <Card>
             <CardHeader>
-              <CardTitle>Site Controls</CardTitle>
+              <CardTitle>Banner Settings</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
@@ -157,6 +196,41 @@ export const AdminSettings = () => {
                   onCheckedChange={(value) => handleSettingChange('bannerEnabled', value)}
                 />
               </div>
+              <div>
+                <Label>Banner Text</Label>
+                <Input
+                  value={settings.bannerText}
+                  onChange={(e) => handleSettingChange('bannerText', e.target.value)}
+                  placeholder="Early Bird ends:"
+                />
+              </div>
+              <div>
+                <Label>Early Bird Price</Label>
+                <Input
+                  value={settings.earlyBirdPrice}
+                  onChange={(e) => handleSettingChange('earlyBirdPrice', e.target.value)}
+                  placeholder="₦500"
+                />
+              </div>
+              <div>
+                <Label>Countdown Days</Label>
+                <Input
+                  type="number"
+                  value={settings.countdownDays}
+                  onChange={(e) => handleSettingChange('countdownDays', parseInt(e.target.value))}
+                  min="1"
+                  max="365"
+                />
+                <p className="text-sm text-gray-600 mt-1">Number of days for countdown timer</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Site Controls</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
                   <Label>Student Registration</Label>

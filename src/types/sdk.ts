@@ -275,8 +275,10 @@ export interface Quiz {
 export interface QuizQuestion {
   id: string;
   question: string;
-  options: string[];
-  correctAnswer: number;
+  type?: 'multiple_choice' | 'true_false' | 'short_answer' | 'essay';
+  options?: string[];
+  correctAnswer?: number | string;
+  correctAnswers?: number[];
   explanation?: string;
   points: number;
 }

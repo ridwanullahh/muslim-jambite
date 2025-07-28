@@ -7,7 +7,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { BlogPostSelector } from './BlogPostSelector';
 import { Plus, Edit, Trash2, MessageSquare, HelpCircle } from 'lucide-react';
 import { Quiz, Poll, QuizQuestion, PollOption } from '@/types/sdk';
 
@@ -22,7 +24,7 @@ export const AdminQuizPollManager = () => {
   // Quiz form state
   const [quizForm, setQuizForm] = useState({
     title: '',
-    postId: '',
+    postIds: [] as string[],
     questions: [] as QuizQuestion[],
     passingScore: 70,
     timeLimit: 0,
@@ -32,15 +34,17 @@ export const AdminQuizPollManager = () => {
   // Poll form state
   const [pollForm, setPollForm] = useState({
     question: '',
-    postId: '',
+    postIds: [] as string[],
     options: [] as PollOption[],
     expiresAt: ''
   });
 
   const [newQuestion, setNewQuestion] = useState({
     question: '',
+    type: 'multiple_choice' as 'multiple_choice' | 'true_false' | 'short_answer' | 'essay',
     options: ['', '', '', ''],
     correctAnswer: 0,
+    correctAnswers: [] as number[],
     explanation: '',
     points: 1
   });
@@ -53,7 +57,6 @@ export const AdminQuizPollManager = () => {
 
   const loadData = async () => {
     try {
-      // Load quizzes and polls from SDK
       console.log('Loading quizzes and polls...');
       // Placeholder for actual SDK calls
       setQuizzes([]);
@@ -73,7 +76,6 @@ export const AdminQuizPollManager = () => {
         updatedAt: new Date().toISOString()
       };
 
-      // Add to SDK
       console.log('Creating quiz:', quizData);
       setQuizzes(prev => [...prev, quizData as Quiz]);
       setIsDialogOpen(false);
@@ -99,7 +101,6 @@ export const AdminQuizPollManager = () => {
         }))
       };
 
-      // Add to SDK
       console.log('Creating poll:', pollData);
       setPolls(prev => [...prev, pollData as Poll]);
       setIsDialogOpen(false);
@@ -110,15 +111,58 @@ export const AdminQuizPollManager = () => {
   };
 
   const addQuestion = () => {
-    if (newQuestion.question.trim() && newQuestion.options.every(opt => opt.trim())) {
-      const question: QuizQuestion = {
-        id: Date.now().toString(),
-        question: newQuestion.question,
-        options: newQuestion.options,
-        correctAnswer: newQuestion.correctAnswer,
-        explanation: newQuestion.explanation,
-        points: newQuestion.points
-      };
+    if (newQuestion.question.trim()) {
+      let question: QuizQuestion;
+      
+      switch (newQuestion.type) {
+        case 'multiple_choice':
+          if (newQuestion.options.every(opt => opt.trim())) {
+            question = {
+              id: Date.now().toString(),
+              question: newQuestion.question,
+              type: 'multiple_choice',
+              options: newQuestion.options,
+              correctAnswer: newQuestion.correctAnswer,
+              explanation: newQuestion.explanation,
+              points: newQuestion.points
+            };
+          } else {
+            return;
+          }
+          break;
+        case 'true_false':
+          question = {
+            id: Date.now().toString(),
+            question: newQuestion.question,
+            type: 'true_false',
+            options: ['True', 'False'],
+            correctAnswer: newQuestion.correctAnswer,
+            explanation: newQuestion.explanation,
+            points: newQuestion.points
+          };
+          break;
+        case 'short_answer':
+          question = {
+            id: Date.now().toString(),
+            question: newQuestion.question,
+            type: 'short_answer',
+            correctAnswer: newQuestion.options[0], // Use first option as correct answer
+            explanation: newQuestion.explanation,
+            points: newQuestion.points
+          };
+          break;
+        case 'essay':
+          question = {
+            id: Date.now().toString(),
+            question: newQuestion.question,
+            type: 'essay',
+            explanation: newQuestion.explanation,
+            points: newQuestion.points
+          };
+          break;
+        default:
+          return;
+      }
 
       setQuizForm(prev => ({
         ...prev,
@@ -127,8 +171,10 @@ export const AdminQuizPollManager = () => {
 
       setNewQuestion({
         question: '',
+        type: 'multiple_choice',
         options: ['', '', '', ''],
         correctAnswer: 0,
+        correctAnswers: [],
         explanation: '',
         points: 1
       });
@@ -156,7 +202,7 @@ export const AdminQuizPollManager = () => {
   const resetQuizForm = () => {
     setQuizForm({
       title: '',
-      postId: '',
+      postIds: [],
       questions: [],
       passingScore: 70,
       timeLimit: 0,
@@ -168,11 +214,98 @@ export const AdminQuizPollManager = () => {
   const resetPollForm = () => {
     setPollForm({
       question: '',
-      postId: '',
+      postIds: [],
       options: [],
       expiresAt: ''
     });
     setSelectedPoll(null);
+  };
+
+  const renderQuestionForm = () => {
+    switch (newQuestion.type) {
+      case 'multiple_choice':
+        return (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              {newQuestion.options.map((option, index) => (
+                <div key={index}>
+                  <Label>Option {index + 1}</Label>
+                  <Input
+                    value={option}
+                    onChange={(e) => {
+                      const newOptions = [...newQuestion.options];
+                      newOptions[index] = e.target.value;
+                      setNewQuestion(prev => ({ ...prev, options: newOptions }));
+                    }}
+                    placeholder={`Option ${index + 1}`}
+                  />
+                </div>
+              ))}
+            </div>
+            <div>
+              <Label>Correct Answer</Label>
+              <Select
+                value={newQuestion.correctAnswer.toString()}
+                onValueChange={(value) => setNewQuestion(prev => ({ ...prev, correctAnswer: parseInt(value) }))}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {newQuestion.options.map((_, index) => (
+                    <SelectItem key={index} value={index.toString()}>
+                      Option {index + 1}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        );
+      case 'true_false':
+        return (
+          <div>
+            <Label>Correct Answer</Label>
+            <Select
+              value={newQuestion.correctAnswer.toString()}
+              onValueChange={(value) => setNewQuestion(prev => ({ ...prev, correctAnswer: parseInt(value) }))}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="0">True</SelectItem>
+                <SelectItem value="1">False</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        );
+      case 'short_answer':
+        return (
+          <div>
+            <Label>Correct Answer</Label>
+            <Input
+              value={newQuestion.options[0]}
+              onChange={(e) => {
+                const newOptions = [...newQuestion.options];
+                newOptions[0] = e.target.value;
+                setNewQuestion(prev => ({ ...prev, options: newOptions }));
+              }}
+              placeholder="Enter the correct answer"
+            />
+          </div>
+        );
+      case 'essay':
+        return (
+          <div className="p-4 bg-gray-50 rounded">
+            <p className="text-sm text-gray-600">
+              Essay questions will be manually graded. Students will provide written responses.
+            </p>
+          </div>
+        );
+      default:
+        return null;
+    }
   };
 
   const renderQuizDialog = () => (
@@ -193,11 +326,11 @@ export const AdminQuizPollManager = () => {
             />
           </div>
           <div>
-            <Label>Blog Post ID (optional)</Label>
-            <Input
-              value={quizForm.postId}
-              onChange={(e) => setQuizForm(prev => ({ ...prev, postId: e.target.value }))}
-              placeholder="Link to blog post"
+            <Label>Blog Posts</Label>
+            <BlogPostSelector
+              selectedPosts={quizForm.postIds}
+              onPostsChange={(postIds) => setQuizForm(prev => ({ ...prev, postIds }))}
+              multiple={true}
             />
           </div>
         </div>
@@ -245,35 +378,30 @@ export const AdminQuizPollManager = () => {
                 rows={3}
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              {newQuestion.options.map((option, index) => (
-                <div key={index}>
-                  <Label>Option {index + 1}</Label>
-                  <Input
-                    value={option}
-                    onChange={(e) => {
-                      const newOptions = [...newQuestion.options];
-                      newOptions[index] = e.target.value;
-                      setNewQuestion(prev => ({ ...prev, options: newOptions }));
-                    }}
-                    placeholder={`Option ${index + 1}`}
-                  />
-                </div>
-              ))}
+            <div>
+              <Label>Question Type</Label>
+              <Select
+                value={newQuestion.type}
+                onValueChange={(value) => setNewQuestion(prev => ({ 
+                  ...prev, 
+                  type: value as any,
+                  options: value === 'true_false' ? ['True', 'False'] : ['', '', '', ''],
+                  correctAnswer: 0
+                }))}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="multiple_choice">Multiple Choice</SelectItem>
+                  <SelectItem value="true_false">True/False</SelectItem>
+                  <SelectItem value="short_answer">Short Answer</SelectItem>
+                  <SelectItem value="essay">Essay</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
+            {renderQuestionForm()}
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Correct Answer</Label>
-                <select
-                  value={newQuestion.correctAnswer}
-                  onChange={(e) => setNewQuestion(prev => ({ ...prev, correctAnswer: parseInt(e.target.value) }))}
-                  className="w-full p-2 border rounded"
-                >
-                  {newQuestion.options.map((_, index) => (
-                    <option key={index} value={index}>Option {index + 1}</option>
-                  ))}
-                </select>
-              </div>
               <div>
                 <Label>Points</Label>
                 <Input
@@ -283,15 +411,15 @@ export const AdminQuizPollManager = () => {
                   min="1"
                 />
               </div>
-            </div>
-            <div>
-              <Label>Explanation (optional)</Label>
-              <Textarea
-                value={newQuestion.explanation}
-                onChange={(e) => setNewQuestion(prev => ({ ...prev, explanation: e.target.value }))}
-                placeholder="Explain the correct answer"
-                rows={2}
-              />
+              <div>
+                <Label>Explanation (optional)</Label>
+                <Textarea
+                  value={newQuestion.explanation}
+                  onChange={(e) => setNewQuestion(prev => ({ ...prev, explanation: e.target.value }))}
+                  placeholder="Explain the correct answer"
+                  rows={2}
+                />
+              </div>
             </div>
             <Button onClick={addQuestion} type="button">Add Question</Button>
           </div>
@@ -303,7 +431,12 @@ export const AdminQuizPollManager = () => {
             {quizForm.questions.map((question, index) => (
               <div key={question.id} className="p-3 border rounded">
                 <div className="flex items-center justify-between">
-                  <span className="font-medium">{index + 1}. {question.question}</span>
+                  <div>
+                    <span className="font-medium">{index + 1}. {question.question}</span>
+                    <Badge variant="outline" className="ml-2 text-xs">
+                      {question.type?.replace('_', ' ') || 'Multiple Choice'}
+                    </Badge>
+                  </div>
                   <Button
                     variant="outline"
                     size="sm"
@@ -353,11 +486,11 @@ export const AdminQuizPollManager = () => {
         </div>
 
         <div>
-          <Label>Blog Post ID (optional)</Label>
-          <Input
-            value={pollForm.postId}
-            onChange={(e) => setPollForm(prev => ({ ...prev, postId: e.target.value }))}
-            placeholder="Link to blog post"
+          <Label>Blog Posts</Label>
+          <BlogPostSelector
+            selectedPosts={pollForm.postIds}
+            onPostsChange={(postIds) => setPollForm(prev => ({ ...prev, postIds }))}
+            multiple={true}
           />
         </div>
 

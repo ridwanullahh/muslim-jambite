@@ -17,16 +17,16 @@ import {
 } from 'lucide-react';
 
 const sidebarItems = [
-  { name: 'Dashboard', href: '/admin', icon: BarChart3 },
-  { name: 'Blog Posts', href: '/admin/blog', icon: FileText },
-  { name: 'Students', href: '/admin/students', icon: Users },
-  { name: 'Prospects', href: '/admin/prospects', icon: UserPlus },
-  { name: 'Resources', href: '/admin/resources', icon: BookOpen },
-  { name: 'FAQ', href: '/admin/faq', icon: HelpCircle },
-  { name: 'Quiz & Polls', href: '/admin/quiz-polls', icon: MessageSquare },
-  { name: 'Analytics', href: '/admin/analytics', icon: BarChart },
-  { name: 'Database', href: '/admin/database', icon: Database },
-  { name: 'Settings', href: '/admin/settings', icon: Settings },
+  { name: 'Dashboard', href: '/admin-dashboard', icon: BarChart3 },
+  { name: 'Blog Posts', href: '/admin-dashboard/blog', icon: FileText },
+  { name: 'Students', href: '/admin-dashboard/students', icon: Users },
+  { name: 'Prospects', href: '/admin-dashboard/prospects', icon: UserPlus },
+  { name: 'Resources', href: '/admin-dashboard/resources', icon: BookOpen },
+  { name: 'FAQ', href: '/admin-dashboard/faq', icon: HelpCircle },
+  { name: 'Quiz & Polls', href: '/admin-dashboard/quiz-polls', icon: MessageSquare },
+  { name: 'Analytics', href: '/admin-dashboard/analytics', icon: BarChart },
+  { name: 'Database', href: '/admin-dashboard/database', icon: Database },
+  { name: 'Settings', href: '/admin-dashboard/settings', icon: Settings },
 ];
 
 export const AdminSidebar = () => {

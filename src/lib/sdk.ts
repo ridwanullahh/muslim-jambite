@@ -149,6 +149,12 @@ export const BlogService = {
   createCategory: async (category: any) => {
     return await sdk.insert('blogCategories', category);
   },
+  updateCategory: async (id: string, updates: any) => {
+    return await sdk.update('blogCategories', id, updates);
+  },
+  deleteCategory: async (id: string) => {
+    return await sdk.delete('blogCategories', id);
+  },
   getComments: async (postId: string) => {
     const comments = await sdk.get('blogComments');
     return comments.filter(comment => comment.postId === postId);

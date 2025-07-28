@@ -8,6 +8,7 @@ export const StickyFomoBanner = () => {
   const [bannerEnabled, setBannerEnabled] = useState(true);
   const [bannerText, setBannerText] = useState('Early Bird ends:');
   const [earlyBirdPrice, setEarlyBirdPrice] = useState('₦500');
+  const [countdownDays, setCountdownDays] = useState(30);
   const [timeLeft, setTimeLeft] = useState({
     days: 0,
     hours: 0,
@@ -19,15 +20,17 @@ export const StickyFomoBanner = () => {
     // Load banner settings
     const loadBannerSettings = async () => {
       try {
-        const [bannerEnabledSetting, bannerTextSetting, priceSetting] = await Promise.all([
+        const [bannerEnabledSetting, bannerTextSetting, priceSetting, daysSetting] = await Promise.all([
           SiteSettingsService.getSetting('banner_enabled'),
           SiteSettingsService.getSetting('banner_text'),
-          SiteSettingsService.getSetting('early_bird_price')
+          SiteSettingsService.getSetting('early_bird_price'),
+          SiteSettingsService.getSetting('countdown_days')
         ]);
 
         setBannerEnabled(bannerEnabledSetting?.value !== 'false');
         setBannerText(bannerTextSetting?.value || 'Early Bird ends:');
         setEarlyBirdPrice(priceSetting?.value || '₦500');
+        setCountdownDays(parseInt(daysSetting?.value || '30'));
       } catch (error) {
         console.error('Error loading banner settings:', error);
       }
@@ -51,13 +54,20 @@ export const StickyFomoBanner = () => {
 
     setIsVisible(true);
 
-    // Set target date (30 days from now for early bird offer)
-    const targetDate = new Date();
-    targetDate.setDate(targetDate.getDate() + 30);
+    // Get or create target date
+    let targetDate = localStorage.getItem('countdown_target_date');
+    if (!targetDate) {
+      const newTargetDate = new Date();
+      newTargetDate.setDate(newTargetDate.getDate() + countdownDays);
+      targetDate = newTargetDate.toISOString();
+      localStorage.setItem('countdown_target_date', targetDate);
+    }
+
+    const targetDateTime = new Date(targetDate).getTime();
 
     const timer = setInterval(() => {
       const now = new Date().getTime();
-      const distance = targetDate.getTime() - now;
+      const distance = targetDateTime - now;
 
       if (distance > 0) {
         setTimeLeft({
@@ -68,13 +78,14 @@ export const StickyFomoBanner = () => {
         });
       } else {
         setIsVisible(false);
+        localStorage.removeItem('countdown_target_date');
       }
     }, 1000);
 
     return () => {
       clearInterval(timer);
     };
-  }, [bannerEnabled]);
+  }, [bannerEnabled, countdownDays]);
 
   const scrollToRegistration = () => {
     const registrationSection = document.getElementById('registration');

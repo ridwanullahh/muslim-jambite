@@ -7,7 +7,9 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MarkdownEditor } from './MarkdownEditor';
+import { CategoryManager } from './CategoryManager';
 import { BlogService } from '@/lib/sdk';
 import { BlogPost, BlogCategory } from '@/types/sdk';
 import { Plus, Edit, Trash2, Eye, Search } from 'lucide-react';
@@ -20,6 +22,7 @@ export const AdminBlogManager = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('posts');
 
   const [formData, setFormData] = useState({
     title: '',
@@ -145,11 +148,11 @@ export const AdminBlogManager = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Blog Management</h1>
-          <p className="text-gray-600">Create and manage your blog posts</p>
+          <p className="text-gray-600">Create and manage your blog posts and categories</p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button onClick={resetForm}>
+            <Button onClick={resetForm} disabled={activeTab !== 'posts'}>
               <Plus className="w-4 h-4 mr-2" />
               New Post
             </Button>
@@ -270,72 +273,88 @@ export const AdminBlogManager = () => {
         </Dialog>
       </div>
 
-      <div className="flex items-center space-x-4">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-          <Input
-            placeholder="Search posts..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        <Select value={filterStatus} onValueChange={setFilterStatus}>
-          <SelectTrigger className="w-40">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Posts</SelectItem>
-            <SelectItem value="published">Published</SelectItem>
-            <SelectItem value="draft">Draft</SelectItem>
-            <SelectItem value="archived">Archived</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList>
+          <TabsTrigger value="posts">Posts</TabsTrigger>
+          <TabsTrigger value="categories">Categories</TabsTrigger>
+        </TabsList>
 
-      <div className="grid gap-4">
-        {filteredPosts.map((post) => (
-          <Card key={post.id}>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <CardTitle className="text-lg">{post.title}</CardTitle>
-                  <p className="text-sm text-gray-600">{post.excerpt}</p>
-                  <div className="flex items-center space-x-4 text-sm text-gray-500">
-                    <span>By {post.author}</span>
-                    <span>•</span>
-                    <span>{post.category}</span>
-                    <span>•</span>
-                    <span>{post.views} views</span>
-                    <span>•</span>
-                    <span>{post.likes} likes</span>
+        <TabsContent value="posts" className="space-y-6">
+          <div className="flex items-center space-x-4">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Input
+                placeholder="Search posts..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <Select value={filterStatus} onValueChange={setFilterStatus}>
+              <SelectTrigger className="w-40">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Posts</SelectItem>
+                <SelectItem value="published">Published</SelectItem>
+                <SelectItem value="draft">Draft</SelectItem>
+                <SelectItem value="archived">Archived</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="grid gap-4">
+            {filteredPosts.map((post) => (
+              <Card key={post.id}>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                      <CardTitle className="text-lg">{post.title}</CardTitle>
+                      <p className="text-sm text-gray-600">{post.excerpt}</p>
+                      <div className="flex items-center space-x-4 text-sm text-gray-500">
+                        <span>By {post.author}</span>
+                        <span>•</span>
+                        <span>{post.category}</span>
+                        <span>•</span>
+                        <span>{post.views} views</span>
+                        <span>•</span>
+                        <span>{post.likes} likes</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Badge variant={post.status === 'published' ? 'default' : 'secondary'}>
+                        {post.status}
+                      </Badge>
+                      {post.featured && (
+                        <Badge variant="outline">Featured</Badge>
+                      )}
+                      <Button variant="outline" size="sm" onClick={() => handleEditPost(post)}>
+                        <Edit className="w-4 h-4 mr-1" />
+                        Edit
+                      </Button>
+                      <Button variant="outline" size="sm">
+                        <Eye className="w-4 h-4 mr-1" />
+                        View
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => handleDeletePost(post.id)}>
+                        <Trash2 className="w-4 h-4 mr-1" />
+                        Delete
+                      </Button>
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Badge variant={post.status === 'published' ? 'default' : 'secondary'}>
-                    {post.status}
-                  </Badge>
-                  {post.featured && (
-                    <Badge variant="outline">Featured</Badge>
-                  )}
-                  <Button variant="outline" size="sm" onClick={() => handleEditPost(post)}>
-                    <Edit className="w-4 h-4 mr-1" />
-                    Edit
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <Eye className="w-4 h-4 mr-1" />
-                    View
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => handleDeletePost(post.id)}>
-                    <Trash2 className="w-4 h-4 mr-1" />
-                    Delete
-                  </Button>
-                </div>
-              </div>
-            </CardHeader>
-          </Card>
-        ))}
-      </div>
+                </CardHeader>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="categories" className="space-y-6">
+          <CategoryManager 
+            categories={categories} 
+            onCategoriesUpdate={loadData}
+          />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
