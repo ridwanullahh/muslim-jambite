@@ -365,10 +365,11 @@ class UniversalSDK {
       this.notifySubscribers(collection, data);
       return data;
     } catch (e) {
-      if ((e as Error).message.includes("Not Found")) {
-        this.cache[collection] = { data: [], etag: undefined, sha: undefined };
-        return [];
-      }
+      const errorText = (e as Error).message;
+if (errorText.includes("Not Found") || errorText.includes("This repository is empty.")) {
+this.cache[collection] = { data: [], etag: undefined, sha: undefined };
+return [];
+}
       throw e;
     }
   }
