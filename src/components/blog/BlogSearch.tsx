@@ -17,9 +17,12 @@ interface SearchResult {
 interface BlogSearchProps {
   onResultClick?: (result: SearchResult) => void;
   placeholder?: string;
+  onSearch?: (query: string) => void;
+  categories?: any[];
+  className?: string;
 }
 
-const BlogSearch = ({ onResultClick, placeholder = "Search blog posts..." }: BlogSearchProps) => {
+export const BlogSearch = ({ onResultClick, placeholder = "Search blog posts...", onSearch, categories = [], className = "" }: BlogSearchProps) => {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -32,7 +35,11 @@ const BlogSearch = ({ onResultClick, placeholder = "Search blog posts..." }: Blo
       setResults([]);
       setShowResults(false);
     }
-  }, [query]);
+    
+    if (onSearch) {
+      onSearch(query);
+    }
+  }, [query, onSearch]);
 
   const performSearch = async () => {
     setIsLoading(true);
@@ -63,7 +70,7 @@ const BlogSearch = ({ onResultClick, placeholder = "Search blog posts..." }: Blo
   };
 
   return (
-    <div className="relative w-full max-w-md">
+    <div className={`relative w-full max-w-md ${className}`}>
       <div className="relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
         <Input
@@ -115,5 +122,3 @@ const BlogSearch = ({ onResultClick, placeholder = "Search blog posts..." }: Blo
     </div>
   );
 };
-
-export default BlogSearch;
