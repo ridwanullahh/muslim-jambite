@@ -4,12 +4,11 @@ import { DatabaseSeeder } from '../services/DatabaseSeeder';
 
 // Initialize SDK
 const sdk = new UniversalSDK({
-  owner: import.meta.env.VITE_GITHUB_OWNER || 'muslimjambite',
-  repo: import.meta.env.VITE_GITHUB_REPO || 'data',
+  owner: import.meta.env.VITE_GITHUB_OWNER || 'ridwanullahh',
+  repo: import.meta.env.VITE_GITHUB_REPO || 'muslimjambitebetadb',
   token: import.meta.env.VITE_GITHUB_TOKEN || '',
   branch: import.meta.env.VITE_GITHUB_BRANCH || 'main',
-  basePath: 'collections',
-  mediaPath: 'media',
+  basePath: 'db',
   schemas: {
     blogPosts: {
       required: ['title', 'content', 'author'],
@@ -109,8 +108,8 @@ const sdk = new UniversalSDK({
 // Initialize database seeding
 sdk.init().then(() => {
   console.log('SDK initialized successfully');
-  // Seed database collections
-  DatabaseSeeder.getInstance().initializeDatabase();
+  const seeder = new DatabaseSeeder(sdk);
+  seeder.initializeDatabase();
 });
 
 // Blog service
@@ -120,7 +119,7 @@ export const BlogService = {
   },
   getPost: async (id: string) => {
     const posts = await sdk.get('blogPosts');
-    return posts.find(post => post.id === id);
+    return sdk.getItem('blogPosts', id);
   },
   createPost: async (post: any) => {
     return await sdk.insert('blogPosts', post);
@@ -133,10 +132,9 @@ export const BlogService = {
   },
   searchPosts: async (query: string) => {
     const posts = await sdk.get('blogPosts');
-    return posts.filter(post => 
+    return posts.filter((post: any) =>
       post.title.toLowerCase().includes(query.toLowerCase()) ||
-      post.content.toLowerCase().includes(query.toLowerCase()) ||
-      post.excerpt.toLowerCase().includes(query.toLowerCase())
+      post.content.toLowerCase().includes(query.toLowerCase())
     );
   },
   getCategories: async () => {
@@ -144,7 +142,7 @@ export const BlogService = {
   },
   getCategory: async (id: string) => {
     const categories = await sdk.get('blogCategories');
-    return categories.find(category => category.id === id);
+    return sdk.getItem('blogCategories', id);
   },
   createCategory: async (category: any) => {
     return await sdk.insert('blogCategories', category);
@@ -157,7 +155,7 @@ export const BlogService = {
   },
   getComments: async (postId: string) => {
     const comments = await sdk.get('blogComments');
-    return comments.filter(comment => comment.postId === postId);
+    return comments.filter((comment: any) => comment.postId === postId);
   },
   createComment: async (comment: any) => {
     return await sdk.insert('blogComments', comment);
@@ -171,7 +169,7 @@ export const RegistrationService = {
   },
   getStudent: async (id: string) => {
     const students = await sdk.get('students');
-    return students.find(student => student.id === id);
+    return sdk.getItem('students', id);
   },
   createStudent: async (student: any) => {
     return await sdk.insert('students', student);
@@ -190,7 +188,7 @@ export const RegistrationService = {
   },
   getProspect: async (email: string) => {
     const prospects = await sdk.get('prospects');
-    return prospects.find(prospect => prospect.email === email);
+    return prospects.find((prospect: any) => prospect.email === email);
   },
   createProspect: async (prospect: any) => {
     return await sdk.insert('prospects', prospect);
@@ -212,7 +210,7 @@ export const FAQService = {
   },
   getFAQ: async (id: string) => {
     const faqs = await sdk.get('faqs');
-    return faqs.find(faq => faq.id === id);
+    return sdk.getItem('faqs', id);
   },
   createFAQ: async (faq: any) => {
     return await sdk.insert('faqs', faq);
@@ -232,7 +230,7 @@ export const ResourceService = {
   },
   getResource: async (id: string) => {
     const resources = await sdk.get('resources');
-    return resources.find(resource => resource.id === id);
+    return sdk.getItem('resources', id);
   },
   createResource: async (resource: any) => {
     return await sdk.insert('resources', resource);
@@ -252,7 +250,7 @@ export const QuizService = {
   },
   getQuiz: async (id: string) => {
     const quizzes = await sdk.get('quizzes');
-    return quizzes.find(quiz => quiz.id === id);
+    return sdk.getItem('quizzes', id);
   },
   createQuiz: async (quiz: any) => {
     return await sdk.insert('quizzes', quiz);
@@ -272,7 +270,7 @@ export const PollService = {
   },
   getPoll: async (id: string) => {
     const polls = await sdk.get('polls');
-    return polls.find(poll => poll.id === id);
+    return sdk.getItem('polls', id);
   },
   createPoll: async (poll: any) => {
     return await sdk.insert('polls', poll);
@@ -292,7 +290,7 @@ export const SiteSettingsService = {
   },
   getSetting: async (key: string) => {
     const settings = await sdk.get('siteSettings');
-    return settings.find(setting => setting.key === key);
+    return settings.find((setting: any) => setting.key === key);
   },
   setSetting: async (key: string, value: string, type: string = 'string') => {
     const existing = await SiteSettingsService.getSetting(key);
@@ -312,10 +310,8 @@ export const SiteSettingsService = {
   }
 };
 
-// Export types
-export type { ProspectEntry, Student, BlogPost, FAQ, Resource, Quiz, Poll, SiteSettings } from '../types/sdk';
-
 export const initializeSDK = async () => {
+  console.log("SDK initialized from Index page");
   return await sdk.init();
 };
 
