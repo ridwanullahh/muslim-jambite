@@ -1,16 +1,12 @@
 
-import { BlogService, RegistrationService, FAQService, ResourceService } from '@/lib/sdk';
-import { BlogCategory, FAQ, Resource, SiteSettings } from '@/types/sdk';
+import UniversalSDK, { BlogCategory, FAQ, Resource, SiteSettings } from '../types/sdk';
 
 export class DatabaseSeeder {
-  private static instance: DatabaseSeeder;
+  private sdk: UniversalSDK;
   private initialized = false;
 
-  static getInstance(): DatabaseSeeder {
-    if (!DatabaseSeeder.instance) {
-      DatabaseSeeder.instance = new DatabaseSeeder();
-    }
-    return DatabaseSeeder.instance;
+  constructor(sdk: UniversalSDK) {
+    this.sdk = sdk;
   }
 
   async initializeDatabase(): Promise<void> {
@@ -38,7 +34,7 @@ export class DatabaseSeeder {
 
   private async seedBlogCategories(): Promise<void> {
     try {
-      const categories = await BlogService.getCategories();
+      const categories = await this.sdk.get('blogCategories');
       
       if (categories.length === 0) {
         const defaultCategories: Partial<BlogCategory>[] = [
@@ -69,7 +65,7 @@ export class DatabaseSeeder {
         ];
 
         for (const category of defaultCategories) {
-          await BlogService.createCategory(category);
+          await this.sdk.insert('blogCategories', category);
         }
         console.log('Blog categories seeded successfully');
       }
@@ -80,7 +76,7 @@ export class DatabaseSeeder {
 
   private async seedFAQs(): Promise<void> {
     try {
-      const faqs = await FAQService.getFAQs();
+      const faqs = await this.sdk.get('faqs');
       
       if (faqs.length === 0) {
         const defaultFAQs: Partial<FAQ>[] = [
@@ -105,7 +101,7 @@ export class DatabaseSeeder {
         ];
 
         for (const faq of defaultFAQs) {
-          await FAQService.createFAQ(faq);
+          await this.sdk.insert('faqs', faq);
         }
         console.log('FAQs seeded successfully');
       }
@@ -116,7 +112,7 @@ export class DatabaseSeeder {
 
   private async seedResources(): Promise<void> {
     try {
-      const resources = await ResourceService.getResources();
+      const resources = await this.sdk.get('resources');
       
       if (resources.length === 0) {
         const defaultResources: Partial<Resource>[] = [
@@ -143,7 +139,7 @@ export class DatabaseSeeder {
         ];
 
         for (const resource of defaultResources) {
-          await ResourceService.createResource(resource);
+          await this.sdk.insert('resources', resource);
         }
         console.log('Resources seeded successfully');
       }
@@ -154,33 +150,36 @@ export class DatabaseSeeder {
 
   private async seedSiteSettings(): Promise<void> {
     try {
-      // Initialize site settings collection if not exists
-      const defaultSettings = [
-        {
-          key: 'registration_enabled',
-          value: 'true',
-          description: 'Enable/disable student registration',
-          type: 'boolean',
-          category: 'general'
-        },
-        {
-          key: 'banner_enabled',
-          value: 'true',
-          description: 'Enable/disable promotional banner',
-          type: 'boolean',
-          category: 'ui'
-        },
-        {
-          key: 'maintenance_mode',
-          value: 'false',
-          description: 'Enable/disable maintenance mode',
-          type: 'boolean',
-          category: 'general'
+      const settings = await this.sdk.get('siteSettings');
+      if (settings.length === 0) {
+        const defaultSettings: Partial<SiteSettings>[] = [
+          {
+            key: 'registration_enabled',
+            value: 'true',
+            description: 'Enable/disable student registration',
+            type: 'boolean',
+            category: 'general'
+          },
+          {
+            key: 'banner_enabled',
+            value: 'true',
+            description: 'Enable/disable promotional banner',
+            type: 'boolean',
+            category: 'ui'
+          },
+          {
+            key: 'maintenance_mode',
+            value: 'false',
+            description: 'Enable/disable maintenance mode',
+            type: 'boolean',
+            category: 'general'
+          }
+        ];
+        for (const setting of defaultSettings) {
+          await this.sdk.insert('siteSettings', setting);
         }
-      ];
-
-      // Note: Implement settings seeding once SiteSettings service is available
-      console.log('Site settings seeded successfully');
+        console.log('Site settings seeded successfully');
+      }
     } catch (error) {
       console.error('Error seeding site settings:', error);
     }
@@ -188,8 +187,10 @@ export class DatabaseSeeder {
 
   private async seedQuizzes(): Promise<void> {
     try {
-      // Initialize empty quizzes collection
-      console.log('Quizzes collection initialized');
+      const quizzes = await this.sdk.get('quizzes');
+      if (quizzes.length === 0) {
+        console.log('Quizzes collection initialized');
+      }
     } catch (error) {
       console.error('Error seeding quizzes:', error);
     }
@@ -197,8 +198,10 @@ export class DatabaseSeeder {
 
   private async seedPolls(): Promise<void> {
     try {
-      // Initialize empty polls collection
-      console.log('Polls collection initialized');
+      const polls = await this.sdk.get('polls');
+      if (polls.length === 0) {
+        console.log('Polls collection initialized');
+      }
     } catch (error) {
       console.error('Error seeding polls:', error);
     }
