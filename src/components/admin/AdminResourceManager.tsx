@@ -1,264 +1,244 @@
-
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
+import { Plus, Edit2, Trash2, Download, Eye, FileText, Video, Music, Link, File } from 'lucide-react';
 import { ResourceService } from '@/lib/sdk';
 import { Resource } from '@/types/sdk';
-import { Plus, Edit, Trash2, Download, FileText, Video, Audio, Link, File } from 'lucide-react';
 
 export const AdminResourceManager = () => {
   const [resources, setResources] = useState<Resource[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [editingResource, setEditingResource] = useState<Resource | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedResource, setSelectedResource] = useState<Resource | null>(null);
 
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    type: 'pdf' as 'pdf' | 'video' | 'audio' | 'link' | 'document',
-    url: '',
-    category: '',
-    tags: '',
-    isPublic: true
-  });
-
-  useEffect(() => {
-    loadResources();
-  }, []);
-
-  const loadResources = async () => {
+  const fetchResources = async () => {
     setIsLoading(true);
     try {
-      const resourcesData = await ResourceService.getResources();
-      setResources(resourcesData);
+      const fetchedResources = await ResourceService.getResources();
+      setResources(fetchedResources);
     } catch (error) {
-      console.error('Error loading resources:', error);
+      console.error('Error fetching resources:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleSaveResource = async () => {
-    try {
-      setIsLoading(true);
-      const resourceData = {
-        ...formData,
-        tags: formData.tags.split(',').map(tag => tag.trim()),
-        downloads: 0
-      };
+  useEffect(() => {
+    fetchResources();
+  }, []);
 
-      if (selectedResource) {
-        await ResourceService.updateResource(selectedResource.id, resourceData);
-      } else {
-        await ResourceService.createResource(resourceData);
-      }
-
-      await loadResources();
-      setIsDialogOpen(false);
-      resetForm();
-    } catch (error) {
-      console.error('Error saving resource:', error);
-    } finally {
-      setIsLoading(false);
-    }
+  const handleCreate = () => {
+    setEditingResource(null);
+    setIsDialogOpen(true);
   };
 
-  const handleDeleteResource = async (resourceId: string) => {
-    if (confirm('Are you sure you want to delete this resource?')) {
+  const handleEdit = (resource: Resource) => {
+    setEditingResource(resource);
+    setIsDialogOpen(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (window.confirm('Are you sure you want to delete this resource?')) {
       try {
-        await ResourceService.deleteResource(resourceId);
-        await loadResources();
+        await ResourceService.deleteResource(id);
+        fetchResources(); // Refresh resource list
       } catch (error) {
         console.error('Error deleting resource:', error);
+        alert('Failed to delete resource');
       }
     }
   };
 
-  const resetForm = () => {
-    setSelectedResource(null);
-    setFormData({
-      title: '',
-      description: '',
-      type: 'pdf',
-      url: '',
-      category: '',
-      tags: '',
-      isPublic: true
-    });
-  };
-
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case 'pdf':
-      case 'document':
-        return <FileText className="w-5 h-5" />;
-      case 'video':
-        return <Video className="w-5 h-5" />;
-      case 'audio':
-        return <Audio className="w-5 h-5" />;
-      case 'link':
-        return <Link className="w-5 h-5" />;
-      default:
-        return <File className="w-5 h-5" />;
+  const handleSave = async (resourceData: Omit<Resource, 'id' | 'createdAt' | 'updatedAt'>) => {
+    try {
+      if (editingResource) {
+        // Update existing resource
+        await ResourceService.updateResource(editingResource.id, resourceData);
+      } else {
+        // Create new resource
+        await ResourceService.createResource(resourceData);
+      }
+      fetchResources(); // Refresh resource list
+      setIsDialogOpen(false);
+    } catch (error) {
+      console.error('Error saving resource:', error);
+      alert('Failed to save resource');
     }
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Resource Management</h1>
-          <p className="text-gray-600">Manage downloadable resources and study materials</p>
+    <Card>
+      <CardHeader>
+        <CardTitle>Resource Manager</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="mb-4">
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button onClick={handleCreate}>
+                <Plus className="mr-2 h-4 w-4" />
+                Add Resource
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>{editingResource ? 'Edit Resource' : 'Create Resource'}</DialogTitle>
+              </DialogHeader>
+              <ResourceForm
+                resource={editingResource}
+                onSave={handleSave}
+                onCancel={() => setIsDialogOpen(false)}
+              />
+            </DialogContent>
+          </Dialog>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={resetForm}>
-              <Plus className="w-4 h-4 mr-2" />
-              Add Resource
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>
-                {selectedResource ? 'Edit Resource' : 'Add New Resource'}
-              </DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label>Title</Label>
-                <Input
-                  value={formData.title}
-                  onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                  placeholder="Resource title"
-                />
-              </div>
-              <div>
-                <Label>Description</Label>
-                <Textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="Resource description"
-                  rows={3}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>Type</Label>
-                  <Select value={formData.type} onValueChange={(value) => setFormData(prev => ({ ...prev, type: value as any }))}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="pdf">PDF</SelectItem>
-                      <SelectItem value="video">Video</SelectItem>
-                      <SelectItem value="audio">Audio</SelectItem>
-                      <SelectItem value="link">Link</SelectItem>
-                      <SelectItem value="document">Document</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label>Category</Label>
-                  <Input
-                    value={formData.category}
-                    onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
-                    placeholder="Resource category"
-                  />
-                </div>
-              </div>
-              <div>
-                <Label>URL</Label>
-                <Input
-                  value={formData.url}
-                  onChange={(e) => setFormData(prev => ({ ...prev, url: e.target.value }))}
-                  placeholder="Resource URL or file path"
-                />
-              </div>
-              <div>
-                <Label>Tags (comma-separated)</Label>
-                <Input
-                  value={formData.tags}
-                  onChange={(e) => setFormData(prev => ({ ...prev, tags: e.target.value }))}
-                  placeholder="tag1, tag2, tag3"
-                />
-              </div>
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="isPublic"
-                  checked={formData.isPublic}
-                  onChange={(e) => setFormData(prev => ({ ...prev, isPublic: e.target.checked }))}
-                />
-                <Label htmlFor="isPublic">Public Resource</Label>
-              </div>
-              <div className="flex justify-end space-x-4">
-                <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={handleSaveResource} disabled={isLoading}>
-                  {isLoading ? 'Saving...' : selectedResource ? 'Update' : 'Add'} Resource
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-      </div>
 
-      <div className="grid gap-4">
-        {resources.map((resource) => (
-          <Card key={resource.id}>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-                    {getTypeIcon(resource.type)}
-                  </div>
-                  <div>
-                    <CardTitle className="text-lg">{resource.title}</CardTitle>
-                    <p className="text-sm text-gray-600">{resource.description}</p>
-                    <div className="flex items-center space-x-2 mt-2">
-                      <Badge variant="outline">{resource.type}</Badge>
-                      <Badge variant="outline">{resource.category}</Badge>
-                      <span className="text-sm text-gray-500">{resource.downloads || 0} downloads</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Badge variant={resource.isPublic ? 'default' : 'secondary'}>
-                    {resource.isPublic ? 'Public' : 'Private'}
-                  </Badge>
-                  <Button variant="outline" size="sm" onClick={() => {
-                    setSelectedResource(resource);
-                    setFormData({
-                      title: resource.title,
-                      description: resource.description,
-                      type: resource.type,
-                      url: resource.url,
-                      category: resource.category,
-                      tags: resource.tags.join(', '),
-                      isPublic: resource.isPublic
-                    });
-                    setIsDialogOpen(true);
-                  }}>
-                    <Edit className="w-4 h-4 mr-1" />
-                    Edit
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => handleDeleteResource(resource.id)}>
-                    <Trash2 className="w-4 h-4 mr-1" />
-                    Delete
-                  </Button>
-                </div>
-              </div>
-            </CardHeader>
-          </Card>
-        ))}
+        {isLoading ? (
+          <p>Loading resources...</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <thead>
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Title
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Type
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Public
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                {resources.map((resource) => (
+                  <tr key={resource.id}>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                      {resource.title}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                      {resource.type}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                      {resource.isPublic ? 'Yes' : 'No'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <Button variant="ghost" size="sm" onClick={() => handleEdit(resource)}>
+                        <Edit2 className="mr-2 h-4 w-4" />
+                        Edit
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => handleDelete(resource.id)}>
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Delete
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
+interface ResourceFormProps {
+  resource?: Resource | null;
+  onSave: (resourceData: Omit<Resource, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  onCancel: () => void;
+}
+
+const ResourceForm = ({ resource, onSave, onCancel }: ResourceFormProps) => {
+  const [title, setTitle] = useState(resource?.title || '');
+  const [type, setType] = useState(resource?.type || 'pdf');
+  const [url, setUrl] = useState(resource?.url || '');
+  const [isPublic, setIsPublic] = useState(resource?.isPublic || false);
+  const [description, setDescription] = useState(resource?.description || '');
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSave({
+      title,
+      type,
+      url,
+      isPublic,
+      description
+    });
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <Label htmlFor="title">Title</Label>
+        <Input
+          type="text"
+          id="title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          required
+        />
       </div>
-    </div>
+      <div>
+        <Label htmlFor="description">Description</Label>
+        <Textarea
+          id="description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+        />
+      </div>
+      <div>
+        <Label htmlFor="type">Type</Label>
+        <Select value={type} onValueChange={setType}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select a type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="pdf">PDF</SelectItem>
+            <SelectItem value="video">Video</SelectItem>
+            <SelectItem value="audio">Audio</SelectItem>
+            <SelectItem value="link">Link</SelectItem>
+            <SelectItem value="document">Document</SelectItem>
+            <SelectItem value="file">File</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      <div>
+        <Label htmlFor="url">URL</Label>
+        <Input
+          type="url"
+          id="url"
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          required
+        />
+      </div>
+      <div>
+        <Label htmlFor="isPublic">Public</Label>
+        <Switch
+          id="isPublic"
+          checked={isPublic}
+          onCheckedChange={setIsPublic}
+        />
+      </div>
+      <div className="flex justify-end space-x-2">
+        <Button type="button" variant="outline" onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button type="submit">Save</Button>
+      </div>
+    </form>
   );
 };

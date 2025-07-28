@@ -84,7 +84,7 @@ export const WaitlistSection = () => {
         }
       }
 
-      await RegistrationService.registerStudent({
+      await RegistrationService.createStudent({
         ...formData,
         paymentStatus: 'waitlist',
         registrationFee: 0,

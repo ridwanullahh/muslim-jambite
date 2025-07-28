@@ -4,7 +4,8 @@ import { PersonalInfoStep } from './PersonalInfoStep';
 import { ProgramSelectionStep } from './ProgramSelectionStep';
 import { InterestsStep } from './InterestsStep';
 import { PaymentStep } from './PaymentStep';
-import { RegistrationService, ProspectEntry } from '../../lib/sdk';
+import { RegistrationService } from '../../lib/sdk';
+import type { ProspectEntry } from '../../lib/sdk';
 import { sendWelcomeEmail } from '../../lib/emailService';
 import { CheckCircle, User, BookOpen, Heart, CreditCard } from 'lucide-react';
 

@@ -19,6 +19,7 @@ const BlogPost = () => {
   const { slug } = useParams<{ slug: string }>();
   const [post, setPost] = useState<BlogPostType | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
     if (slug) {
@@ -39,9 +40,13 @@ const BlogPost = () => {
     }
   };
 
+  const toggleDarkMode = () => {
+    setDarkMode(!darkMode);
+  };
+
   if (isLoading) {
     return (
-      <SharedLayout>
+      <SharedLayout darkMode={darkMode} toggleDarkMode={toggleDarkMode}>
         <div className="min-h-screen flex items-center justify-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-primary"></div>
         </div>
@@ -51,7 +56,7 @@ const BlogPost = () => {
 
   if (!post) {
     return (
-      <SharedLayout>
+      <SharedLayout darkMode={darkMode} toggleDarkMode={toggleDarkMode}>
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
             <h1 className="text-2xl font-bold mb-4">Post Not Found</h1>
@@ -63,7 +68,7 @@ const BlogPost = () => {
   }
 
   return (
-    <SharedLayout>
+    <SharedLayout darkMode={darkMode} toggleDarkMode={toggleDarkMode}>
       <div className="max-w-4xl mx-auto px-4 py-8">
         <article className="space-y-8">
           <header className="space-y-4">
@@ -111,7 +116,6 @@ const BlogPost = () => {
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm]}
                   rehypePlugins={[rehypeHighlight]}
-                  className="markdown-content"
                 >
                   {post.content}
                 </ReactMarkdown>

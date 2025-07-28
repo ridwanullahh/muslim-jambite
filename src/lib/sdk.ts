@@ -1,3 +1,4 @@
+
 import UniversalSDK from '../types/sdk';
 import { DatabaseSeeder } from '../services/DatabaseSeeder';
 
@@ -20,6 +21,26 @@ const sdk = new UniversalSDK({
         status: 'string'
       }
     },
+    blogCategories: {
+      required: ['name', 'slug'],
+      types: {
+        name: 'string',
+        slug: 'string',
+        description: 'string',
+        color: 'string',
+        postCount: 'number'
+      }
+    },
+    blogComments: {
+      required: ['postId', 'author', 'content'],
+      types: {
+        postId: 'string',
+        author: 'string',
+        content: 'string',
+        status: 'string',
+        likes: 'number'
+      }
+    },
     students: {
       required: ['fullName', 'email'],
       types: {
@@ -27,6 +48,15 @@ const sdk = new UniversalSDK({
         email: 'string',
         paymentStatus: 'string',
         monthlyFee: 'number'
+      }
+    },
+    prospects: {
+      required: ['email'],
+      types: {
+        email: 'string',
+        fullName: 'string',
+        step: 'number',
+        completed: 'boolean'
       }
     },
     faqs: {
@@ -64,6 +94,14 @@ const sdk = new UniversalSDK({
         options: 'array',
         totalVotes: 'number'
       }
+    },
+    siteSettings: {
+      required: ['key', 'value'],
+      types: {
+        key: 'string',
+        value: 'string',
+        type: 'string'
+      }
     }
   }
 });
@@ -78,91 +116,201 @@ sdk.init().then(() => {
 // Blog service
 export const BlogService = {
   getPosts: async () => {
-    return await sdk.get<UniversalSDK['blogPosts']>('blogPosts');
+    return await sdk.get('blogPosts');
   },
   getPost: async (id: string) => {
-    const posts = await sdk.get<UniversalSDK['blogPosts']>('blogPosts');
+    const posts = await sdk.get('blogPosts');
     return posts.find(post => post.id === id);
   },
   createPost: async (post: any) => {
-    return await sdk.insert<UniversalSDK['blogPosts']>('blogPosts', post);
+    return await sdk.insert('blogPosts', post);
   },
-   updatePost: async (id: string, updates: any) => {
-    return await sdk.update<UniversalSDK['blogPosts']>('blogPosts', id, updates);
+  updatePost: async (id: string, updates: any) => {
+    return await sdk.update('blogPosts', id, updates);
   },
   deletePost: async (id: string) => {
-    return await sdk.delete<UniversalSDK['blogPosts']>('blogPosts', id);
+    return await sdk.delete('blogPosts', id);
+  },
+  searchPosts: async (query: string) => {
+    const posts = await sdk.get('blogPosts');
+    return posts.filter(post => 
+      post.title.toLowerCase().includes(query.toLowerCase()) ||
+      post.content.toLowerCase().includes(query.toLowerCase()) ||
+      post.excerpt.toLowerCase().includes(query.toLowerCase())
+    );
   },
   getCategories: async () => {
-    return await sdk.get<UniversalSDK['blogCategories']>('blogCategories');
+    return await sdk.get('blogCategories');
   },
   getCategory: async (id: string) => {
-    const categories = await sdk.get<UniversalSDK['blogCategories']>('blogCategories');
+    const categories = await sdk.get('blogCategories');
     return categories.find(category => category.id === id);
   },
   createCategory: async (category: any) => {
-    return await sdk.insert<UniversalSDK['blogCategories']>('blogCategories', category);
+    return await sdk.insert('blogCategories', category);
   },
   getComments: async (postId: string) => {
-    return await sdk.get<UniversalSDK['blogComments']>('blogComments');
+    const comments = await sdk.get('blogComments');
+    return comments.filter(comment => comment.postId === postId);
   },
   createComment: async (comment: any) => {
-    return await sdk.insert<UniversalSDK['blogComments']>('blogComments', comment);
+    return await sdk.insert('blogComments', comment);
   }
 };
 
 // Registration service
 export const RegistrationService = {
   getStudents: async () => {
-    return await sdk.get<UniversalSDK['students']>('students');
+    return await sdk.get('students');
   },
   getStudent: async (id: string) => {
-    const students = await sdk.get<UniversalSDK['students']>('students');
+    const students = await sdk.get('students');
     return students.find(student => student.id === id);
   },
   createStudent: async (student: any) => {
-    return await sdk.insert<UniversalSDK['students']>('students', student);
+    return await sdk.insert('students', student);
+  },
+  registerStudent: async (student: any) => {
+    return await sdk.insert('students', student);
+  },
+  updateStudent: async (id: string, updates: any) => {
+    return await sdk.update('students', id, updates);
+  },
+  deleteStudent: async (id: string) => {
+    return await sdk.delete('students', id);
   },
   getProspects: async () => {
-    return await sdk.get<UniversalSDK['prospects']>('prospects');
+    return await sdk.get('prospects');
+  },
+  getProspect: async (email: string) => {
+    const prospects = await sdk.get('prospects');
+    return prospects.find(prospect => prospect.email === email);
   },
   createProspect: async (prospect: any) => {
-    return await sdk.insert<UniversalSDK['prospects']>('prospects', prospect);
+    return await sdk.insert('prospects', prospect);
+  },
+  saveProspect: async (prospect: any) => {
+    const existing = await RegistrationService.getProspect(prospect.email);
+    if (existing) {
+      return await sdk.update('prospects', existing.id, prospect);
+    } else {
+      return await sdk.insert('prospects', prospect);
+    }
   }
 };
 
 // FAQ service
 export const FAQService = {
   getFAQs: async () => {
-    return await sdk.get<UniversalSDK['faqs']>('faqs');
+    return await sdk.get('faqs');
   },
   getFAQ: async (id: string) => {
-    const faqs = await sdk.get<UniversalSDK['faqs']>('faqs');
+    const faqs = await sdk.get('faqs');
     return faqs.find(faq => faq.id === id);
   },
   createFAQ: async (faq: any) => {
-    return await sdk.insert<UniversalSDK['faqs']>('faqs', faq);
+    return await sdk.insert('faqs', faq);
+  },
+  updateFAQ: async (id: string, updates: any) => {
+    return await sdk.update('faqs', id, updates);
+  },
+  deleteFAQ: async (id: string) => {
+    return await sdk.delete('faqs', id);
   }
 };
 
 // Resource service
 export const ResourceService = {
   getResources: async () => {
-    return await sdk.get<UniversalSDK['resources']>('resources');
+    return await sdk.get('resources');
   },
   getResource: async (id: string) => {
-    const resources = await sdk.get<UniversalSDK['resources']>('resources');
+    const resources = await sdk.get('resources');
     return resources.find(resource => resource.id === id);
   },
   createResource: async (resource: any) => {
-    return await sdk.insert<UniversalSDK['resources']>('resources', resource);
+    return await sdk.insert('resources', resource);
   },
   updateResource: async (id: string, updates: any) => {
-    return await sdk.update<UniversalSDK['resources']>('resources', id, updates);
+    return await sdk.update('resources', id, updates);
   },
   deleteResource: async (id: string) => {
-    return await sdk.delete<UniversalSDK['resources']>('resources', id);
+    return await sdk.delete('resources', id);
   }
+};
+
+// Quiz service
+export const QuizService = {
+  getQuizzes: async () => {
+    return await sdk.get('quizzes');
+  },
+  getQuiz: async (id: string) => {
+    const quizzes = await sdk.get('quizzes');
+    return quizzes.find(quiz => quiz.id === id);
+  },
+  createQuiz: async (quiz: any) => {
+    return await sdk.insert('quizzes', quiz);
+  },
+  updateQuiz: async (id: string, updates: any) => {
+    return await sdk.update('quizzes', id, updates);
+  },
+  deleteQuiz: async (id: string) => {
+    return await sdk.delete('quizzes', id);
+  }
+};
+
+// Poll service
+export const PollService = {
+  getPolls: async () => {
+    return await sdk.get('polls');
+  },
+  getPoll: async (id: string) => {
+    const polls = await sdk.get('polls');
+    return polls.find(poll => poll.id === id);
+  },
+  createPoll: async (poll: any) => {
+    return await sdk.insert('polls', poll);
+  },
+  updatePoll: async (id: string, updates: any) => {
+    return await sdk.update('polls', id, updates);
+  },
+  deletePoll: async (id: string) => {
+    return await sdk.delete('polls', id);
+  }
+};
+
+// Site settings service
+export const SiteSettingsService = {
+  getSettings: async () => {
+    return await sdk.get('siteSettings');
+  },
+  getSetting: async (key: string) => {
+    const settings = await sdk.get('siteSettings');
+    return settings.find(setting => setting.key === key);
+  },
+  setSetting: async (key: string, value: string, type: string = 'string') => {
+    const existing = await SiteSettingsService.getSetting(key);
+    const settingData = {
+      key,
+      value,
+      type,
+      description: '',
+      category: 'general'
+    };
+    
+    if (existing) {
+      return await sdk.update('siteSettings', existing.id, settingData);
+    } else {
+      return await sdk.insert('siteSettings', settingData);
+    }
+  }
+};
+
+// Export types
+export type { ProspectEntry, Student, BlogPost, FAQ, Resource, Quiz, Poll, SiteSettings } from '../types/sdk';
+
+export const initializeSDK = async () => {
+  return await sdk.init();
 };
 
 export default sdk;
