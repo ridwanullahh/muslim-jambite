@@ -1,5 +1,5 @@
 
-import UniversalSDK, { BlogCategory, FAQ, Resource, SiteSettings } from '../types/sdk';
+import { default as UniversalSDK, BlogCategory, FAQ, Resource, SiteSettings } from '../types/sdk';
 
 export class DatabaseSeeder {
   private sdk: UniversalSDK;

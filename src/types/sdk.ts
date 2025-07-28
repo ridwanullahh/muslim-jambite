@@ -366,10 +366,10 @@ class UniversalSDK {
       return data;
     } catch (e) {
       const errorText = (e as Error).message;
-if (errorText.includes("Not Found") || errorText.includes("This repository is empty.")) {
-this.cache[collection] = { data: [], etag: undefined, sha: undefined };
-return [];
-}
+      if (errorText.includes("Not Found") || errorText.includes("This repository is empty.")) {
+        this.cache[collection] = { data: [], etag: undefined, sha: undefined };
+        return [];
+      }
       throw e;
     }
   }
@@ -440,7 +440,7 @@ return [];
       const file = await this.request(`${this.basePath}/${collection}.json`).catch(() => ({ sha: undefined }));
       await this.request(`${this.basePath}/${collection}.json`, "PUT", {
           message: `Update ${collection} - ${new Date().toISOString()}`,
-          content: btoa(JSON.stringify(data, null, 2)),
+          content: btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2)))),
           branch: this.branch,
           sha: file.sha,
       });
