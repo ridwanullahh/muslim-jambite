@@ -10,7 +10,7 @@ import { ValuePropositionSection } from '../components/sections/ValueProposition
 import { WhyChooseUsSection } from '../components/sections/WhyChooseUsSection';
 import { StatsSection } from '../components/sections/StatsSection';
 import { TestimonialsSection } from '../components/sections/TestimonialsSection';
-import { FAQSection } from '../components/sections/FAQSection';
+import FAQSection from '../components/sections/FAQSection';
 import { CommunitySection } from '../components/sections/CommunitySection';
 import { RegistrationSection } from '../components/RegistrationSection';
 import { ExitIntentModal } from '../components/modals/ExitIntentModal';
