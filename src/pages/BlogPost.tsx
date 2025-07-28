@@ -129,7 +129,7 @@ const BlogPost = () => {
             <PollCard
               poll={{
                 id: 'sample-poll',
-                postId: post.id,
+                postIds: [post.id],
                 question: 'How would you rate this article?',
                 options: [
                   { id: '1', text: 'Excellent', votes: 15, percentage: 50 },
