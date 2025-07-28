@@ -244,7 +244,7 @@ export interface Resource {
 // Poll and Quiz interfaces for user engagement
 export interface Poll {
   id: string;
-  postId: string;
+  postIds: string[]; // Changed from postId to postIds to support multiple posts
   question: string;
   options: PollOption[];
   totalVotes: number;
@@ -262,7 +262,7 @@ export interface PollOption {
 
 export interface Quiz {
   id: string;
-  postId: string;
+  postIds: string[]; // Changed from postId to postIds to support multiple posts
   title: string;
   questions: QuizQuestion[];
   passingScore: number;

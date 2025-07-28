@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -71,7 +70,6 @@ export const AdminQuizPollManager = () => {
       const quizData = {
         ...quizForm,
         id: Date.now().toString(),
-        totalVotes: 0,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
