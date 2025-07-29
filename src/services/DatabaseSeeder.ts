@@ -21,7 +21,11 @@ export class DatabaseSeeder {
         this.seedResources(),
         this.seedSiteSettings(),
         this.seedQuizzes(),
-        this.seedPolls()
+        this.seedPolls(),
+        this.seedStudents(),
+        this.seedBlogPosts(),
+        this.seedBlogComments(),
+        this.seedProspects()
       ]);
 
       this.initialized = true;
@@ -204,6 +208,50 @@ export class DatabaseSeeder {
       }
     } catch (error) {
       console.error('Error seeding polls:', error);
+    }
+  }
+
+  private async seedStudents(): Promise<void> {
+    try {
+      const students = await this.sdk.get('students');
+      if (students.length === 0) {
+        console.log('Students collection initialized');
+      }
+    } catch (error) {
+      console.error('Error seeding students:', error);
+    }
+  }
+
+  private async seedBlogPosts(): Promise<void> {
+    try {
+      const posts = await this.sdk.get('blogPosts');
+      if (posts.length === 0) {
+        console.log('Blog posts collection initialized');
+      }
+    } catch (error) {
+      console.error('Error seeding blog posts:', error);
+    }
+  }
+
+  private async seedBlogComments(): Promise<void> {
+    try {
+      const comments = await this.sdk.get('blogComments');
+      if (comments.length === 0) {
+        console.log('Blog comments collection initialized');
+      }
+    } catch (error) {
+      console.error('Error seeding blog comments:', error);
+    }
+  }
+
+  private async seedProspects(): Promise<void> {
+    try {
+      const prospects = await this.sdk.get('prospects');
+      if (prospects.length === 0) {
+        console.log('Prospects collection initialized');
+      }
+    } catch (error) {
+      console.error('Error seeding prospects:', error);
     }
   }
 }

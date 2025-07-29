@@ -263,7 +263,6 @@ class UniversalSDK {
   private pollingIntervals: Record<string, number> = {};
   private writeQueue: QueuedWrite[] = [];
 private isProcessingQueue = false;
-private static instance: UniversalSDK | null = null;
 
 constructor(config: UniversalSDKConfig) {
     this.owner = config.owner;
@@ -314,13 +313,6 @@ constructor(config: UniversalSDKConfig) {
     this.sessionStore = {};
     this.otpMemory = {};
     this.auditLog = {};
-}
-
-static getInstance(config: UniversalSDKConfig): UniversalSDK {
-if (!UniversalSDK.instance) {
-UniversalSDK.instance = new UniversalSDK(config);
-}
-return UniversalSDK.instance;
 }
 
 private headers(): Record<string, string> {
@@ -1166,7 +1158,7 @@ private headers(): Record<string, string> {
   }
 }
 
-export { UniversalSDK };
+export default UniversalSDK;
 export type {
   UniversalSDKConfig,
   CloudinaryConfig,
