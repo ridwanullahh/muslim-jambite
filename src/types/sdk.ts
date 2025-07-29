@@ -465,7 +465,7 @@ private headers(): Record<string, string> {
     }
   }
 
-  private save<T = any>(collection: string, data: T[]): Promise<T[]> {
+public save<T = any>(collection: string, data: T[]): Promise<T[]> {
       return new Promise((resolve, reject) => {
         // Optimistic update
         this.cache[collection] = { ...this.cache[collection], data };
