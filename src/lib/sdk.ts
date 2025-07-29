@@ -1,5 +1,5 @@
 
-import { default as UniversalSDK } from '../types/sdk';
+import { UniversalSDK } from '../types/sdk';
 import { DatabaseSeeder } from '../services/DatabaseSeeder';
 
 // Initialize SDK

@@ -1166,7 +1166,7 @@ private headers(): Record<string, string> {
   }
 }
 
-export default UniversalSDK;
+export { UniversalSDK };
 export type {
   UniversalSDKConfig,
   CloudinaryConfig,
