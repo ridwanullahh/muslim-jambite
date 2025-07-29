@@ -99,7 +99,9 @@ const sdk = new UniversalSDK({
       types: {
         key: 'string',
         value: 'string',
-        type: 'string'
+        type: 'string',
+        description: 'string',
+        category: 'string'
       }
     }
   }

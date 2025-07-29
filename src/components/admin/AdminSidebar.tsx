@@ -2,19 +2,21 @@
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import { 
-  BarChart3, 
-  FileText, 
-  Users, 
-  UserPlus, 
-  BookOpen, 
+import {
+  BarChart3,
+  FileText,
+  Users,
+  UserPlus,
+  BookOpen,
   Settings,
   LogOut,
   HelpCircle,
   MessageSquare,
   BarChart,
-  Database
+  Database,
+  ChevronLeft
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const sidebarItems = [
   { name: 'Dashboard', href: '/admin-dashboard', icon: BarChart3 },
@@ -29,19 +31,29 @@ const sidebarItems = [
   { name: 'Settings', href: '/admin-dashboard/settings', icon: Settings },
 ];
 
-export const AdminSidebar = () => {
+interface AdminSidebarProps {
+  isOpen: boolean;
+  setIsOpen: (isOpen: boolean) => void;
+}
+
+export const AdminSidebar = ({ isOpen, setIsOpen }: AdminSidebarProps) => {
   const { user, logout } = useAuth();
 
   return (
-    <div className="w-64 bg-white shadow-lg h-full flex flex-col">
-      <div className="p-6 border-b">
-        <h2 className="text-xl font-bold text-gray-900">Admin Panel</h2>
-        <p className="text-sm text-gray-600">{user?.email}</p>
-        <div className="mt-2">
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-brand-primary/10 text-brand-primary">
-            {user?.role}
-          </span>
-        </div>
+    <div className={cn(
+      "bg-white shadow-lg h-full flex flex-col transition-all duration-300",
+      isOpen ? "w-64" : "w-20"
+    )}>
+      <div className="p-4 border-b flex items-center justify-between">
+        {isOpen && (
+          <div>
+            <h2 className="text-xl font-bold text-gray-900">Admin</h2>
+            <p className="text-sm text-gray-600 truncate">{user?.email}</p>
+          </div>
+        )}
+        <Button onClick={() => setIsOpen(!isOpen)} variant="ghost" size="icon">
+          <ChevronLeft className={cn("transition-transform", !isOpen && "rotate-180")} />
+        </Button>
       </div>
       
       <nav className="flex-1 overflow-y-auto py-4">
@@ -49,28 +61,28 @@ export const AdminSidebar = () => {
           <NavLink
             key={item.name}
             to={item.href}
-            className={({ isActive }) => `
-              flex items-center px-6 py-3 text-sm font-medium transition-colors
-              ${isActive 
-                ? 'bg-brand-primary text-white' 
-                : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
-              }
-            `}
+            className={({ isActive }) => cn(
+              "flex items-center px-4 py-3 text-sm font-medium transition-colors",
+              isActive
+                ? 'bg-brand-primary text-white'
+                : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900',
+              !isOpen && "justify-center"
+            )}
           >
-            <item.icon className="w-5 h-5 mr-3" />
-            {item.name}
+            <item.icon className={cn("w-5 h-5", isOpen && "mr-3")} />
+            {isOpen && item.name}
           </NavLink>
         ))}
       </nav>
 
-      <div className="p-6 border-t">
+      <div className="p-4 border-t">
         <Button
           onClick={logout}
           variant="outline"
-          className="w-full justify-start"
+          className={cn("w-full", !isOpen && "justify-center")}
         >
-          <LogOut className="w-4 h-4 mr-2" />
-          Logout
+          <LogOut className={cn("w-4 h-4", isOpen && "mr-2")} />
+          {isOpen && "Logout"}
         </Button>
       </div>
     </div>

@@ -1,6 +1,5 @@
 
-import { useState, useEffect } from 'react';
-import { SharedLayout } from '../components/layout/SharedLayout';
+import { useEffect } from 'react';
 import { HeroSection } from '../components/HeroSection';
 import { QuranicVerseSection } from '../components/sections/QuranicVerseSection';
 import { PainPointSection } from '../components/sections/PainPointSection';
@@ -17,8 +16,6 @@ import { ExitIntentModal } from '../components/modals/ExitIntentModal';
 import sdk from '../lib/sdk';
 
 const Index = () => {
-  const [darkMode, setDarkMode] = useState(false);
-
   useEffect(() => {
     // Initialize SDK when component mounts
     sdk.init().then(() => {
@@ -26,12 +23,8 @@ const Index = () => {
     });
   }, []);
 
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-  };
-
   return (
-    <SharedLayout darkMode={darkMode} toggleDarkMode={toggleDarkMode}>
+    <>
       <HeroSection />
       <QuranicVerseSection />
       <PainPointSection />
@@ -45,7 +38,7 @@ const Index = () => {
       <CommunitySection />
       <RegistrationSection />
       <ExitIntentModal />
-    </SharedLayout>
+    </>
   );
 };
 

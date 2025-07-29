@@ -177,6 +177,27 @@ export class DatabaseSeeder {
             description: 'Enable/disable maintenance mode',
             type: 'boolean',
             category: 'general'
+          },
+          {
+            key: 'banner_text',
+            value: 'Early Bird registration ends soon!',
+            type: 'string',
+            description: 'Text to display on the countdown banner.',
+            category: 'ui'
+          },
+          {
+            key: 'early_bird_price',
+            value: '₦500',
+            type: 'string',
+            description: 'The discounted price for early bird registration.',
+            category: 'ui'
+          },
+          {
+            key: 'countdown_end_date',
+            value: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+            type: 'date',
+            description: 'End date for the registration countdown.',
+            category: 'ui'
           }
         ];
         for (const setting of defaultSettings) {

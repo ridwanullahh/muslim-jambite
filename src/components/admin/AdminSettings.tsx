@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Settings, Globe, Users, Shield, Database, Mail } from 'lucide-react';
 import { SiteSettingsService } from '@/lib/sdk';
+import { toast } from 'sonner';
 
 interface SiteSettings {
   siteName: string;
@@ -26,7 +27,7 @@ interface SiteSettings {
   telegramChannel: string;
   bannerText: string;
   earlyBirdPrice: string;
-  countdownDays: number;
+  countdownEndDate: string;
 }
 
 export const AdminSettings = () => {
@@ -45,7 +46,7 @@ export const AdminSettings = () => {
     telegramChannel: '',
     bannerText: 'Early Bird ends:',
     earlyBirdPrice: '₦500',
-    countdownDays: 30
+    countdownEndDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -71,10 +72,11 @@ export const AdminSettings = () => {
         bannerEnabled: settingsMap.banner_enabled !== 'false',
         bannerText: settingsMap.banner_text || prev.bannerText,
         earlyBirdPrice: settingsMap.early_bird_price || prev.earlyBirdPrice,
-        countdownDays: parseInt(settingsMap.countdown_days || '30')
+        countdownEndDate: settingsMap.countdown_end_date ? new Date(settingsMap.countdown_end_date).toISOString().split('T')[0] : prev.countdownEndDate
       }));
     } catch (error) {
       console.error('Error loading settings:', error);
+      toast.error('Failed to load settings.');
     }
   };
 
@@ -88,7 +90,7 @@ export const AdminSettings = () => {
         SiteSettingsService.setSetting('banner_enabled', settings.bannerEnabled.toString(), 'boolean'),
         SiteSettingsService.setSetting('banner_text', settings.bannerText, 'string'),
         SiteSettingsService.setSetting('early_bird_price', settings.earlyBirdPrice, 'string'),
-        SiteSettingsService.setSetting('countdown_days', settings.countdownDays.toString(), 'number'),
+        SiteSettingsService.setSetting('countdown_end_date', new Date(settings.countdownEndDate).toISOString(), 'date'),
         SiteSettingsService.setSetting('registration_enabled', settings.registrationEnabled.toString(), 'boolean'),
         SiteSettingsService.setSetting('maintenance_mode', settings.maintenanceMode.toString(), 'boolean'),
         SiteSettingsService.setSetting('monthly_fee', settings.monthlyFee.toString(), 'number'),
@@ -103,10 +105,10 @@ export const AdminSettings = () => {
       // Clear countdown target date to restart countdown
       localStorage.removeItem('countdown_target_date');
       
-      alert('Settings saved successfully!');
+      toast.success('Settings saved successfully!');
     } catch (error) {
       console.error('Error saving settings:', error);
-      alert('Error saving settings. Please try again.');
+      toast.error('Error saving settings. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -213,15 +215,13 @@ export const AdminSettings = () => {
                 />
               </div>
               <div>
-                <Label>Countdown Days</Label>
+                <Label>Countdown End Date</Label>
                 <Input
-                  type="number"
-                  value={settings.countdownDays}
-                  onChange={(e) => handleSettingChange('countdownDays', parseInt(e.target.value))}
-                  min="1"
-                  max="365"
+                  type="date"
+                  value={settings.countdownEndDate}
+                  onChange={(e) => handleSettingChange('countdownEndDate', e.target.value)}
                 />
-                <p className="text-sm text-gray-600 mt-1">Number of days for countdown timer</p>
+                <p className="text-sm text-gray-600 mt-1">The date when the countdown timer will end.</p>
               </div>
             </CardContent>
           </Card>

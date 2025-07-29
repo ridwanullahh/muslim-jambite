@@ -1,36 +1,13 @@
 
-import { useState, useEffect } from 'react';
-import { Clock, AlertCircle } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
+import { useCountdown } from '../../hooks/useCountdown';
 
 export const RegistrationCountdown = () => {
-  const [timeLeft, setTimeLeft] = useState({
-    days: 0,
-    hours: 0,
-    minutes: 0,
-    seconds: 0
-  });
+  const { bannerEnabled, timeLeft, earlyBirdPrice } = useCountdown();
 
-  useEffect(() => {
-    // Set target date (30 days from now)
-    const targetDate = new Date();
-    targetDate.setDate(targetDate.getDate() + 30);
-
-    const timer = setInterval(() => {
-      const now = new Date().getTime();
-      const distance = targetDate.getTime() - now;
-
-      if (distance > 0) {
-        setTimeLeft({
-          days: Math.floor(distance / (1000 * 60 * 60 * 24)),
-          hours: Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
-          minutes: Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)),
-          seconds: Math.floor((distance % (1000 * 60)) / 1000)
-        });
-      }
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, []);
+  if (!bannerEnabled) {
+    return null;
+  }
 
   return (
     <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6 mb-8">
@@ -74,7 +51,7 @@ export const RegistrationCountdown = () => {
         </div>
         
         <p className="text-red-600 dark:text-red-400 mt-4 font-medium">
-          Don't miss out on the special ₦500 early bird price!
+          Don't miss out on the special {earlyBirdPrice} early bird price!
         </p>
       </div>
     </div>

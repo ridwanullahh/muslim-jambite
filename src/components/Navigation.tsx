@@ -5,14 +5,14 @@ import { Menu, X, Moon, Sun, BookOpen, Users, Award, Phone, MessageCircle, Chevr
 interface NavigationProps {
   darkMode: boolean;
   toggleDarkMode: () => void;
+  isBannerVisible: boolean;
 }
 
-export const Navigation = ({ darkMode, toggleDarkMode }: NavigationProps) => {
+export const Navigation = ({ darkMode, toggleDarkMode, isBannerVisible }: NavigationProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('home');
   const [showMegaMenu, setShowMegaMenu] = useState(false);
   const [showMobileMegaMenu, setShowMobileMegaMenu] = useState(false);
-  const [bannerVisible, setBannerVisible] = useState(false);
 
   const navItems = [
     { id: 'home', label: 'Home' },
@@ -40,38 +40,15 @@ export const Navigation = ({ darkMode, toggleDarkMode }: NavigationProps) => {
       ]
     },
     {
-      category: 'Community',
+      category: 'Connect',
       items: [
-        { name: 'Success Stories', description: 'Student achievements', link: '#testimonials' },
-        { name: 'Islamic Guidance', description: 'Spiritual development', link: '#guidance' },
-        { name: 'Support Forum', description: 'Connect with peers', link: '#community' }
+        { name: 'WhatsApp Channel', description: 'Join our WhatsApp community', link: 'https://whatsapp.com/channel/your-channel-link' },
+        { name: 'Telegram Channel', description: 'Follow us on Telegram', link: 'https://t.me/your-channel-link' }
       ]
     }
   ];
 
   useEffect(() => {
-    // Check banner visibility
-    const checkBannerVisibility = () => {
-      const dismissed = localStorage.getItem('banner_dismissed');
-      setBannerVisible(!dismissed);
-    };
-
-    checkBannerVisibility();
-
-    // Listen for storage changes to update banner visibility
-    const handleStorageChange = () => {
-      checkBannerVisibility();
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    
-    // Also listen for custom events when banner is dismissed
-    const handleBannerDismiss = () => {
-      setBannerVisible(false);
-    };
-
-    window.addEventListener('bannerDismissed', handleBannerDismiss);
-
     const handleScroll = () => {
       const sections = navItems.map(item => document.getElementById(item.id));
       const scrollPosition = window.scrollY + 100;
@@ -92,20 +69,18 @@ export const Navigation = ({ darkMode, toggleDarkMode }: NavigationProps) => {
     
     return () => {
       window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('bannerDismissed', handleBannerDismiss);
     };
   }, []);
 
   const scrollToSection = (sectionId: string) => {
-    if (sectionId === 'blog') {
-      window.location.href = '/blog';
+    if (sectionId === 'blog' || sectionId === 'about' || sectionId === 'contact') {
+      window.location.href = `/${sectionId}`;
       return;
     }
     
     const section = document.getElementById(sectionId);
     if (section) {
-      const headerHeight = bannerVisible ? 120 : 80;
+      const headerHeight = isBannerVisible ? 120 : 80;
       const sectionTop = section.offsetTop - headerHeight;
       
       window.scrollTo({
@@ -118,13 +93,13 @@ export const Navigation = ({ darkMode, toggleDarkMode }: NavigationProps) => {
     setShowMobileMegaMenu(false);
   };
 
-  const topOffset = bannerVisible ? '2rem' : '0';
+  const topOffset = isBannerVisible ? '2.5rem' : '0';
 
   return (
     <>
       {/* Desktop Navigation */}
-      <nav className={`fixed left-0 right-0 z-40 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 transition-all duration-300`} style={{ top: topOffset }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <header className={`fixed left-0 right-0 z-40 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 transition-all duration-300`} style={{ top: topOffset }}>
+        <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <div className="flex items-center space-x-3">
@@ -189,11 +164,11 @@ export const Navigation = ({ darkMode, toggleDarkMode }: NavigationProps) => {
               </button>
             </div>
           </div>
-        </div>
+        </nav>
 
         {/* Desktop Mega Menu */}
         {showMegaMenu && (
-          <div 
+          <div
             className="absolute top-full left-0 right-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-2xl"
             onMouseLeave={() => setShowMegaMenu(false)}
           >
@@ -226,7 +201,7 @@ export const Navigation = ({ darkMode, toggleDarkMode }: NavigationProps) => {
             </div>
           </div>
         )}
-      </nav>
+      </header>
 
       {/* Mobile Menu Overlay */}
       {isMenuOpen && (
@@ -237,11 +212,11 @@ export const Navigation = ({ darkMode, toggleDarkMode }: NavigationProps) => {
       )}
 
       {/* Mobile Menu */}
-      <div 
+      <div
         className={`fixed left-0 w-full bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 z-50 md:hidden transition-all duration-300 ${
           isMenuOpen ? 'translate-y-0' : '-translate-y-full'
-        }`} 
-        style={{ top: bannerVisible ? '4rem' : '2rem' }}
+        }`}
+        style={{ top: isBannerVisible ? '2.5rem' : '0' }}
       >
         <div className="p-6 space-y-4 max-h-screen overflow-y-auto">
           {navItems.map((item) => (
