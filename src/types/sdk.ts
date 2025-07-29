@@ -262,9 +262,10 @@ class UniversalSDK {
   private subscribers: Record<string, Function[]> = {};
   private pollingIntervals: Record<string, number> = {};
   private writeQueue: QueuedWrite[] = [];
-  private isProcessingQueue = false;
+private isProcessingQueue = false;
+private static instance: UniversalSDK | null = null;
 
-  constructor(config: UniversalSDKConfig) {
+constructor(config: UniversalSDKConfig) {
     this.owner = config.owner;
     this.repo = config.repo;
     this.token = config.token;
@@ -313,9 +314,16 @@ class UniversalSDK {
     this.sessionStore = {};
     this.otpMemory = {};
     this.auditLog = {};
-  }
+}
 
-  private headers(): Record<string, string> {
+static getInstance(config: UniversalSDKConfig): UniversalSDK {
+if (!UniversalSDK.instance) {
+UniversalSDK.instance = new UniversalSDK(config);
+}
+return UniversalSDK.instance;
+}
+
+private headers(): Record<string, string> {
     return {
       Authorization: `token ${this.token}`,
       "Content-Type": "application/json",

@@ -3,7 +3,7 @@ import { default as UniversalSDK } from '../types/sdk';
 import { DatabaseSeeder } from '../services/DatabaseSeeder';
 
 // Initialize SDK
-const sdk = new UniversalSDK({
+const sdk = UniversalSDK.getInstance({
   owner: import.meta.env.VITE_GITHUB_OWNER || 'ridwanullahh',
   repo: import.meta.env.VITE_GITHUB_REPO || 'muslimjambitebetadb',
   token: import.meta.env.VITE_GITHUB_TOKEN || '',
