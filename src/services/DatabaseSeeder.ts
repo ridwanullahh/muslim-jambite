@@ -193,6 +193,7 @@ export class DatabaseSeeder {
     try {
       const quizzes = await this.sdk.get('quizzes');
       if (quizzes.length === 0) {
+        await this.sdk.save('quizzes', []);
         console.log('Quizzes collection initialized');
       }
     } catch (error) {
@@ -204,6 +205,7 @@ export class DatabaseSeeder {
     try {
       const polls = await this.sdk.get('polls');
       if (polls.length === 0) {
+        await this.sdk.save('polls', []);
         console.log('Polls collection initialized');
       }
     } catch (error) {
@@ -215,6 +217,7 @@ export class DatabaseSeeder {
     try {
       const students = await this.sdk.get('students');
       if (students.length === 0) {
+        await this.sdk.save('students', []);
         console.log('Students collection initialized');
       }
     } catch (error) {
@@ -226,6 +229,7 @@ export class DatabaseSeeder {
     try {
       const posts = await this.sdk.get('blogPosts');
       if (posts.length === 0) {
+        await this.sdk.save('blogPosts', []);
         console.log('Blog posts collection initialized');
       }
     } catch (error) {
@@ -237,6 +241,7 @@ export class DatabaseSeeder {
     try {
       const comments = await this.sdk.get('blogComments');
       if (comments.length === 0) {
+        await this.sdk.save('blogComments', []);
         console.log('Blog comments collection initialized');
       }
     } catch (error) {
@@ -248,6 +253,7 @@ export class DatabaseSeeder {
     try {
       const prospects = await this.sdk.get('prospects');
       if (prospects.length === 0) {
+        await this.sdk.save('prospects', []);
         console.log('Prospects collection initialized');
       }
     } catch (error) {

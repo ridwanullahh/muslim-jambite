@@ -9,18 +9,10 @@ import { AdminStudentManager } from '@/components/admin/AdminStudentManager';
 import { AdminResourceManager } from '@/components/admin/AdminResourceManager';
 import { AdminQuizPollManager } from '@/components/admin/AdminQuizPollManager';
 import { AdminSettings } from '@/components/admin/AdminSettings';
-import { useEffect } from 'react';
 import { DatabaseSeeder } from '@/services/DatabaseSeeder';
 
 export const AdminDashboard = () => {
   const { isAuthenticated, isLoading } = useAuth();
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      // Initialize database on admin login
-      DatabaseSeeder.getInstance().initializeDatabase();
-    }
-  }, [isAuthenticated]);
 
   if (isLoading) {
     return (
