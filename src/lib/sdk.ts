@@ -1,9 +1,9 @@
 
-import { UniversalSDK } from '../types/sdk';
+import { default as UniversalSDK } from '../types/sdk';
 import { DatabaseSeeder } from '../services/DatabaseSeeder';
 
 // Initialize SDK
-const sdk = UniversalSDK.getInstance({
+const sdk = new UniversalSDK({
   owner: import.meta.env.VITE_GITHUB_OWNER || 'ridwanullahh',
   repo: import.meta.env.VITE_GITHUB_REPO || 'muslimjambitebetadb',
   token: import.meta.env.VITE_GITHUB_TOKEN || '',
