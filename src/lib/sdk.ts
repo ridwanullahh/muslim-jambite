@@ -4,9 +4,9 @@ import { DatabaseSeeder } from '../services/DatabaseSeeder';
 
 // Initialize SDK
 const sdk = new UniversalSDK({
-  owner: import.meta.env.VITE_GITHUB_OWNER || 'ridwanullahh',
-  repo: import.meta.env.VITE_GITHUB_REPO || 'muslimjambitebetadb',
-  token: import.meta.env.VITE_GITHUB_TOKEN || '',
+  owner: import.meta.env.VITE_GITHUB_OWNER,
+  repo: import.meta.env.VITE_GITHUB_REPO,
+  token: import.meta.env.VITE_GITHUB_TOKEN,
   branch: import.meta.env.VITE_GITHUB_BRANCH || 'main',
   basePath: 'db',
   schemas: {
