@@ -1,7 +1,0 @@
-name = "muslim-jambite-portal"
-main = "worker/worker.ts"
-compatibility_date = "2024-04-05"
-account_id = "YOUR_ACCOUNT_ID" # Please replace with your Cloudflare account ID
-
-[site]
-bucket = "./dist"
