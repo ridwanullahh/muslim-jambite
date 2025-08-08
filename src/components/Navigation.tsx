@@ -97,70 +97,97 @@ export const Navigation = ({ darkMode, toggleDarkMode, isBannerVisible }: Naviga
 
   return (
     <>
-      {/* Desktop Navigation */}
-      <header className={`fixed left-0 right-0 z-40 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 transition-all duration-300`} style={{ top: topOffset }}>
+      {/* Modern Desktop Navigation */}
+      <header className={`fixed left-0 right-0 z-40 bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-800/50 transition-all duration-500 shadow-lg shadow-gray-900/5`} style={{ top: topOffset }}>
         <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            {/* Logo */}
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-brand-primary to-brand-accent flex items-center justify-center shadow-lg">
-                <BookOpen className="w-5 h-5 text-white" />
+          <div className="flex justify-between items-center h-20">
+            {/* Enhanced Logo */}
+            <div className="flex items-center space-x-4 group cursor-pointer" onClick={() => scrollToSection('home')}>
+              <div className="relative">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-r from-brand-primary to-brand-accent flex items-center justify-center shadow-xl shadow-brand-primary/25 group-hover:shadow-2xl group-hover:shadow-brand-primary/40 transition-all duration-300 group-hover:scale-110">
+                  <BookOpen className="w-6 h-6 text-white group-hover:rotate-12 transition-transform duration-300" />
+                </div>
+                <div className="absolute -inset-1 bg-gradient-to-r from-brand-primary to-brand-accent rounded-2xl blur opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
               </div>
-              <div>
-                <span className="text-xl font-bold text-gray-900 dark:text-white font-inter">
+              <div className="hidden sm:block">
+                <span className="text-2xl font-bold text-gray-900 dark:text-white font-inter group-hover:text-brand-primary transition-colors duration-300">
                   Muslim<span className="text-brand-primary">Jambite</span>
                 </span>
-                <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                <div className="text-xs text-gray-500 dark:text-gray-400 font-medium tracking-wider">
                   Excellence • Faith • Future
                 </div>
               </div>
             </div>
 
-            {/* Desktop Menu */}
-            <div className="hidden md:flex items-center space-x-1">
+            {/* Enhanced Desktop Menu */}
+            <div className="hidden md:flex items-center space-x-2">
               {navItems.map((item) => (
                 <div key={item.id} className="relative">
                   <button
                     onClick={() => item.id === 'programs' ? setShowMegaMenu(!showMegaMenu) : scrollToSection(item.id)}
                     onMouseEnter={() => item.id === 'programs' && setShowMegaMenu(true)}
-                    className={`flex items-center space-x-2 px-4 py-2 rounded-xl transition-all duration-200 font-medium ${
+                    className={`group flex items-center space-x-2 px-6 py-3 rounded-2xl transition-all duration-300 font-semibold text-sm relative overflow-hidden ${
                       activeSection === item.id
-                        ? 'bg-brand-primary text-white shadow-lg shadow-brand-primary/25'
-                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-brand-primary'
+                        ? 'bg-gradient-to-r from-brand-primary to-brand-accent text-white shadow-xl shadow-brand-primary/30 scale-105'
+                        : 'text-gray-700 dark:text-gray-300 hover:bg-white/80 hover:backdrop-blur-sm hover:shadow-lg hover:text-brand-primary hover:scale-105 hover:-translate-y-0.5'
                     }`}
                   >
-                    <span>{item.label}</span>
+                    {/* Shimmer effect for active items */}
+                    {activeSection === item.id && (
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out" />
+                    )}
+                    <span className="relative z-10">{item.label}</span>
                     {item.id === 'programs' && (
-                      <ChevronDown className={`w-4 h-4 transition-transform ${showMegaMenu ? 'rotate-180' : ''}`} />
+                      <ChevronDown className={`w-4 h-4 transition-transform duration-300 relative z-10 ${showMegaMenu ? 'rotate-180' : ''}`} />
                     )}
                   </button>
                 </div>
               ))}
             </div>
 
-            {/* Actions */}
-            <div className="flex items-center space-x-4">
+            {/* Enhanced Actions */}
+            <div className="flex items-center space-x-3">
+              {/* Modern Dark Mode Toggle */}
               <button
                 onClick={toggleDarkMode}
-                className="p-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                className="group relative p-3 rounded-2xl bg-gray-100/80 dark:bg-gray-800/80 backdrop-blur-sm text-gray-600 dark:text-gray-300 hover:bg-brand-primary hover:text-white transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-brand-primary/25"
+                aria-label="Toggle dark mode"
               >
-                {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-              </button>
-              
-              <button
-                onClick={() => scrollToSection('registration')}
-                className="hidden md:flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-brand-primary to-brand-accent text-white rounded-xl hover:shadow-lg hover:shadow-brand-primary/25 transition-all duration-300 font-semibold text-sm"
-              >
-                <span>Register Now</span>
-                <ArrowRight className="w-4 h-4" />
+                <div className="relative z-10">
+                  {darkMode ? (
+                    <Sun className="w-5 h-5 group-hover:rotate-180 transition-transform duration-500" />
+                  ) : (
+                    <Moon className="w-5 h-5 group-hover:-rotate-12 transition-transform duration-300" />
+                  )}
+                </div>
+                <div className="absolute inset-0 bg-gradient-to-r from-brand-primary to-brand-accent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-sm"></div>
               </button>
 
-              {/* Mobile Menu Toggle */}
+              {/* Enhanced Register Button */}
+              <button
+                onClick={() => scrollToSection('registration')}
+                className="hidden md:flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-brand-primary to-brand-accent text-white rounded-2xl hover:shadow-xl hover:shadow-brand-primary/30 transition-all duration-300 font-semibold hover:scale-105 hover:-translate-y-0.5 group relative overflow-hidden text-sm"
+              >
+                {/* Shimmer effect */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out" />
+                <span className="relative z-10">Register Now</span>
+                <ArrowRight className="w-4 h-4 relative z-10 group-hover:translate-x-1 transition-transform duration-300" />
+              </button>
+
+              {/* Enhanced Mobile Menu Toggle */}
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="md:hidden p-2 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                className="md:hidden group relative p-3 rounded-2xl bg-gray-100/80 dark:bg-gray-800/80 backdrop-blur-sm text-gray-600 dark:text-gray-300 hover:bg-brand-primary hover:text-white transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-brand-primary/25"
+                aria-label="Toggle menu"
               >
-                {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+                <div className="relative z-10">
+                  {isMenuOpen ? (
+                    <X className="w-6 h-6 group-hover:rotate-90 transition-transform duration-300" />
+                  ) : (
+                    <Menu className="w-6 h-6 group-hover:scale-110 transition-transform duration-300" />
+                  )}
+                </div>
+                <div className="absolute inset-0 bg-gradient-to-r from-brand-primary to-brand-accent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-sm"></div>
               </button>
             </div>
           </div>
@@ -211,16 +238,16 @@ export const Navigation = ({ darkMode, toggleDarkMode, isBannerVisible }: Naviga
         />
       )}
 
-      {/* Mobile Menu */}
+      {/* Enhanced Mobile Menu */}
       <div
-        className={`fixed left-0 w-full bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 z-50 md:hidden transition-all duration-300 ${
-          isMenuOpen ? 'translate-y-0' : '-translate-y-full'
+        className={`fixed left-0 w-full bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-800/50 z-50 md:hidden transition-all duration-500 shadow-2xl ${
+          isMenuOpen ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'
         }`}
         style={{ top: isBannerVisible ? '2.5rem' : '0' }}
       >
-        <div className="p-6 space-y-4 max-h-screen overflow-y-auto">
-          {navItems.map((item) => (
-            <div key={item.id}>
+        <div className="p-6 space-y-3 max-h-screen overflow-y-auto">
+          {navItems.map((item, index) => (
+            <div key={item.id} className="animate-fade-in-up" style={{ animationDelay: `${index * 100}ms` }}>
               <button
                 onClick={() => {
                   if (item.id === 'programs') {
@@ -229,15 +256,19 @@ export const Navigation = ({ darkMode, toggleDarkMode, isBannerVisible }: Naviga
                     scrollToSection(item.id);
                   }
                 }}
-                className={`flex items-center justify-between w-full px-4 py-3 rounded-xl transition-all duration-200 text-left ${
+                className={`group flex items-center justify-between w-full px-6 py-4 rounded-2xl transition-all duration-300 text-left font-semibold relative overflow-hidden ${
                   activeSection === item.id
-                    ? 'bg-brand-primary text-white'
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                    ? 'bg-gradient-to-r from-brand-primary to-brand-accent text-white shadow-lg shadow-brand-primary/25'
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100/80 dark:hover:bg-gray-800/80 hover:scale-105 hover:shadow-lg'
                 }`}
               >
-                <span className="font-medium">{item.label}</span>
+                {/* Shimmer effect for active items */}
+                {activeSection === item.id && (
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out" />
+                )}
+                <span className="relative z-10">{item.label}</span>
                 {item.id === 'programs' && (
-                  <ChevronDown className={`w-4 h-4 transition-transform ${showMobileMegaMenu ? 'rotate-180' : ''}`} />
+                  <ChevronDown className={`w-5 h-5 transition-transform duration-300 relative z-10 ${showMobileMegaMenu ? 'rotate-180' : ''}`} />
                 )}
               </button>
               
@@ -278,15 +309,20 @@ export const Navigation = ({ darkMode, toggleDarkMode, isBannerVisible }: Naviga
             </div>
           ))}
           
-          <div className="pt-4 mt-4 border-t border-gray-200 dark:border-gray-800">
+          <div className="pt-6 mt-6 border-t border-gray-200/50 dark:border-gray-800/50">
             <button
               onClick={() => {
                 scrollToSection('registration');
                 setIsMenuOpen(false);
               }}
-              className="w-full px-4 py-3 bg-gradient-to-r from-brand-primary to-brand-accent text-white rounded-xl hover:shadow-lg transition-all duration-300 font-semibold"
+              className="group w-full px-6 py-4 bg-gradient-to-r from-brand-primary to-brand-accent text-white rounded-2xl hover:shadow-xl hover:shadow-brand-primary/30 transition-all duration-300 font-bold text-lg relative overflow-hidden hover:scale-105"
             >
-              Register Now
+              {/* Shimmer effect */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out" />
+              <span className="relative z-10 flex items-center justify-center space-x-2">
+                <span>Register Now</span>
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
+              </span>
             </button>
           </div>
         </div>
