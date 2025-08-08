@@ -12,7 +12,7 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex">
       <AdminSidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
       <main className="flex-1 overflow-y-auto">
         <div className="md:hidden p-4">
@@ -20,7 +20,9 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
             {isSidebarOpen ? <X /> : <Menu />}
           </Button>
         </div>
-        {children}
+        <div className="p-6 md:p-10">
+          {children}
+        </div>
       </main>
     </div>
   );
