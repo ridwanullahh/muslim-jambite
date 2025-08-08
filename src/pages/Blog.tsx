@@ -117,15 +117,40 @@ export const Blog = () => {
         description="Discover insightful articles about Islamic education, academic preparation, and technology for Muslim students."
       />
       
-      {/* Hero Section */}
-      <section className="bg-gradient-to-r from-brand-primary to-brand-accent text-white py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6">
+      {/* Enhanced Hero Section */}
+      <section className="relative bg-gradient-to-br from-brand-primary via-brand-accent to-brand-primary text-white py-16 sm:py-20 md:py-24 overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-10" style={{
+          backgroundImage: `radial-gradient(circle at 1px 1px, white 1px, transparent 0)`,
+          backgroundSize: '40px 40px'
+        }}></div>
+
+        {/* Floating Elements */}
+        <div className="absolute top-10 left-10 w-32 h-32 bg-white/10 rounded-full blur-3xl animate-float"></div>
+        <div className="absolute bottom-10 right-10 w-48 h-48 bg-white/5 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }}></div>
+
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-6 sm:mb-8 animate-fade-in-up">
             Islamic Knowledge Hub
           </h1>
-          <p className="text-xl md:text-2xl mb-8 opacity-90">
+          <p className="text-lg sm:text-xl md:text-2xl mb-8 sm:mb-12 opacity-90 max-w-4xl mx-auto leading-relaxed animate-fade-in-up px-4" style={{ animationDelay: '200ms' }}>
             Empowering Muslim students with knowledge that bridges Deen and Dunya
           </p>
+
+          {/* Blog Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8 max-w-3xl mx-auto mt-12">
+            {[
+              { icon: '📚', number: '50+', label: 'Articles' },
+              { icon: '🎓', number: '1000+', label: 'Readers' },
+              { icon: '⭐', number: '4.9', label: 'Rating' }
+            ].map((stat, index) => (
+              <div key={index} className="text-center animate-bounce-in" style={{ animationDelay: `${(index + 1) * 300}ms` }}>
+                <div className="text-2xl sm:text-3xl mb-2">{stat.icon}</div>
+                <div className="text-xl sm:text-2xl md:text-3xl font-bold mb-1">{stat.number}</div>
+                <div className="text-sm sm:text-base opacity-80">{stat.label}</div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
