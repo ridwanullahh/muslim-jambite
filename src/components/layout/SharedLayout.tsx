@@ -3,6 +3,7 @@ import { ReactNode } from 'react';
 import { Navigation } from '../Navigation';
 import { Footer } from '../Footer';
 import { StickyFomoBanner } from '../ui/StickyFomoBanner';
+import { BottomNav } from '../BottomNav';
 import { useCountdown } from '@/hooks/useCountdown';
 
 interface SharedLayoutProps {
@@ -30,10 +31,11 @@ export const SharedLayout = ({ children, darkMode, toggleDarkMode }: SharedLayou
         toggleDarkMode={toggleDarkMode}
         isBannerVisible={isBannerVisible}
       />
-      <main className={isBannerVisible ? 'pt-16' : 'pt-0'}>
+      <main className={(isBannerVisible ? 'pt-16 ' : 'pt-0 ') + 'pb-24 md:pb-0'}>
         {children}
       </main>
       <Footer />
+      <BottomNav isBannerVisible={isBannerVisible} />
     </div>
   );
 };

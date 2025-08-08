@@ -41,10 +41,10 @@ export const AdminSidebar = ({ isOpen, setIsOpen }: AdminSidebarProps) => {
 
   return (
     <div className={cn(
-      "bg-white shadow-lg h-full flex flex-col transition-all duration-300",
+      "bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 h-full flex flex-col transition-all duration-300",
       isOpen ? "w-64" : "w-20"
     )}>
-      <div className="p-4 border-b flex items-center justify-between">
+      <div className="p-4 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
         {isOpen && (
           <div>
             <h2 className="text-xl font-bold text-gray-900">Admin</h2>
@@ -62,10 +62,10 @@ export const AdminSidebar = ({ isOpen, setIsOpen }: AdminSidebarProps) => {
             key={item.name}
             to={item.href}
             className={({ isActive }) => cn(
-              "flex items-center px-4 py-3 text-sm font-medium transition-colors",
+              "flex items-center px-4 py-3 text-sm font-medium transition-colors rounded-lg mx-2",
               isActive
                 ? 'bg-brand-primary text-white'
-                : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900',
+                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white',
               !isOpen && "justify-center"
             )}
           >
@@ -75,7 +75,7 @@ export const AdminSidebar = ({ isOpen, setIsOpen }: AdminSidebarProps) => {
         ))}
       </nav>
 
-      <div className="p-4 border-t">
+      <div className="p-4 border-t border-gray-200 dark:border-gray-800">
         <Button
           onClick={logout}
           variant="outline"
